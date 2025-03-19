@@ -105,6 +105,20 @@ func main() {
 	group.GET("/jim/friends/myapplications", apis.MyFriendApplications)
 	group.GET("/jim/friends/mypendingapplications", apis.MyPendingFriendApplications)
 
+	//post
+	group.GET("/jim/posts/list", apis.PostList)
+	group.GET("/jim/posts/info")
+	group.POST("/jim/posts/add", apis.PostAdd)
+	group.POST("/jim/posts/update")
+	group.POST("/jim/posts/del")
+	group.POST("/jim/posts/reactions/add")
+	group.GET("/jim/posts/reactions/list")
+
+	group.GET("/jim/postcomments/list")
+	group.POST("/jim/postcomments/add")
+	group.POST("/jim/postcomments/update")
+	group.POST("/jim/postcomments/del")
+
 	fmt.Println("Start Server with port:", configures.Config.Port)
 	server.Run(fmt.Sprintf(":%d", configures.Config.Port))
 

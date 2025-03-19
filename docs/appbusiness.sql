@@ -242,3 +242,40 @@ CREATE TABLE `telebots` (
   UNIQUE KEY `uniq_bot` (`app_key`,`bot_token`),
   KEY `idx_user` (`app_key`,`user_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+DROP TABLE IF EXISTS `posts`;
+CREATE TABLE `posts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `post_id` varchar(32) DEFAULT NULL,
+  `title` varchar(200) DEFAULT NULL,
+  `content` mediumblob,
+  `content_brief` varchar(5000) DEFAULT NULL,
+  `is_delete` tinyint DEFAULT '0',
+  `user_id` varchar(32) DEFAULT NULL,
+  `post_exset` mediumblob,
+  `created_time` bigint DEFAULT '0',
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `status` tinyint DEFAULT '0',
+  `app_key` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniq_id` (`app_key`,`post_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+DROP TABLE IF EXISTS `postcomments`;
+CREATE TABLE `postcomments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `comment_id` varchar(32) DEFAULT NULL,
+  `post_id` varchar(32) DEFAULT NULL,
+  `parent_comment_id` varchar(32) DEFAULT NULL,
+  `parent_user_id` varchar(32) DEFAULT NULL,
+  `user_id` varchar(32) DEFAULT NULL,
+  `content` varchar(5000) DEFAULT NULL,
+  `created_time` bigint DEFAULT NULL,
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `is_delete` tinyint DEFAULT '0',
+  `status` tinyint DEFAULT '0',
+  `app_key` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_id` (`app_key`,`comment_id`),
+  KEY `idx_post` (`app_key`,`post_id`,`created_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
