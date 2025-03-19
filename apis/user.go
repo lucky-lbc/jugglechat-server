@@ -1,43 +1,83 @@
 package apis
 
 import (
-	"appserver/services"
-	"net/http"
+	"bytes"
+	"encoding/base64"
+	"image/png"
+	"jugglechat-server/apimodels"
+	"jugglechat-server/errs"
+	"jugglechat-server/services"
+	"jugglechat-server/utils"
 
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
 	"github.com/gin-gonic/gin"
 )
 
-func UpdateUser(ctx *gin.Context) {
-	var req services.User
-	if err := ctx.BindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, services.GetError(services.ErrorCode_ParamRequired))
+func QryUserInfo(ctx *gin.Context) {
+	userId := ctx.Query("user_id")
+	code, user := services.QryUserInfo(services.ToCtx(ctx), userId)
+	if code != errs.IMErrorCode_SUCCESS {
+		ErrorHttpResp(ctx, code)
 		return
 	}
-	code := services.UpdateUser(req)
-	ctx.JSON(http.StatusOK, services.GetError(code))
+	SuccessHttpResp(ctx, user)
+}
+
+func UpdateUser(ctx *gin.Context) {
+	req := &apimodels.UserObj{}
+	if err := ctx.BindJSON(req); err != nil {
+		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	services.UpdateUser(services.ToCtx(ctx), req)
+	SuccessHttpResp(ctx, nil)
+}
+
+func UpdateUserSettings(ctx *gin.Context) {
+	req := &apimodels.UserSettings{}
+	if err := ctx.BindJSON(req); err != nil {
+		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.UpdateUserSettings(services.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		ErrorHttpResp(ctx, code)
+		return
+	}
+	SuccessHttpResp(ctx, nil)
 }
 
 func SearchByPhone(ctx *gin.Context) {
-	var req services.User
-	if err := ctx.BindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, services.GetError(services.ErrorCode_ParamRequired))
+	req := &apimodels.UserObj{}
+	if err := ctx.BindJSON(req); err != nil {
+		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	curUserId := GetCurrentUserId(ctx)
-	code, users := services.SearchByPhone(curUserId, req.Phone)
-	if code == services.ErrorCode_Success {
-		ctx.JSON(http.StatusOK, services.SuccessResp(users))
-	} else {
-		ctx.JSON(http.StatusOK, services.GetError(code))
+	code, users := services.SearchByPhone(services.ToCtx(ctx), req.Phone)
+	if code != errs.IMErrorCode_SUCCESS {
+		ErrorHttpResp(ctx, code)
+		return
 	}
+	SuccessHttpResp(ctx, users)
 }
 
-func QryUserInfo(ctx *gin.Context) {
-	userId := ctx.Query("user_id")
-	code, user := services.QryUserInfo(GetCurrentUserId(ctx), userId)
-	if code == services.ErrorCode_Success {
-		ctx.JSON(http.StatusOK, services.SuccessResp(user))
-	} else {
-		ctx.JSON(http.StatusOK, services.GetError(code))
+func QryUserQrCode(ctx *gin.Context) {
+	userId := ctx.GetString(string(services.CtxKey_RequesterId))
+
+	m := map[string]interface{}{
+		"action":  "add_friend",
+		"user_id": userId,
 	}
+	buf := bytes.NewBuffer([]byte{})
+	qrCode, _ := qr.Encode(utils.ToJson(m), qr.M, qr.Auto)
+	qrCode, _ = barcode.Scale(qrCode, 400, 400)
+	err := png.Encode(buf, qrCode)
+	if err != nil {
+		ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
+		return
+	}
+	SuccessHttpResp(ctx, map[string]string{
+		"qr_code": base64.StdEncoding.EncodeToString(buf.Bytes()),
+	})
 }

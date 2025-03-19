@@ -1,0 +1,83 @@
+package services
+
+import (
+	"context"
+	"jugglechat-server/apimodels"
+	"jugglechat-server/services/imsdk"
+	"jugglechat-server/utils"
+
+	juggleimsdk "github.com/juggleim/imserver-sdk-go"
+)
+
+func SendGrpNotify(ctx context.Context, grpId string, notify *apimodels.GroupNotify) {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.SendGroupMsg(juggleimsdk.Message{
+			SenderId:   requestId,
+			TargetIds:  []string{grpId},
+			MsgType:    apimodels.GroupNotifyMsgType,
+			MsgContent: utils.ToJson(notify),
+			IsStorage:  utils.BoolPtr(true),
+			IsCount:    utils.BoolPtr(false),
+		})
+	}
+}
+
+func SendFriendNotify(ctx context.Context, targetId string, notify *apimodels.FriendNotify) {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.SendPrivateMsg(juggleimsdk.Message{
+			SenderId:   requestId,
+			TargetIds:  []string{targetId},
+			MsgType:    apimodels.FriendNotifyMsgType,
+			MsgContent: utils.ToJson(notify),
+			IsStorage:  utils.BoolPtr(true),
+			IsCount:    utils.BoolPtr(false),
+		})
+	}
+}
+
+func SendFriendApplyNotify(ctx context.Context, targetId string, notify *apimodels.FriendApplyNotify) {
+	appkey := GetAppKeyFromCtx(ctx)
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.SendSystemMsg(juggleimsdk.Message{
+			SenderId:   apimodels.SystemFriendApplyConverId,
+			TargetIds:  []string{targetId},
+			MsgType:    apimodels.FriendApplicationMsgType,
+			MsgContent: utils.ToJson(notify),
+		})
+	}
+}
+
+func SendPriMsg(ctx context.Context, senderId, targetId string, msgType string, msg interface{}) {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.SendPrivateMsg(juggleimsdk.Message{
+			SenderId:   requestId,
+			TargetIds:  []string{targetId},
+			MsgType:    msgType,
+			MsgContent: utils.ToJson(msg),
+		})
+	}
+}
+
+func SendGroupMsg(ctx context.Context, senderId, targetId string, msgType string, msg interface{}) {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.SendGroupMsg(juggleimsdk.Message{
+			SenderId:   requestId,
+			TargetIds:  []string{targetId},
+			MsgType:    msgType,
+			MsgContent: utils.ToJson(msg),
+		})
+	}
+}

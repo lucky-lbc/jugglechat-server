@@ -8,31 +8,33 @@ import (
 
 type AppConfig struct {
 	Port int `yaml:"port"`
-	Log  struct {
+
+	Log struct {
 		LogPath string `yaml:"logPath"`
 		LogName string `yaml:"logName"`
 	} `ymal:"log"`
+
 	Mysql struct {
 		User     string `yaml:"user"`
 		Password string `yaml:"password"`
 		Address  string `yaml:"address"`
 		DbName   string `yaml:"name"`
+		Debug    bool   `yaml:"debug"`
 	} `yaml:"mysql"`
-	Qiniu struct {
-		AccessKey string `yaml:"accessKey"`
-		SecretKey string `yaml:"secretKey"`
-		Bucket    string `yaml:"bucket"`
-		Domain    string `yaml:"domain"`
-	} `yaml:"qiniu"`
-	BaiduSms struct {
-		ApiKey    string `yaml:"apiKey"`
-		SecretKey string `yaml:"secretKey"`
-	} `yaml:"baidusms"`
-	Im struct {
-		AppKey    string `yaml:"appKey"`
-		AppSecret string `yaml:"appSecret"`
-		ApiUrl    string `yaml:"apiUrl"`
-	} `yaml:"im"`
+
+	ImApiDomain string `yaml:"imApiDomain"`
+
+	ConnectManager struct {
+		WsPort      int `yaml:"wsPort"`
+		WsProxyPort int `yaml:"proxyPort"`
+	} `yaml:"connectManager"`
+
+	AiBotCallbackUrl string `yaml:"aiBotCallbackUrl"`
+
+	BotConnector struct {
+		Domain string `yaml:"domain"`
+		ApiKey string `yaml:"apiKey"`
+	} `yaml:"botConnector"`
 }
 
 var Config AppConfig

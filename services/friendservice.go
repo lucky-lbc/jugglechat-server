@@ -1,102 +1,348 @@
 package services
 
 import (
-	"appserver/dbs"
-	"appserver/utils"
+	"context"
+	"jugglechat-server/apimodels"
+	"jugglechat-server/errs"
+	"jugglechat-server/services/imsdk"
+	"jugglechat-server/storages"
+	"jugglechat-server/storages/models"
+	"jugglechat-server/utils"
+	"time"
 
-	imsdk "github.com/juggleim/imserver-sdk-go"
+	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
 
-func AddFriend(userId, friendId string) ErrorCode {
-	var userIdInt, friendIdInt int64
-	userIdInt, err := utils.Decode(userId)
-	if err != nil || userIdInt == 0 {
-		return ErrorCode_IdDecodeFail
+func QryFriends(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.Users) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendRelStorage()
+	var startId int64 = 0
+	if offset != "" {
+		startId, _ = utils.DecodeInt(offset)
 	}
-	friendIdInt, err = utils.Decode(friendId)
-	if err != nil {
-		return ErrorCode_IdDecodeFail
+	ret := &apimodels.Users{
+		Items:  []*apimodels.UserObj{},
+		Offset: "",
 	}
-	friendDao := dbs.FriendDao{}
-	friends := []dbs.FriendDao{}
-	friends = append(friends, dbs.FriendDao{
-		UserId:   userIdInt,
-		FriendId: friendIdInt,
-	})
-	friends = append(friends, dbs.FriendDao{
-		UserId:   friendIdInt,
-		FriendId: userIdInt,
-	})
-	err = friendDao.BatchCreate(friends)
-	if err != nil {
-		return ErrorCode_UserDbUpdateFail
-	}
-	//send notify msg
-	notify := &FriendNotify{
-		Type: 0,
-	}
-	SendPrivateMsg(imsdk.Message{
-		SenderId:       userId,
-		TargetIds:      []string{friendId},
-		MsgType:        FriendNotifyMsgType,
-		MsgContent:     utils.ToJson(notify),
-		IsStorage:      utils.BoolPtr(true),
-		IsCount:        utils.BoolPtr(false),
-		IsNotifySender: utils.BoolPtr(true),
-	})
-	return ErrorCode_Success
-
-}
-
-var FriendNotifyMsgType string = "jgd:friendntf"
-
-type FriendNotify struct {
-	Type int `json:"type"`
-}
-
-func QryFrineds(userId, startId string, count int) (ErrorCode, *Friends) {
-	friendDao := dbs.FriendDao{}
-	userIdInt, err := utils.Decode(userId)
-	if err != nil {
-		return ErrorCode_IdDecodeFail, nil
-	}
-	var startIdInt int64 = 0
-	if startId != "" {
-		startIdInt, err = utils.Decode(startId)
-		if err != nil {
-			startIdInt = 0
+	rels, err := storage.QueryFriendRels(appkey, userId, startId, limit)
+	if err == nil {
+		uIds := []string{}
+		for _, rel := range rels {
+			ret.Offset, _ = utils.EncodeInt(rel.ID)
+			uIds = append(uIds, rel.FriendId)
+			ret.Items = append(ret.Items, &apimodels.UserObj{
+				UserId: rel.FriendId,
+				Pinyin: rel.OrderTag,
+			})
 		}
-	}
-	friends, err := friendDao.QueryFriends(userIdInt, startIdInt, int64(count))
-	if err != nil {
-		return ErrorCode_UserDbReadFail, nil
-	}
-	resp := &Friends{
-		Items: []*User{},
-	}
-	userDao := dbs.UserDao{}
-	for _, friend := range friends {
-		userdb := userDao.FindByUserId(friend.FriendId)
-		if userdb != nil {
-			idStr, _ := utils.Encode(userdb.ID)
-			fri := &User{
-				UserId:   idStr,
-				Nickname: userdb.Nickname,
-				Avatar:   userdb.Avatar,
-				Status:   userdb.Status,
-				Phone:    userdb.Phone,
+		userStorage := storages.NewUserStorage()
+		userMap, err := userStorage.FindByUserIds(appkey, uIds)
+		if err == nil {
+			for _, user := range ret.Items {
+				if u, exist := userMap[user.UserId]; exist {
+					user.Nickname = u.Nickname
+					user.Avatar = u.UserPortrait
+					user.UserType = u.UserType
+				}
 			}
-			resp.Items = append(resp.Items, fri)
 		}
 	}
-	return ErrorCode_Success, resp
+	return errs.IMErrorCode_SUCCESS, ret
 }
 
-type Friends struct {
-	Items []*User `json:"items"`
+func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) (errs.IMErrorCode, *apimodels.Users) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendRelStorage()
+	rels, err := storage.QueryFriendRelsWithPage(appkey, userId, orderTag, page, size)
+	ret := &apimodels.Users{
+		Items: []*apimodels.UserObj{},
+	}
+	if err == nil {
+		uIds := []string{}
+		for _, rel := range rels {
+			uIds = append(uIds, rel.FriendId)
+			ret.Items = append(ret.Items, &apimodels.UserObj{
+				UserId: rel.FriendId,
+				Pinyin: rel.OrderTag,
+			})
+		}
+		userStorage := storages.NewUserStorage()
+		userMap, err := userStorage.FindByUserIds(appkey, uIds)
+		if err == nil {
+			for _, user := range ret.Items {
+				if u, exist := userMap[user.UserId]; exist {
+					user.Nickname = u.Nickname
+					user.Avatar = u.UserPortrait
+					user.UserType = u.UserType
+				}
+			}
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
 }
 
-type Friend struct {
-	UserId   string `json:"user_id"`
-	FriendId string `json:"friend_id"`
+func AddFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendRelStorage()
+	for _, friendId := range req.FriendIds {
+		storage.BatchUpsert([]models.FriendRel{
+			{
+				AppKey:   appkey,
+				UserId:   userId,
+				FriendId: friendId,
+			},
+			{
+				AppKey:   appkey,
+				UserId:   friendId,
+				FriendId: userId,
+			},
+		})
+		// sync to imserver
+		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId:    userId,
+				FriendIds: []string{friendId},
+			})
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId:    friendId,
+				FriendIds: []string{userId},
+			})
+		}
+		//send notify msg
+		SendFriendNotify(ctx, friendId, &apimodels.FriendNotify{
+			Type: 0,
+		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func DelFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendRelStorage()
+	storage.BatchDelete(appkey, userId, req.FriendIds)
+	// sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.DelFriends(juggleimsdk.FriendIds{
+			UserId:    userId,
+			FriendIds: req.FriendIds,
+		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func ApplyFriend(ctx context.Context, req *apimodels.ApplyFriend) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	fStorage := storages.NewFriendRelStorage()
+	//check friend relation
+	if checkFriend(ctx, req.FriendId, userId) {
+		fStorage.Upsert(models.FriendRel{
+			AppKey:   appkey,
+			UserId:   userId,
+			FriendId: req.FriendId,
+		})
+		// sync to im
+		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId:    userId,
+				FriendIds: []string{req.FriendId},
+			})
+		}
+		storage := storages.NewFriendApplicationStorage()
+		storage.Upsert(models.FriendApplication{
+			RecipientId: req.FriendId,
+			SponsorId:   userId,
+			ApplyTime:   time.Now().UnixMilli(),
+			Status:      models.FriendApplicationStatus(models.FriendApplicationStatus_Agree),
+			AppKey:      appkey,
+		})
+		return errs.IMErrorCode_SUCCESS
+	}
+	friendSettings := GetUserSettings(ctx, req.FriendId)
+	if friendSettings.FriendVerifyType == apimodels.FriendVerifyType_DeclineFriend {
+		return errs.IMErrorCode_APP_FRIEND_APPLY_DECLINE
+	} else if friendSettings.FriendVerifyType == apimodels.FriendVerifyType_NeedFriendVerify {
+		storage := storages.NewFriendApplicationStorage()
+		storage.Upsert(models.FriendApplication{
+			RecipientId: req.FriendId,
+			SponsorId:   userId,
+			ApplyTime:   time.Now().UnixMilli(),
+			Status:      models.FriendApplicationStatus(models.FriendApplicationStatus_Apply),
+			AppKey:      appkey,
+		})
+		//send notify msg
+		SendFriendApplyNotify(ctx, req.FriendId, &apimodels.FriendApplyNotify{
+			SponsorId:   userId,
+			RecipientId: req.FriendId,
+		})
+	} else if friendSettings.FriendVerifyType == apimodels.FriendVerifyType_NoNeedFriendVerify {
+		fStorage.BatchUpsert([]models.FriendRel{
+			{
+				AppKey:   appkey,
+				UserId:   userId,
+				FriendId: req.FriendId,
+			},
+			{
+				AppKey:   appkey,
+				UserId:   req.FriendId,
+				FriendId: userId,
+			},
+		})
+		// sync to im
+		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId:    userId,
+				FriendIds: []string{req.FriendId},
+			})
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId:    req.FriendId,
+				FriendIds: []string{userId},
+			})
+		}
+		//send notify msg
+		SendFriendNotify(ctx, req.FriendId, &apimodels.FriendNotify{
+			Type: 0,
+		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func ConfirmFriend(ctx context.Context, req *apimodels.ConfirmFriend) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendApplicationStorage()
+	if req.IsAgree {
+		fStorage := storages.NewFriendRelStorage()
+		fStorage.BatchUpsert([]models.FriendRel{
+			{
+				AppKey:   appkey,
+				UserId:   userId,
+				FriendId: req.SponsorId,
+			},
+			{
+				AppKey:   appkey,
+				UserId:   req.SponsorId,
+				FriendId: userId,
+			},
+		})
+		// sync to im
+		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId:    userId,
+				FriendIds: []string{req.SponsorId},
+			})
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId:    req.SponsorId,
+				FriendIds: []string{userId},
+			})
+		}
+		//send notify msg
+		SendFriendNotify(ctx, req.SponsorId, &apimodels.FriendNotify{
+			Type: 1,
+		})
+		storage.UpdateStatus(appkey, req.SponsorId, userId, models.FriendApplicationStatus_Agree)
+	} else {
+		storage.UpdateStatus(appkey, req.SponsorId, userId, models.FriendApplicationStatus_Decline)
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func checkFriend(ctx context.Context, userId, friendId string) bool {
+	results := CheckFriends(ctx, userId, []string{friendId})
+	if isFriend, exist := results[friendId]; exist {
+		return isFriend
+	}
+	return false
+}
+
+func QryMyFriendApplications(ctx context.Context, startTime int64, count int32, order int32) (errs.IMErrorCode, *apimodels.QryFriendApplicationsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendApplicationStorage()
+	ret := &apimodels.QryFriendApplicationsResp{
+		Items: []*apimodels.FriendApplicationItem{},
+	}
+	applications, err := storage.QueryMyApplications(appkey, userId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			ret.Items = append(ret.Items, &apimodels.FriendApplicationItem{
+				Recipient: &apimodels.UserObj{
+					UserId: application.RecipientId,
+				},
+				Status:    int32(application.Status),
+				ApplyTime: application.ApplyTime,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func QryMyPendingFriendApplications(ctx context.Context, startTime int64, count int32, order int32) (errs.IMErrorCode, *apimodels.QryFriendApplicationsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendApplicationStorage()
+	ret := &apimodels.QryFriendApplicationsResp{
+		Items: []*apimodels.FriendApplicationItem{},
+	}
+	applications, err := storage.QueryPendingApplications(appkey, userId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			ret.Items = append(ret.Items, &apimodels.FriendApplicationItem{
+				Sponsor: &apimodels.UserObj{
+					UserId: application.SponsorId,
+				},
+				Status:    int32(application.Status),
+				ApplyTime: application.ApplyTime,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func QryFriendApplications(ctx context.Context, startTime, count int64, order int32) (errs.IMErrorCode, *apimodels.QryFriendApplicationsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendApplicationStorage()
+	ret := &apimodels.QryFriendApplicationsResp{
+		Items: []*apimodels.FriendApplicationItem{},
+	}
+	applications, err := storage.QueryApplications(appkey, userId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			item := &apimodels.FriendApplicationItem{
+				Status:    int32(application.Status),
+				ApplyTime: application.ApplyTime,
+			}
+			if userId == application.SponsorId {
+				item.IsSponsor = true
+				item.TargetUser = GetUser(ctx, application.RecipientId)
+			} else {
+				item.TargetUser = GetUser(ctx, application.SponsorId)
+			}
+			ret.Items = append(ret.Items, item)
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func CheckFriends(ctx context.Context, userId string, friendIds []string) map[string]bool {
+	ret := make(map[string]bool)
+	if len(friendIds) <= 0 {
+		return ret
+	}
+	for _, friend := range friendIds {
+		ret[friend] = false
+	}
+	storage := storages.NewFriendRelStorage()
+	rels, err := storage.QueryFriendRelsByFriendIds(GetAppKeyFromCtx(ctx), userId, friendIds)
+	if err == nil {
+		for _, rel := range rels {
+			ret[rel.FriendId] = true
+		}
+	}
+	return ret
 }

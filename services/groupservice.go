@@ -1,365 +1,708 @@
 package services
 
 import (
-	"appserver/dbs"
-	"appserver/utils"
+	"context"
+	"fmt"
+	"jugglechat-server/apimodels"
+	"jugglechat-server/errs"
+	"jugglechat-server/services/imsdk"
+	"jugglechat-server/storages"
+	"jugglechat-server/storages/models"
+	"jugglechat-server/utils"
 	"time"
 
-	imsdk "github.com/juggleim/imserver-sdk-go"
+	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
 
-type Group struct {
-	GroupId       string  `json:"group_id"`
-	GroupName     string  `json:"group_name"`
-	GroupPortrait string  `json:"group_portrait"`
-	GrpMembers    []*User `json:"members"`
-	IsNotify      bool    `json:"is_notify"`
-}
-
-type Groups struct {
-	Items []*Group `json:"items"`
-}
-
-func UpdateGroup(curUid string, grp Group) ErrorCode {
-	grpId, err := utils.Decode(grp.GroupId)
-	if err != nil || grpId == 0 {
-		return ErrorCode_ParseIntFail
-	}
-	groupDao := dbs.GroupDao{}
-	err = groupDao.UpdateGrpInfo(grpId, grp.GroupName, grp.GroupPortrait)
+func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GrpInfo) {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	grpStorage := storages.NewGroupStorage()
+	grpInfo, err := grpStorage.FindById(appkey, groupId)
 	if err != nil {
-		return ErrorCode_UserDbUpdateFail
+		return errs.IMErrorCode_APP_DEFAULT, nil
 	}
-	//sync to im
-	UpdateGroupInfo2Im(imsdk.GroupInfo{
-		GroupId:       grp.GroupId,
-		GroupName:     grp.GroupName,
-		GroupPortrait: grp.GroupPortrait,
-	})
-	if grp.IsNotify {
-		//send notify msg
-		notify := GroupNotify{
-			Operator: GetUserInfo(curUid),
-			Name:     grp.GroupName,
-			Type:     GroupNotifyType_Rename,
-		}
-		SendGroupMsg(imsdk.Message{
-			SenderId:       curUid,
-			TargetIds:      []string{grp.GroupId},
-			MsgType:        GroupNotifyMsgType,
-			MsgContent:     utils.ToJson(notify),
-			IsStorage:      utils.BoolPtr(true),
-			IsCount:        utils.BoolPtr(false),
-			IsNotifySender: utils.BoolPtr(true),
-		})
+	grpMemberStorage := storages.NewGroupMemberStorage()
+	memberCount := grpMemberStorage.CountByGroup(appkey, groupId)
+	ret := &apimodels.GrpInfo{
+		GroupId:       grpInfo.GroupId,
+		GroupName:     grpInfo.GroupName,
+		GroupPortrait: grpInfo.GroupPortrait,
+		Members:       []*apimodels.GroupMemberInfo{},
+		MemberCount:   int32(memberCount),
+		Owner:         &apimodels.GroupMemberInfo{},
+		GroupManagement: &apimodels.GroupManagement{
+			GroupMute:     grpInfo.IsMute,
+			MaxAdminCount: 10,
+		},
 	}
-	return ErrorCode_Success
-}
-
-func CreateGroup(curUid string, grp Group) (ErrorCode, *Group) {
-	grpDao := dbs.GroupDao{}
-	grpId, err := grpDao.Create(dbs.GroupDao{
-		GroupName:     grp.GroupName,
-		GroupPortrait: grp.GroupPortrait,
-		CreatedTime:   time.Now(),
-		UpdatedTime:   time.Now(),
-	})
-	if err != nil {
-		return ErrorCode_GrpDbInsertFail, nil
+	isMember := false
+	//check is member
+	member, err := grpMemberStorage.Find(appkey, groupId, requestId)
+	if err == nil && member != nil {
+		isMember = true
+		ret.GrpDisplayName = member.GrpDisplayName
 	}
-	curUserIdInt, _ := utils.Decode(curUid)
-	memberIdStrs := []string{}
-	members := []*User{}
-	if len(grp.GrpMembers) > 0 {
-		userDao := dbs.UserDao{}
-		memberDao := dbs.GroupMemberDao{}
-		dbMembers := []dbs.GroupMemberDao{}
-		needAddSelf := true
-		for _, member := range grp.GrpMembers {
-			if member.UserId == curUid {
-				needAddSelf = false
-			}
-			memberIdStrs = append(memberIdStrs, member.UserId)
-			userIdInt, err := utils.Decode(member.UserId)
-			if err == nil {
-				if member.UserId != curUid {
-					dbUser := userDao.FindByUserId(userIdInt)
-					u := &User{
-						UserId: member.UserId,
-					}
-					if dbUser != nil {
-						u.Avatar = dbUser.Avatar
-						u.Nickname = dbUser.Nickname
-					}
-					members = append(members, u)
-				}
-				dbMembers = append(dbMembers, dbs.GroupMemberDao{
-					GroupId:  grpId,
-					MemberId: userIdInt,
-				})
-			}
-		}
-		if needAddSelf && curUserIdInt > 0 {
-			dbMembers = append(dbMembers, dbs.GroupMemberDao{
-				GroupId:  grpId,
-				MemberId: curUserIdInt,
-			})
-			memberIdStrs = append(memberIdStrs, curUid)
-		}
-		if len(dbMembers) > 0 {
-			memberDao.BatchCreate(dbMembers)
-		}
+	if !isMember {
+		ret.MyRole = apimodels.GrpMemberRole_GrpNotMember
+		return errs.IMErrorCode_SUCCESS, ret
 	}
-	// add to im
-	grpIdStr, _ := utils.Encode(grpId)
-
-	code := CreateGroup2Im(imsdk.GroupMembersReq{
-		GroupId:       grpIdStr,
-		GroupName:     grp.GroupName,
-		GroupPortrait: grp.GroupPortrait,
-		MemberIds:     memberIdStrs,
-	})
-	if code != ErrorCode_Success {
-		return code, nil
-	}
-	// send notify msg
-	notify := &GroupNotify{
-		Operator: GetUserInfo(curUid),
-		Members:  members,
-		Type:     GroupNotifyType_AddMember,
-	}
-	SendGroupMsg(imsdk.Message{
-		SenderId:       curUid,
-		TargetIds:      []string{grpIdStr},
-		MsgType:        GroupNotifyMsgType,
-		MsgContent:     utils.ToJson(notify),
-		IsStorage:      utils.BoolPtr(true),
-		IsCount:        utils.BoolPtr(false),
-		IsNotifySender: utils.BoolPtr(true),
-	})
-
-	return ErrorCode_Success, &Group{
-		GroupId:       grpIdStr,
-		GroupName:     grp.GroupName,
-		GroupPortrait: grp.GroupPortrait,
-	}
-}
-
-var GroupNotifyMsgType string = "jgd:grpntf"
-
-type GroupNotify struct {
-	Operator *User           `json:"operator"`
-	Name     string          `json:"name"`
-	Members  []*User         `json:"members"`
-	Type     GroupNotifyType `json:"type"`
-}
-
-type GroupNotifyType int
-
-const (
-	GroupNotifyType_AddMember    = 1
-	GroupNotifyType_RemoveMember = 2
-	GroupNotifyType_Rename       = 3
-)
-
-func DelGroupMembers(curUid string, grp Group) ErrorCode {
-	grpId, err := utils.Decode(grp.GroupId)
-	if err != nil {
-		return ErrorCode_IdDecodeFail
-	}
-	memberIds := []string{}
-	members := []*User{}
-	if len(grp.GrpMembers) > 0 {
-		userDao := dbs.UserDao{}
-		memberDao := dbs.GroupMemberDao{}
-		delMemberIds := []int64{}
-		for _, member := range grp.GrpMembers {
-			memberIds = append(memberIds, member.UserId)
-			userIdInt, err := utils.Decode(member.UserId)
-			if err == nil {
-				delMemberIds = append(delMemberIds, userIdInt)
-				dbUser := userDao.FindByUserId(userIdInt)
-				u := &User{
-					UserId: member.UserId,
-				}
-				if dbUser != nil {
-					u.Nickname = dbUser.Nickname
-					u.Avatar = dbUser.Avatar
-				}
-				members = append(members, u)
-			}
-		}
-		if len(delMemberIds) > 0 {
-			memberDao.BatchDelete(grpId, delMemberIds)
-		}
-	}
-	if len(memberIds) > 0 {
-		// send notify msg
-		notify := &GroupNotify{
-			Operator: GetUserInfo(curUid),
-			Members:  members,
-			Type:     GroupNotifyType_RemoveMember,
-		}
-		SendGroupMsg(imsdk.Message{
-			SenderId:       curUid,
-			TargetIds:      []string{grp.GroupId},
-			MsgType:        GroupNotifyMsgType,
-			MsgContent:     utils.ToJson(notify),
-			IsStorage:      utils.BoolPtr(true),
-			IsCount:        utils.BoolPtr(false),
-			IsNotifySender: utils.BoolPtr(true),
-		})
-		code := DelGroupMembers2Im(imsdk.GroupMembersReq{
-			GroupId:   grp.GroupId,
-			MemberIds: memberIds,
-		})
-		if code != ErrorCode_Success {
-			return code
-		}
-	}
-	return ErrorCode_Success
-}
-
-func AddGroupMembers(curUid string, grp Group) ErrorCode {
-	grpId, err := utils.Decode(grp.GroupId)
-	if err != nil {
-		return ErrorCode_IdDecodeFail
-	}
-	memberIds := []string{}
-	members := []*User{}
-	if len(grp.GrpMembers) > 0 {
-		userDao := dbs.UserDao{}
-		memberDao := dbs.GroupMemberDao{}
-		dbMembers := []dbs.GroupMemberDao{}
-		for _, member := range grp.GrpMembers {
-			memberIds = append(memberIds, member.UserId)
-			userIdInt, err := utils.Decode(member.UserId)
-			if err == nil {
-				dbMembers = append(dbMembers, dbs.GroupMemberDao{
-					GroupId:  grpId,
-					MemberId: userIdInt,
-				})
-				if member.UserId != curUid {
-					dbUser := userDao.FindByUserId(userIdInt)
-					u := &User{
-						UserId: member.UserId,
-					}
-					if dbUser != nil {
-						u.Nickname = dbUser.Nickname
-						u.Avatar = dbUser.Avatar
-					}
-					members = append(members, u)
-				}
-			} else {
-				break
-			}
-		}
-		if len(grp.GrpMembers) != len(dbMembers) {
-			return ErrorCode_IdDecodeFail
-		}
-		if len(dbMembers) > 0 {
-			memberDao.BatchCreate(dbMembers)
-		}
-	}
-	if len(memberIds) > 0 {
-		code := AddGroupMembers2Im(imsdk.GroupMembersReq{
-			GroupId:   grp.GroupId,
-			MemberIds: memberIds,
-		})
-		if code != ErrorCode_Success {
-			return code
-		}
-		// send notify msg
-		notify := &GroupNotify{
-			Operator: GetUserInfo(curUid),
-			Members:  members,
-			Type:     GroupNotifyType_AddMember,
-		}
-		SendGroupMsg(imsdk.Message{
-			SenderId:       curUid,
-			TargetIds:      []string{grp.GroupId},
-			MsgType:        GroupNotifyMsgType,
-			MsgContent:     utils.ToJson(notify),
-			IsStorage:      utils.BoolPtr(true),
-			IsCount:        utils.BoolPtr(false),
-			IsNotifySender: utils.BoolPtr(true),
-		})
-	}
-	return ErrorCode_Success
-}
-
-func QryGroup(groupId string) (ErrorCode, *Group) {
-	//groupInfo
-	grpId, err := utils.Decode(groupId)
-	if err != nil {
-		return ErrorCode_IdDecodeFail, nil
-	}
-	grpDao := dbs.GroupDao{}
-	grpDb, err := grpDao.FindById(grpId)
-	if err != nil {
-		return ErrorCode_GrpDbQryFail, nil
-	}
-	grpIdStr, _ := utils.Encode(grpDb.ID)
-	grp := &Group{
-		GroupId:       grpIdStr,
-		GroupName:     grpDb.GroupName,
-		GroupPortrait: grpDb.GroupPortrait,
-		GrpMembers:    []*User{},
-	}
-	//groupMembers
-	grpMemberDao := dbs.GroupMemberDao{}
-	grpMembers, err := grpMemberDao.QueryMembers(grpId, 0, 1000)
-	if err != nil {
-		return ErrorCode_GrpDbQryFail, nil
-	}
-	userDao := dbs.UserDao{}
-	for _, member := range grpMembers {
-		userIdStr, _ := utils.Encode(member.MemberId)
-		userDb := userDao.FindByUserId(member.MemberId)
-		if userDb != nil {
-			grp.GrpMembers = append(grp.GrpMembers, &User{
-				UserId:   userIdStr,
-				Nickname: userDb.Nickname,
-				Avatar:   userDb.Avatar,
-			})
-		}
-	}
-	return ErrorCode_Success, grp
-}
-
-func QryMyGroups(curUid string, startId string, count int64) (ErrorCode, *Groups) {
-	retGrps := &Groups{
-		Items: []*Group{},
-	}
-	userIdInt, err := utils.Decode(curUid)
-	if err != nil || userIdInt <= 0 {
-		return ErrorCode_Success, retGrps
-	}
-	grpMemberDao := dbs.GroupMemberDao{}
-	startIdInt, err := utils.Decode(startId)
-	if err != nil || startIdInt <= 0 {
-		startIdInt = 0
-	}
-	grpMemRels, err := grpMemberDao.QueryGroupsByMemberId(userIdInt, startIdInt, count)
+	//grp setting
+	grpExtStorage := storages.NewGroupExtStorage()
+	exts, err := grpExtStorage.QryExtFields(appkey, groupId)
 	if err == nil {
-		grpIds := []int64{}
-		for _, grpRel := range grpMemRels {
-			grpIds = append(grpIds, grpRel.GroupId)
+		for _, ext := range exts {
+			if ext.ItemKey == apimodels.AttItemKey_GrpVerifyType {
+				verifyType := utils.ToInt(ext.ItemValue)
+				ret.GroupManagement.GroupVerifyType = verifyType
+			} else if ext.ItemKey == apimodels.AttItemKey_HideGrpMsg {
+				hidGrpMsg := utils.ToInt(ext.ItemValue)
+				var visible int32 = 0
+				if hidGrpMsg > 0 {
+					visible = 0
+				} else {
+					visible = 1
+				}
+				ret.GroupManagement.GroupHisMsgVisible = visible
+			}
 		}
-		if len(grpIds) > 0 {
-			grpDao := dbs.GroupDao{}
-			grpInfos, err := grpDao.FindByIds(grpIds)
-			if err == nil {
-				for _, grpInfo := range grpInfos {
-					grpIdStr, _ := utils.Encode(grpInfo.ID)
-					retGrps.Items = append(retGrps.Items, &Group{
-						GroupId:       grpIdStr,
-						GroupName:     grpInfo.GroupName,
-						GroupPortrait: grpInfo.GroupPortrait,
-					})
+	}
+	//grp administrator
+	administrators := map[string]bool{}
+	grpAdminStorage := storages.NewGroupAdminStorage()
+	admins, err := grpAdminStorage.QryAdmins(appkey, groupId)
+	if err == nil {
+		for _, admin := range admins {
+			administrators[admin.AdminId] = true
+		}
+	}
+	// my role
+	myRole := apimodels.GrpMemberRole_GrpMember // 0: 群成员；1:群主；2:群管理员；3:非群成员；
+	if requestId == grpInfo.CreatorId {
+		myRole = apimodels.GrpMemberRole_GrpCreator
+	} else if _, exist := administrators[requestId]; exist {
+		myRole = apimodels.GrpMemberRole_GrpAdmin
+	}
+	ret.MyRole = myRole
+	//owner
+	if grpInfo.CreatorId != "" {
+		ownerUser := GetUser(ctx, grpInfo.CreatorId)
+		if ownerUser != nil {
+			ret.Owner = &apimodels.GroupMemberInfo{
+				UserId:     ownerUser.UserId,
+				Nickname:   ownerUser.Nickname,
+				Avatar:     ownerUser.Avatar,
+				MemberType: ownerUser.UserType,
+			}
+		}
+	}
+	//top members
+	topMembers, err := grpMemberStorage.QueryMembers(appkey, groupId, 0, 20)
+	if err == nil && len(topMembers) > 0 {
+		for _, member := range topMembers {
+			role := apimodels.GrpMemberRole_GrpMember
+			if member.MemberId == grpInfo.CreatorId {
+				role = apimodels.GrpMemberRole_GrpCreator
+			} else if _, exist := administrators[member.MemberId]; exist {
+				role = apimodels.GrpMemberRole_GrpAdmin
+			}
+			ret.Members = append(ret.Members, &apimodels.GroupMemberInfo{
+				UserId: member.MemberId,
+				Role:   role,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func CheckGroupMembers(ctx context.Context, req *apimodels.CheckGroupMembersReq) (errs.IMErrorCode, *apimodels.CheckGroupMembersResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	ret := &apimodels.CheckGroupMembersResp{
+		GroupId:        req.GroupId,
+		MemberExistMap: map[string]bool{},
+	}
+	for _, memberId := range req.MemberIds {
+		ret.MemberExistMap[memberId] = false
+	}
+	storage := storages.NewGroupMemberStorage()
+	members, err := storage.FindByMemberIds(appkey, req.GroupId, req.MemberIds)
+	if err == nil {
+		for _, member := range members {
+			ret.MemberExistMap[member.MemberId] = true
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMErrorCode, *apimodels.GroupInfo) {
+	appkey := GetAppKeyFromCtx(ctx)
+	grpId := utils.GenerateUUIDShort11()
+	requestId := GetRequesterIdFromCtx(ctx)
+	memberIds := []string{requestId}
+	for _, memberId := range req.MemberIds {
+		if memberId != requestId {
+			memberIds = append(memberIds, memberId)
+		}
+	}
+	storage := storages.NewGroupStorage()
+	storage.Create(models.Group{
+		GroupId:       grpId,
+		GroupName:     req.GroupName,
+		GroupPortrait: req.GroupPortrait,
+		CreatorId:     requestId,
+	})
+	memberStorage := storages.NewGroupMemberStorage()
+	items := []models.GroupMember{}
+	for _, mId := range memberIds {
+		items = append(items, models.GroupMember{
+			GroupId:  grpId,
+			MemberId: mId,
+			AppKey:   appkey,
+		})
+	}
+	memberStorage.BatchCreate(items)
+	//sync to im server
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		code, _, err := sdk.CreateGroup(juggleimsdk.GroupMembersReq{
+			GroupId:       grpId,
+			GroupName:     req.GroupName,
+			GroupPortrait: req.GroupPortrait,
+			MemberIds:     memberIds,
+		})
+		if err != nil || code != 0 {
+			return errs.IMErrorCode(code), nil
+		}
+	}
+	//send notify msg
+	targetUsers := []*apimodels.UserObj{}
+	for _, memberId := range req.MemberIds {
+		targetUsers = append(targetUsers, GetUser(ctx, memberId))
+	}
+	notify := &apimodels.GroupNotify{
+		Operator: GetUser(ctx, requestId),
+		Members:  targetUsers,
+		Type:     apimodels.GroupNotifyType_AddMember,
+	}
+	SendGrpNotify(ctx, grpId, notify)
+	return errs.IMErrorCode_SUCCESS, &apimodels.GroupInfo{
+		GroupId:       grpId,
+		GroupName:     req.GroupName,
+		GroupPortrait: req.GroupPortrait,
+	}
+}
+
+func UpdateGroup(ctx context.Context, req *apimodels.GroupInfo) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewGroupStorage()
+	storage.UpdateGrpName(appkey, req.GroupId, req.GroupName, req.GroupPortrait)
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.UpdateGroup(juggleimsdk.GroupInfo{
+			GroupId:       req.GroupId,
+			GroupName:     req.GroupName,
+			GroupPortrait: req.GroupPortrait,
+		})
+	}
+	SendGrpNotify(ctx, req.GroupId, &apimodels.GroupNotify{
+		Operator: GetUser(ctx, requestId),
+		Name:     req.GroupName,
+		Type:     apimodels.GroupNotifyType_Rename,
+	})
+	return errs.IMErrorCode_SUCCESS
+}
+
+func DissolveGroup(ctx context.Context, groupId string) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewGroupStorage()
+	storage.Delete(appkey, groupId)
+	memberStorage := storages.NewGroupMemberStorage()
+	memberStorage.DeleteByGroupId(appkey, groupId)
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.DissolveGroup(groupId)
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func QuitGroup(ctx context.Context, groupId string) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	memberStorage := storages.NewGroupMemberStorage()
+	memberStorage.BatchDelete(appkey, groupId, []string{requestId})
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.GroupDelMembers(juggleimsdk.GroupMembersReq{
+			GroupId:   groupId,
+			MemberIds: []string{requestId},
+		})
+	}
+	SendGrpNotify(ctx, groupId, &apimodels.GroupNotify{
+		Operator: GetUser(ctx, requestId),
+		Members: []*apimodels.UserObj{
+			GetUser(ctx, requestId),
+		},
+		Type: apimodels.GroupNotifyType_RemoveMember,
+	})
+	return errs.IMErrorCode_SUCCESS
+}
+
+func AddGrpMembers(ctx context.Context, grpMembers *apimodels.GroupMembersReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	memberStorage := storages.NewGroupMemberStorage()
+	items := []models.GroupMember{}
+	for _, mId := range grpMembers.MemberIds {
+		items = append(items, models.GroupMember{
+			GroupId:  grpMembers.GroupId,
+			MemberId: mId,
+			AppKey:   appkey,
+		})
+	}
+	memberStorage.BatchCreate(items)
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.GroupAddMembers(juggleimsdk.GroupMembersReq{
+			GroupId:       grpMembers.GroupId,
+			GroupName:     grpMembers.GroupName,
+			GroupPortrait: grpMembers.GroupPortrait,
+			MemberIds:     grpMembers.MemberIds,
+		})
+	}
+	//send notify msg
+	targetUsers := []*apimodels.UserObj{}
+	for _, memberId := range grpMembers.MemberIds {
+		targetUsers = append(targetUsers, GetUser(ctx, memberId))
+	}
+	notify := &apimodels.GroupNotify{
+		Operator: GetUser(ctx, requestId),
+		Members:  targetUsers,
+		Type:     apimodels.GroupNotifyType_AddMember,
+	}
+	//send notify msg
+	SendGrpNotify(ctx, grpMembers.GroupId, notify)
+	return errs.IMErrorCode_SUCCESS
+}
+
+func GrpInviteMembers(ctx context.Context, req *apimodels.GroupInviteReq) (errs.IMErrorCode, *apimodels.GroupInviteResp) {
+	appkey := GetRequesterIdFromCtx(ctx)
+	requesterId := GetRequesterIdFromCtx(ctx)
+	//TODO check operator
+	results := &apimodels.GroupInviteResp{
+		Results: make(map[string]apimodels.GrpInviteResultReason),
+	}
+	//TODO check grp member exist
+	//check user's setting
+	directAddMemberIds := []string{}
+	for _, memberId := range req.MemberIds {
+		reason := apimodels.GrpInviteResultReason_InviteSucc
+		mUserSetting := GetUserSettings(ctx, memberId)
+		if mUserSetting.GrpVerifyType == apimodels.GrpVerifyType_DeclineGroup {
+			reason = apimodels.GrpInviteResultReason_InviteDecline
+		} else if mUserSetting.GrpVerifyType == apimodels.GrpVerifyType_NeedGrpVerify {
+			storage := storages.NewGrpApplicationStorage()
+			storage.InviteUpsert(models.GrpApplication{
+				GroupId:     req.GroupId,
+				ApplyType:   models.GrpApplicationType_Invite,
+				RecipientId: memberId,
+				InviterId:   requesterId,
+				ApplyTime:   time.Now().UnixMilli(),
+				Status:      models.GrpApplicationStatus_Invite,
+				AppKey:      appkey,
+			})
+			reason = apimodels.GrpInviteResultReason_InviteSendOut
+		} else if mUserSetting.GrpVerifyType == apimodels.GrpVerifyType_NoNeedGrpVerify {
+			directAddMemberIds = append(directAddMemberIds, memberId)
+			reason = apimodels.GrpInviteResultReason_InviteSucc
+		}
+		results.Results[memberId] = reason
+	}
+	if len(directAddMemberIds) > 0 {
+		memberStorage := storages.NewGroupMemberStorage()
+		items := []models.GroupMember{}
+		for _, mId := range directAddMemberIds {
+			items = append(items, models.GroupMember{
+				GroupId:  req.GroupId,
+				MemberId: mId,
+				AppKey:   appkey,
+			})
+		}
+		memberStorage.BatchCreate(items)
+		//sync to imserver
+		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+			sdk.GroupAddMembers(juggleimsdk.GroupMembersReq{
+				GroupId:   req.GroupId,
+				MemberIds: directAddMemberIds,
+			})
+		}
+		//send notify msg
+		targetUsers := []*apimodels.UserObj{}
+		for _, memberId := range directAddMemberIds {
+			targetUsers = append(targetUsers, GetUser(ctx, memberId))
+		}
+		notify := &apimodels.GroupNotify{
+			Operator: GetUser(ctx, requesterId),
+			Members:  targetUsers,
+			Type:     apimodels.GroupNotifyType_AddMember,
+		}
+		SendGrpNotify(ctx, req.GroupId, notify)
+	}
+	return errs.IMErrorCode_SUCCESS, results
+}
+
+func GrpJoinApply(ctx context.Context, req *apimodels.GroupInviteReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	groupId := req.GroupId
+
+	//check grp member exists
+	memberStorage := storages.NewGroupMemberStorage()
+	member, err := memberStorage.Find(appkey, groupId, userId)
+	if err == nil && member != nil {
+		return errs.IMErrorCode_APP_GROUP_MEMBEREXISTED
+	}
+
+	//add group
+	memberStorage.Create(models.GroupMember{
+		GroupId:  groupId,
+		MemberId: userId,
+		AppKey:   appkey,
+	})
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.GroupAddMembers(juggleimsdk.GroupMembersReq{
+			GroupId:   groupId,
+			MemberIds: []string{userId},
+		})
+	}
+	//send notify msg
+	notify := &apimodels.GroupNotify{
+		Operator: GetUser(ctx, userId),
+		Type:     apimodels.GroupNotifyType_Join,
+	}
+	SendGrpNotify(ctx, groupId, notify)
+	return errs.IMErrorCode_SUCCESS
+}
+
+func DelGrpMembers(ctx context.Context, req *apimodels.GroupMembersReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+
+	memberStorage := storages.NewGroupMemberStorage()
+	memberStorage.BatchDelete(appkey, req.GroupId, req.MemberIds)
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.GroupDelMembers(juggleimsdk.GroupMembersReq{
+			GroupId:   req.GroupId,
+			MemberIds: req.MemberIds,
+		})
+	}
+	//send notify msg
+	targetUsers := []*apimodels.UserObj{}
+	for _, memberId := range req.MemberIds {
+		targetUsers = append(targetUsers, GetUser(ctx, memberId))
+	}
+	SendGrpNotify(ctx, req.GroupId, &apimodels.GroupNotify{
+		Operator: GetUser(ctx, requestId),
+		Members:  targetUsers,
+		Type:     apimodels.GroupNotifyType_RemoveMember,
+	})
+	return errs.IMErrorCode_SUCCESS
+}
+
+func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset string) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
+	storage := storages.NewGroupMemberStorage()
+	var startId int64 = 0
+	if offset != "" {
+		id, err := utils.DecodeInt(offset)
+		if err == nil && id > 0 {
+			startId = id
+		}
+	}
+	ret := &apimodels.GroupMemberInfos{
+		Items: []*apimodels.GroupMemberInfo{},
+	}
+	members, err := storage.QueryMembers(GetAppKeyFromCtx(ctx), groupId, startId, limit)
+	if err == nil {
+		for _, member := range members {
+			ret.Offset, _ = utils.EncodeInt(member.ID)
+			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
+				UserId:     member.MemberId,
+				MemberType: member.MemberType,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func SetGrpAnnouncement(ctx context.Context, req *apimodels.GroupAnnouncement) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewGroupExtStorage()
+	storage.Upsert(models.GroupExt{
+		GroupId:   req.GroupId,
+		ItemKey:   apimodels.AttItemKey_GrpAnnouncement,
+		ItemValue: req.Content,
+		ItemType:  apimodels.AttItemType_Setting,
+		AppKey:    appkey,
+	})
+	if req.Content != "" {
+		//send announce msg
+		SendGroupMsg(ctx, requestId, req.GroupId, "jg:text", map[string]string{
+			"content": req.Content,
+		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func GetGrpAnnouncement(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GroupAnnouncement) {
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewGroupExtStorage()
+	ret := &apimodels.GroupAnnouncement{
+		GroupId: groupId,
+	}
+	ext, err := storage.Find(appkey, groupId, apimodels.AttItemKey_GrpAnnouncement)
+	if err == nil && ext != nil {
+		ret.Content = ext.ItemValue
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func ChgGroupOwner(ctx context.Context, req *apimodels.GroupOwnerChgReq) errs.IMErrorCode {
+	//TODO check right
+	storage := storages.NewGroupStorage()
+	storage.UpdateCreatorId(GetAppKeyFromCtx(ctx), req.GroupId, req.OwnerId)
+	//send notify
+	requestId := GetRequesterIdFromCtx(ctx)
+	notify := &apimodels.GroupNotify{
+		Operator: GetUser(ctx, requestId),
+		Members: []*apimodels.UserObj{
+			GetUser(ctx, req.OwnerId),
+		},
+		Type: apimodels.GroupNotifyType_ChgOwner,
+	}
+	SendGrpNotify(ctx, req.GroupId, notify)
+	return errs.IMErrorCode_SUCCESS
+}
+
+func SetGroupMute(ctx context.Context, req *apimodels.SetGroupMuteReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	//TODO check right
+	storage := storages.NewGroupStorage()
+	storage.UpdateGroupMuteStatus(appkey, req.GroupId, req.IsMute)
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.SetGroupMute(req.GroupId, int(req.IsMute))
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func SetGroupVerifyType(ctx context.Context, req *apimodels.SetGroupVerifyTypeReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewGroupExtStorage()
+	storage.Upsert(models.GroupExt{
+		GroupId:   req.GroupId,
+		ItemKey:   apimodels.AttItemKey_GrpVerifyType,
+		ItemValue: utils.Int2String(int64(req.VerifyType)),
+		ItemType:  apimodels.AttItemType_Setting,
+		AppKey:    appkey,
+	})
+	return errs.IMErrorCode_SUCCESS
+}
+
+func SetGroupHisMsgVisible(ctx context.Context, req *apimodels.SetGroupHisMsgVisibleReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	//TODO check right
+	visible := req.GroupHisMsgVisible
+	hideGrpMsg := "1"
+	if visible > 0 {
+		hideGrpMsg = "0"
+	} else {
+		hideGrpMsg = "1"
+	}
+	fmt.Println(hideGrpMsg)
+	storage := storages.NewGroupExtStorage()
+	storage.Upsert(models.GroupExt{
+		GroupId:   req.GroupId,
+		ItemKey:   apimodels.AttItemKey_HideGrpMsg,
+		ItemValue: hideGrpMsg,
+		ItemType:  apimodels.AttItemType_Setting,
+		AppKey:    appkey,
+	})
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.SetGroupSettings(juggleimsdk.GroupInfo{
+			GroupId: req.GroupId,
+			Settings: map[string]string{
+				apimodels.AttItemKey_HideGrpMsg: hideGrpMsg,
+			},
+		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func AddGroupAdministrators(ctx context.Context, req *apimodels.GroupAdministratorsReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewGroupAdminStorage()
+	for _, adminId := range req.AdminIds {
+		storage.Upsert(models.GroupAdmin{
+			GroupId: req.GroupId,
+			AdminId: adminId,
+			AppKey:  appkey,
+		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func DelGroupAdministrators(ctx context.Context, req *apimodels.GroupAdministratorsReq) errs.IMErrorCode {
+	storage := storages.NewGroupAdminStorage()
+	storage.BatchDel(GetAppKeyFromCtx(ctx), req.GroupId, req.AdminIds)
+	return errs.IMErrorCode_SUCCESS
+}
+
+func QryGroupAdministrators(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GroupAdministratorsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	ret := &apimodels.GroupAdministratorsResp{
+		GroupId: groupId,
+		Items:   []*apimodels.GroupMemberInfo{},
+	}
+	storage := storages.NewGroupAdminStorage()
+	admins, err := storage.QryAdmins(appkey, groupId)
+	if err == nil {
+		mIds := []string{}
+		for _, admin := range admins {
+			mIds = append(mIds, admin.AdminId)
+			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
+				UserId: admin.AdminId,
+				Role:   apimodels.GrpMemberRole_GrpAdmin,
+			})
+		}
+		userStorage := storages.NewUserStorage()
+		userMap, err := userStorage.FindByUserIds(appkey, mIds)
+		if err == nil {
+			for _, member := range ret.Items {
+				if u, exist := userMap[member.UserId]; exist {
+					member.Nickname = u.Nickname
+					member.Avatar = u.UserPortrait
+					member.MemberType = u.UserType
 				}
 			}
 		}
 	}
-	return ErrorCode_Success, retGrps
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func SetGrpDisplayName(ctx context.Context, req *apimodels.SetGroupDisplayNameReq) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewGroupMemberStorage()
+	storage.UpdateGrpDisplayName(appkey, req.GroupId, userId, req.GrpDisplayName)
+	return errs.IMErrorCode_SUCCESS
+}
+
+func QryMyGrpApplications(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewGrpApplicationStorage()
+	ret := &apimodels.QryGrpApplicationsResp{
+		Items: []*apimodels.GrpApplicationItem{},
+	}
+	applications, err := storage.QueryMyGrpApplications(appkey, userId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			ret.Items = append(ret.Items, &apimodels.GrpApplicationItem{
+				GrpInfo: &apimodels.GrpInfo{
+					GroupId: application.GroupId,
+				},
+				ApplyType: int32(application.ApplyType),
+				Operator: &apimodels.UserObj{
+					UserId: application.OperatorId,
+				},
+				ApplyTime: application.ApplyTime,
+				Status:    int32(application.Status),
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func QryMyPendingGrpInvitations(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewGrpApplicationStorage()
+	ret := &apimodels.QryGrpApplicationsResp{
+		Items: []*apimodels.GrpApplicationItem{},
+	}
+	applications, err := storage.QueryMyPendingGrpInvitations(appkey, userId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			ret.Items = append(ret.Items, &apimodels.GrpApplicationItem{
+				GrpInfo: &apimodels.GrpInfo{
+					GroupId: application.GroupId,
+				},
+				ApplyType: int32(application.ApplyType),
+				Inviter: &apimodels.UserObj{
+					UserId: application.InviterId,
+				},
+				ApplyTime: application.ApplyTime,
+				Status:    int32(application.Status),
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func QryGrpInvitations(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewGrpApplicationStorage()
+	ret := &apimodels.QryGrpApplicationsResp{
+		Items: []*apimodels.GrpApplicationItem{},
+	}
+	applications, err := storage.QueryGrpInvitations(appkey, groupId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			ret.Items = append(ret.Items, &apimodels.GrpApplicationItem{
+				GrpInfo: &apimodels.GrpInfo{
+					GroupId: application.GroupId,
+				},
+				ApplyType: int32(application.ApplyType),
+				Recipient: &apimodels.UserObj{
+					UserId: application.RecipientId,
+				},
+				Inviter: &apimodels.UserObj{
+					UserId: application.InviterId,
+				},
+				ApplyTime: application.ApplyTime,
+				Status:    int32(application.Status),
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func QryGrpPendingApplications(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewGrpApplicationStorage()
+	ret := &apimodels.QryGrpApplicationsResp{
+		Items: []*apimodels.GrpApplicationItem{},
+	}
+	applications, err := storage.QueryGrpPendingApplications(appkey, groupId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			ret.Items = append(ret.Items, &apimodels.GrpApplicationItem{
+				GrpInfo: &apimodels.GrpInfo{
+					GroupId: application.GroupId,
+				},
+				ApplyType: int32(application.ApplyType),
+				Sponsor: &apimodels.UserObj{
+					UserId: application.SponsorId,
+				},
+				Operator: &apimodels.UserObj{
+					UserId: application.OperatorId,
+				},
+				ApplyTime: application.ApplyTime,
+				Status:    int32(application.Status),
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
 }

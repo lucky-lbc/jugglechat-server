@@ -1,215 +1,198 @@
 package services
 
 import (
-	"appserver/dbs"
-	"appserver/utils"
-	"fmt"
-	"time"
+	"context"
+	"jugglechat-server/apimodels"
+	"jugglechat-server/errs"
+	"jugglechat-server/services/imsdk"
+	"jugglechat-server/storages"
+	"jugglechat-server/storages/dbs"
+	"jugglechat-server/storages/models"
+	"jugglechat-server/utils"
 
-	imsdk "github.com/juggleim/imserver-sdk-go"
-
-	"github.com/golang-jwt/jwt/v4"
+	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
 
-func QryUserInfo(curUid, userId string) (ErrorCode, *User) {
-	retUser := &User{}
-	userDao := dbs.UserDao{}
-	userIdInt, err := utils.Decode(userId)
-	if err != nil || userIdInt <= 0 {
-		return ErrorCode_IdDecodeFail, nil
-	}
-	userdb := userDao.FindByUserId(userIdInt)
-	if userdb != nil {
-		var isFriend bool = false
-		curUidInt, err := utils.Decode(curUid)
-		if err == nil && curUidInt > 0 {
-			friendDao := dbs.FriendDao{}
-			isFriend = friendDao.CheckFriend(curUidInt, userdb.ID)
-		}
-		retUser.UserId = userId
-		retUser.Nickname = userdb.Nickname
-		retUser.Avatar = userdb.Avatar
-		retUser.Phone = userdb.Phone
-		retUser.IsFriend = isFriend
-	}
-	return ErrorCode_Success, retUser
-}
-
-func GetUserInfo(userId string) *User {
-	retUser := &User{
+func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimodels.UserObj) {
+	requestId := GetRequesterIdFromCtx(ctx)
+	ret := &apimodels.UserObj{
 		UserId: userId,
 	}
-	userIdInt, err := utils.Decode(userId)
-	if err != nil || userIdInt <= 0 {
-		return retUser
+	user := GetUser(ctx, userId)
+	if user != nil {
+		ret.Nickname = user.Nickname
+		ret.Avatar = user.Avatar
 	}
-	dbUser := dbs.UserDao{}.FindByUserId(userIdInt)
-	if dbUser != nil {
-		retUser.Nickname = dbUser.Nickname
-		retUser.Avatar = dbUser.Avatar
+	if userId == requestId {
+		ret.Settings = GetUserSettings(ctx, userId)
+	} else {
+		ret.IsFriend = checkFriend(ctx, requestId, userId)
 	}
-	return retUser
+	return errs.IMErrorCode_SUCCESS, ret
 }
 
-func SearchByPhone(curUid, phone string) (ErrorCode, *Users) {
-	userDao := dbs.UserDao{}
-	userdb, err := userDao.FindByPhone(phone)
-	if err != nil {
-		return ErrorCode_UserDbReadFail, nil
-	}
-	var isFriend bool = false
-	curUidInt, err := utils.Decode(curUid)
-	if err == nil && curUidInt > 0 {
-		friendDao := dbs.FriendDao{}
-		isFriend = friendDao.CheckFriend(curUidInt, userdb.ID)
-
-	}
-	idStr, _ := utils.Encode(userdb.ID)
-	users := &Users{
-		Items: []*User{},
-	}
-	users.Items = append(users.Items, &User{
-		UserId:   idStr,
-		Nickname: userdb.Nickname,
-		Avatar:   userdb.Avatar,
-		Phone:    userdb.Phone,
-		Status:   userdb.Status,
-		IsFriend: isFriend,
-	})
-	return ErrorCode_Success, users
-}
-
-func UpdateUser(user User) ErrorCode {
-	userDao := dbs.UserDao{}
-	id, err := utils.Decode(user.UserId)
-	if err != nil || id == 0 {
-		return ErrorCode_ParseIntFail
-	}
-	err = userDao.Update(dbs.UserDao{
-		ID:       id,
-		Phone:    user.Phone,
-		Nickname: user.Nickname,
-		Avatar:   user.Avatar,
-	})
-	if err != nil {
-		return ErrorCode_UserDbUpdateFail
-	}
-	//sync to im
-	RegisterImToken(imsdk.User{
-		UserId:       user.UserId,
-		Nickname:     user.Nickname,
-		UserPortrait: user.Avatar,
-	})
-	return ErrorCode_Success
-}
-func RegisterOrLoginBySms(user User) (string, *User, error) {
-	userDao := dbs.UserDao{}
-	retUser := &User{}
-	var dbId int64
-	userdb, err := userDao.FindByPhone(user.Phone)
-	if err != nil { //入库
-		dbId, err = userDao.Create(dbs.UserDao{
-			Phone:    user.Phone,
-			Nickname: user.Nickname,
-			Avatar:   user.Avatar,
-			Status:   0,
-		})
-		if err != nil {
-			return "", nil, GetError(ErrorCode_UserDbInsertFail)
+func GetUserSettings(ctx context.Context, userId string) *apimodels.UserSettings {
+	settings := &apimodels.UserSettings{}
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewUserExtStorage()
+	exts, err := storage.QryExtFields(appkey, userId)
+	if err == nil {
+		for _, ext := range exts {
+			if ext.ItemKey == apimodels.UserExtKey_Language {
+				settings.Language = ext.ItemValue
+			} else if ext.ItemKey == apimodels.UserExtKey_Undisturb {
+				settings.Undisturb = ext.ItemValue
+			} else if ext.ItemKey == apimodels.UserExtKey_FriendVerifyType {
+				verifyType := utils.ToInt(ext.ItemValue)
+				settings.FriendVerifyType = verifyType
+			} else if ext.ItemKey == apimodels.UserExtKey_GrpVerifyType {
+				verifyType := utils.ToInt(ext.ItemValue)
+				settings.GrpVerifyType = verifyType
+			}
 		}
-		retUser.Nickname = user.Nickname
-		retUser.Avatar = user.Avatar
-		retUser.Status = 0
-	} else {
-		dbId = userdb.ID
-		retUser.Nickname = userdb.Nickname
-		retUser.Avatar = userdb.Avatar
-		retUser.Status = userdb.Status
-		retUser.ImToken = userdb.ImToken
 	}
-	if dbId > 0 {
-		idStr, _ := utils.Encode(dbId)
-		retUser.UserId = idStr
-		auth, _ := generateAuthorization(idStr)
-		imToken := RegisterImToken(imsdk.User{
-			UserId:       idStr,
-			Nickname:     retUser.Nickname,
-			UserPortrait: retUser.Avatar,
-		})
-		retUser.ImToken = imToken
-		return auth, retUser, nil
-	} else {
-		return "", nil, GetError(ErrorCode_UserIdIs0)
+	return settings
+}
+
+func SearchByPhone(ctx context.Context, phone string) (errs.IMErrorCode, *apimodels.Users) {
+	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := GetAppKeyFromCtx(ctx)
+	targetUserId := utils.ShortMd5(phone)
+	storage := storages.NewUserStorage()
+	user, err := storage.FindByPhone(appkey, phone)
+	if err == nil && user != nil {
+		targetUserId = user.UserId
 	}
-}
-
-type Users struct {
-	Items []*User `json:"items"`
-}
-type User struct {
-	UserId   string `json:"user_id"`
-	Nickname string `json:"nickname"`
-	Phone    string `json:"phone,omitempty"`
-	Avatar   string `json:"avatar,omitempty"`
-	Status   int    `json:"status"`
-	City     string `json:"city,omitempty"`
-	Country  string `json:"country,omitempty"`
-	Language string `json:"language,omitempty"`
-	Province string `json:"province,omitempty"`
-	ImToken  string `json:"im_token,omitempty"`
-	IsFriend bool   `json:"is_friend"`
-}
-type LoginUserResp struct {
-	UserId        string `json:"user_id"`
-	Authorization string `json:"authorization"`
-	NickName      string `json:"nickname"`
-	Avatar        string `json:"avatar"`
-	Status        int    `json:"status"`
-	ImToken       string `json:"im_token,omitempty"`
-}
-
-var jwtkey = []byte("appserve")
-
-type Claims struct {
-	Account string
-	jwt.RegisteredClaims
-}
-
-func generateAuthorization(account string) (string, error) {
-	expireTime := time.Now().Add(24 * time.Hour)
-	claims := &Claims{
-		Account: account,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: &jwt.NumericDate{
-				Time: expireTime,
-			},
-			IssuedAt: &jwt.NumericDate{
-				Time: time.Now(),
-			},
-			Issuer:  "aabbcc",
-			Subject: "user token",
-		},
+	users := &apimodels.Users{
+		Items: []*apimodels.UserObj{},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtkey)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
-func ValidateAuthorization(authorization string) (string, error) {
-	token, claims, err := parseToken(authorization)
-	if err != nil || !token.Valid {
-		return "", fmt.Errorf("auth fail")
-	}
-	return claims.Account, nil
-}
-
-func parseToken(tokenString string) (*jwt.Token, *Claims, error) {
-	Claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, Claims, func(token *jwt.Token) (i interface{}, err error) {
-		return jwtkey, nil
+	users.Items = append(users.Items, &apimodels.UserObj{
+		UserId:   user.UserId,
+		Nickname: user.Nickname,
+		Avatar:   user.UserPortrait,
+		IsFriend: checkFriend(ctx, requestId, targetUserId),
 	})
-	return token, Claims, err
+	return errs.IMErrorCode_SUCCESS, users
+}
+
+func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	storage := storages.NewUserStorage()
+	storage.Update(appkey, req.UserId, req.Nickname, req.Avatar)
+	// sync to imserver
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk != nil {
+		sdk.Register(juggleimsdk.User{
+			UserId:       req.UserId,
+			Nickname:     req.Nickname,
+			UserPortrait: req.Avatar,
+		})
+		if req.Nickname != "" {
+			//update assistant
+			sdk.AddBot(juggleimsdk.BotInfo{
+				BotId:    GetAssistantId(req.UserId),
+				Nickname: GetAssistantNickname(req.Nickname),
+				Portrait: req.Avatar,
+				BotType:  utils.IntPtr(int(apimodels.BotType_Custom)),
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func UpdateUserSettings(ctx context.Context, req *apimodels.UserSettings) errs.IMErrorCode {
+	appkey := GetAppKeyFromCtx(ctx)
+	requestId := GetRequesterIdFromCtx(ctx)
+	storage := storages.NewUserExtStorage()
+	settings := map[juggleimsdk.UserSettingKey]string{}
+	if req.Language != "" {
+		storage.Upsert(models.UserExt{
+			UserId:    requestId,
+			ItemKey:   apimodels.UserExtKey_Language,
+			ItemValue: req.Language,
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+		settings[juggleimsdk.UserSettingKey_Language] = req.Language
+	}
+	if req.Undisturb != "" {
+		storage.Upsert(models.UserExt{
+			UserId:    requestId,
+			ItemKey:   apimodels.UserExtKey_Undisturb,
+			ItemValue: req.Undisturb,
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+		settings[juggleimsdk.UserSettingKey_Undisturb] = req.Undisturb
+	}
+	storage.Upsert(models.UserExt{
+		UserId:    requestId,
+		ItemKey:   apimodels.UserExtKey_FriendVerifyType,
+		ItemValue: utils.Int2String(int64(req.FriendVerifyType)),
+		ItemType:  apimodels.AttItemType_Setting,
+		AppKey:    appkey,
+	})
+	storage.Upsert(models.UserExt{
+		UserId:    requestId,
+		ItemKey:   apimodels.UserExtKey_GrpVerifyType,
+		ItemValue: utils.Int2String(int64(req.GrpVerifyType)),
+		ItemType:  apimodels.AttItemType_Setting,
+		AppKey:    appkey,
+	})
+	//sync to im
+	if len(settings) > 0 {
+		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+			sdk.SetUserSettings(juggleimsdk.User{
+				UserId:   requestId,
+				Settings: settings,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.Groups) {
+	appkey := GetAppKeyFromCtx(ctx)
+	memberId := GetRequesterIdFromCtx(ctx)
+	dao := dbs.GroupMemberDao{}
+	var startId int64
+	if offset != "" {
+		startId, _ = utils.DecodeInt(offset)
+	}
+	groups, err := dao.QueryGroupsByMemberId(appkey, memberId, startId, limit)
+	if err != nil {
+		return errs.IMErrorCode_APP_DEFAULT, nil
+	}
+	ret := &apimodels.Groups{
+		Items: []*apimodels.Group{},
+	}
+	for _, group := range groups {
+		ret.Offset, _ = utils.EncodeInt(group.ID)
+		dao := dbs.GroupDao{}
+		grpInfo, err := dao.FindById(appkey, group.MemberId)
+		if err == nil {
+			ret.Items = append(ret.Items, &apimodels.Group{
+				GroupId:       grpInfo.GroupId,
+				GroupName:     grpInfo.GroupName,
+				GroupPortrait: grpInfo.GroupPortrait,
+				// MemberCount:   grpInfo.MemberCount,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
+	appkey := GetAppKeyFromCtx(ctx)
+	u := &apimodels.UserObj{
+		UserId: userId,
+	}
+	storage := storages.NewUserStorage()
+	user, err := storage.FindByUserId(appkey, userId)
+	if err == nil && user != nil {
+		u.Nickname = user.Nickname
+		u.Avatar = user.UserPortrait
+		u.UserType = user.UserType
+	}
+	return u
 }

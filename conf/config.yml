@@ -1,8 +1,8 @@
-port: 8091
+port: 8070
 
 log:
   logPath: ./logs
-  logName: app-server
+  logName: jugglechat-server
 
 mysql:
   user: <db_user>
@@ -10,17 +10,7 @@ mysql:
   address: 127.0.0.1:3306
   name: app_db
 
-qiniu:
-  accessKey: <qiniu_ak>
-  secretKey: <qiniu_sk>
-  bucket: <qiniu_bucket>
-  domain: <bucket_domain>
-
-baidusms:
-  apiKey: <baidu_sms_ak>
-  secretKey: <baidu_sms_sk>
-
-im:
-  appKey: <juggleim_appkey>
-  appSecret: <juggleim_secret>
-  apiUrl: https://api.juggleim.com
+imApiDomain: https://api.juggle.im
+botConnector:
+  domain: <bot-connector url>
+  apiKey: <api_key>

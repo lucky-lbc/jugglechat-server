@@ -1,14 +1,30 @@
 package utils
 
 import (
+	"crypto/md5"
 	"strings"
 
 	"github.com/google/uuid"
 )
 
+func ShortMd5(str string) string {
+	m := md5.New()
+	m.Write([]byte(str))
+	bs := m.Sum(nil)
+	ret := UUID2ShortString(uuid.UUID(bs))
+	ret = ShortCut(ret)
+	return ret
+}
+
 func GenerateUUID() uuid.UUID {
 	uid := uuid.New()
 	return uid
+}
+
+func GenerateUUIDString() string {
+	uid := GenerateUUID()
+	str := strings.ReplaceAll(uid.String(), "-", "")
+	return str
 }
 
 func GenerateUUIDBytes() []byte {
