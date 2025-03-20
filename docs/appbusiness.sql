@@ -269,7 +269,7 @@ CREATE TABLE `postcomments` (
   `parent_comment_id` varchar(32) DEFAULT NULL,
   `parent_user_id` varchar(32) DEFAULT NULL,
   `user_id` varchar(32) DEFAULT NULL,
-  `content` varchar(5000) DEFAULT NULL,
+  `text` varchar(5000) DEFAULT NULL,
   `created_time` bigint DEFAULT NULL,
   `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `is_delete` tinyint DEFAULT '0',

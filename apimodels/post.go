@@ -6,12 +6,13 @@ type Posts struct {
 }
 
 type Post struct {
-	PostId      string               `json:"post_id"`
-	Content     *PostContent         `json:"content"`
-	UserInfo    *UserObj             `json:"user_info"`
-	CreatedTime int64                `json:"created_time"`
-	UpdatedTime int64                `json:"updated_time"`
-	Reactions   map[string]*Reaction `json:"reactions"`
+	PostId      string                 `json:"post_id"`
+	Content     *PostContent           `json:"content"`
+	UserInfo    *UserObj               `json:"user_info"`
+	CreatedTime int64                  `json:"created_time"`
+	UpdatedTime int64                  `json:"updated_time"`
+	Reactions   map[string][]*Reaction `json:"reactions"`
+	TopComments []*PostComment         `json:"top_comments"`
 }
 
 type Reaction struct {
@@ -34,12 +35,18 @@ type PostContentVideo struct {
 }
 
 type PostComment struct {
-	PostId          string   `json:"post_id"`
 	CommentId       string   `json:"comment_id"`
+	PostId          string   `json:"post_id"`
 	ParentCommentId string   `json:"parent_comment_id"`
-	Content         string   `json:"content"`
+	Text            string   `json:"text"`
+	ParentUserId    string   `json:"parent_user_id,omitempty"`
 	ParentUserInfo  *UserObj `json:"parent_user_info"`
 	UserInfo        *UserObj `json:"user_info"`
 	CreatedTime     int64    `json:"created_time"`
 	UpdatedTime     int64    `json:"updated_time"`
+}
+
+type PostComments struct {
+	Items      []*PostComment `json:"items"`
+	IsFinished bool           `json:"is_finished"`
 }
