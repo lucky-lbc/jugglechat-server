@@ -1,7 +1,7 @@
 # JuggleChat
 
 一个基于 JuggleIM 的开源即时通讯软件，覆盖全平台。
-快速体验：https://www.jugglechat.com/docs/download/integrate/
+快速体验：https://www.juggle.im/docs/download/integrate/
 
 ## 架构图
 待补充
@@ -35,7 +35,7 @@ mysql -u{db_user} -p{db_password} app_db < appdb.sql
 
 配置文件位置：jugglechat-server/conf/config.yml
 ```
-port: 8091                # jugglechat-server 的监听端口
+port: 8070                # jugglechat-server 的监听端口
 
 log:                      # 日志目录
   logPath: ./logs      
@@ -47,20 +47,7 @@ mysql:                    # db 配置
   address: 127.0.0.1:3306
   name: app_db
 
-qiniu:                    # 文件存储配置，demo中使用七牛作为文件存储，用于存储用户头像，群头像等
-  accessKey: <qiniu_ak>
-  secretKey: <qiniu_sk>
-  bucket: <qiniu_bucket>
-  domain: <bucket_domain>
-
-baidusms:                   # demo中使用百度的短信服务，用于短验登录
-  apiKey: <baidu_sms_ak>
-  secretKey: <baidu_sms_sk>
-
-im:                          # demo 所使用的 IM 服务器地址和 租户的app_key/app_secret
-  appKey: <juggleim_appkey>
-  appSecret: <juggleim_secret>
-  apiUrl: https://api.juggleim.com
+imApiDomain: https://api.juggle.im   # demo 所使用的 IM 服务器地址
 
 ```
 
