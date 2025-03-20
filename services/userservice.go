@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/juggleim/jugglechat-server/apimodels"
 	"github.com/juggleim/jugglechat-server/errs"
@@ -170,7 +171,7 @@ func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErro
 	for _, group := range groups {
 		ret.Offset, _ = utils.EncodeInt(group.ID)
 		dao := dbs.GroupDao{}
-		grpInfo, err := dao.FindById(appkey, group.MemberId)
+		grpInfo, err := dao.FindById(appkey, group.GroupId)
 		if err == nil {
 			ret.Items = append(ret.Items, &apimodels.Group{
 				GroupId:       grpInfo.GroupId,
@@ -178,6 +179,8 @@ func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErro
 				GroupPortrait: grpInfo.GroupPortrait,
 				// MemberCount:   grpInfo.MemberCount,
 			})
+		} else {
+			fmt.Println(err)
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret
