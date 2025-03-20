@@ -98,9 +98,16 @@ func (member GroupMemberDao) BatchCreate(items []models.GroupMember) error {
 	return err
 }
 
+type GroupMemberWithUser struct {
+	GroupMemberDao
+	Nickname     string `gorm:"nickname"`
+	UserPortrait string `gorm:"user_portrait"`
+}
+
 func (member GroupMemberDao) QueryMembers(appkey, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
-	var items []*GroupMemberDao
-	err := dbcommons.GetDb().Where("app_key=? and group_id=? and id>?", appkey, groupId, startId).Order("id asc").Limit(limit).Find(&items).Error
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? and m.id>?", member.TableName(), UserDao{}.TableName())
+	var items []*GroupMemberWithUser
+	err := dbcommons.GetDb().Raw(sql, appkey, groupId, startId).Order("m.id asc").Limit(limit).Find(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		ret = append(ret, &models.GroupMember{
@@ -114,6 +121,8 @@ func (member GroupMemberDao) QueryMembers(appkey, groupId string, startId, limit
 			IsAllow:        item.IsAllow,
 			MuteEndAt:      item.MuteEndAt,
 			GrpDisplayName: item.GrpDisplayName,
+			Nickname:       item.Nickname,
+			UserPortrait:   item.UserPortrait,
 		})
 	}
 	return ret, err

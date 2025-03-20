@@ -87,6 +87,8 @@ type GroupMember struct {
 	ID             int64
 	GroupId        string
 	MemberId       string
+	Nickname       string
+	UserPortrait   string
 	MemberType     int
 	CreatedTime    time.Time
 	AppKey         string

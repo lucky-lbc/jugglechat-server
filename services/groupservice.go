@@ -108,8 +108,10 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 				role = apimodels.GrpMemberRole_GrpAdmin
 			}
 			ret.Members = append(ret.Members, &apimodels.GroupMemberInfo{
-				UserId: member.MemberId,
-				Role:   role,
+				UserId:   member.MemberId,
+				Role:     role,
+				Nickname: member.Nickname,
+				Avatar:   member.UserPortrait,
 			})
 		}
 	}
@@ -429,6 +431,8 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				MemberType: member.MemberType,
+				Nickname:   member.Nickname,
+				Avatar:     member.UserPortrait,
 			})
 		}
 	}
