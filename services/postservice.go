@@ -2,12 +2,13 @@ package services
 
 import (
 	"context"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/errs"
-	"jugglechat-server/storages"
-	"jugglechat-server/storages/models"
-	"jugglechat-server/utils"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/utils"
 )
 
 func PostAdd(ctx context.Context, req *apimodels.Post) (errs.IMErrorCode, *apimodels.Post) {

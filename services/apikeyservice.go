@@ -2,9 +2,10 @@ package services
 
 import (
 	"encoding/base64"
-	"jugglechat-server/services/pbobjs"
-	"jugglechat-server/utils"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/services/pbobjs"
+	"github.com/juggleim/jugglechat-server/utils"
 )
 
 func CheckApiKey(apiKey string, appkey, secureKey string) bool {

@@ -1,4 +1,4 @@
-module jugglechat-server
+module github.com/juggleim/jugglechat-server
 
 go 1.23.0
 

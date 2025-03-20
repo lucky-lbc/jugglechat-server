@@ -1,8 +1,8 @@
 package dbs
 
 import (
-	"jugglechat-server/storages/dbs/dbcommons"
-	"jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
+	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
 type QrCodeRecordDao struct {

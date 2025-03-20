@@ -3,9 +3,10 @@ package services
 import (
 	"encoding/base64"
 	"errors"
-	"jugglechat-server/services/pbobjs"
-	"jugglechat-server/utils"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/services/pbobjs"
+	"github.com/juggleim/jugglechat-server/utils"
 )
 
 type ImToken struct {

@@ -3,9 +3,10 @@ package fileengine
 import (
 	"context"
 	"fmt"
-	"jugglechat-server/utils"
 	"path/filepath"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/utils"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"

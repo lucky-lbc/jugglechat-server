@@ -3,13 +3,14 @@ package services
 import (
 	"context"
 	"fmt"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/configures"
-	"jugglechat-server/errs"
-	"jugglechat-server/storages"
-	"jugglechat-server/storages/models"
-	"jugglechat-server/utils"
 	"net/http"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/utils"
 
 	"strings"
 )

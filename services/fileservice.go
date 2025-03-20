@@ -3,14 +3,15 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/errs"
-	"jugglechat-server/services/fileengine"
-	"jugglechat-server/storages/dbs"
-	"jugglechat-server/utils"
-	"jugglechat-server/utils/caches"
 	"sync"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/services/fileengine"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
+	"github.com/juggleim/jugglechat-server/utils"
+	"github.com/juggleim/jugglechat-server/utils/caches"
 )
 
 func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErrorCode, *apimodels.QryFileCredResp) {

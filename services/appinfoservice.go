@@ -1,11 +1,12 @@
 package services
 
 import (
-	"jugglechat-server/services/sms"
-	"jugglechat-server/storages"
-	"jugglechat-server/utils/caches"
 	"sync"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/services/sms"
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/utils/caches"
 )
 
 var appCache *caches.LruCache

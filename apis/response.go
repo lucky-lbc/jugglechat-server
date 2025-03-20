@@ -1,8 +1,9 @@
 package apis
 
 import (
-	"jugglechat-server/errs"
 	"net/http"
+
+	"github.com/juggleim/jugglechat-server/errs"
 
 	"github.com/gin-gonic/gin"
 )

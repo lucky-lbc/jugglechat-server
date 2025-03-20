@@ -3,9 +3,10 @@ package aiengines
 import (
 	"context"
 	"encoding/json"
-	"jugglechat-server/storages"
-	"jugglechat-server/storages/models"
 	"sync"
+
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
 type AssistantEngineType int

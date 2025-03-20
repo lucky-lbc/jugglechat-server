@@ -2,13 +2,14 @@ package services
 
 import (
 	"context"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/errs"
-	"jugglechat-server/services/imsdk"
-	"jugglechat-server/storages"
-	"jugglechat-server/storages/dbs"
-	"jugglechat-server/storages/models"
-	"jugglechat-server/utils"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/services/imsdk"
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
+	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/utils"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )

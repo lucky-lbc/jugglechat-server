@@ -2,10 +2,11 @@ package dbs
 
 import (
 	"fmt"
-	"jugglechat-server/storages/dbs/dbcommons"
-	"jugglechat-server/storages/models"
 	"strings"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
+	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
 type UserDao struct {

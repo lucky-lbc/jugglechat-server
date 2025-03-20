@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/errs"
-	"jugglechat-server/services/aiengines"
-	"jugglechat-server/services/imsdk"
-	"jugglechat-server/storages"
-	"jugglechat-server/utils"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/services/aiengines"
+	"github.com/juggleim/jugglechat-server/services/imsdk"
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/utils"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )

@@ -2,10 +2,11 @@ package dbcommons
 
 import (
 	"fmt"
-	"jugglechat-server/configures"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/configures"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"

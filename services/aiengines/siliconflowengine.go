@@ -3,10 +3,11 @@ package aiengines
 import (
 	"context"
 	"fmt"
-	"jugglechat-server/log"
-	"jugglechat-server/utils"
 	"net/http"
 	"strings"
+
+	"github.com/juggleim/jugglechat-server/log"
+	"github.com/juggleim/jugglechat-server/utils"
 )
 
 type SiliconFlowEngine struct {

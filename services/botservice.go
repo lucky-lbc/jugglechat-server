@@ -2,11 +2,12 @@ package services
 
 import (
 	"context"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/errs"
-	"jugglechat-server/storages"
-	"jugglechat-server/storages/models"
-	"jugglechat-server/utils"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/utils"
 )
 
 func QryAiBots(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.AiBotInfos) {

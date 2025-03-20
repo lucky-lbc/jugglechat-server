@@ -1,11 +1,12 @@
 package apis
 
 import (
-	"jugglechat-server/apimodels"
-	"jugglechat-server/errs"
-	"jugglechat-server/services"
-	"jugglechat-server/utils"
 	"strconv"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/services"
+	"github.com/juggleim/jugglechat-server/utils"
 
 	"github.com/gin-gonic/gin"
 )

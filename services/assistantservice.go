@@ -3,10 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/configures"
-	"jugglechat-server/services/imsdk"
-	"jugglechat-server/utils"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/services/imsdk"
+	"github.com/juggleim/jugglechat-server/utils"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )

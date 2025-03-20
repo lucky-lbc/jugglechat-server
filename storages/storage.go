@@ -1,8 +1,8 @@
 package storages
 
 import (
-	"jugglechat-server/storages/dbs"
-	"jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
+	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
 func NewAppInfoStorage() models.IAppInfoStorage {

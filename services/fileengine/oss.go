@@ -4,10 +4,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"jugglechat-server/apimodels"
-	"jugglechat-server/utils"
 	"path/filepath"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/utils"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 )

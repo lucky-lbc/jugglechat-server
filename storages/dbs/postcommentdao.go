@@ -2,9 +2,10 @@ package dbs
 
 import (
 	"bytes"
-	"jugglechat-server/storages/dbs/dbcommons"
-	"jugglechat-server/storages/models"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
+	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
 type PostCommentDao struct {

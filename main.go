@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"jugglechat-server/apis"
-	"jugglechat-server/configures"
-	"jugglechat-server/log"
-	"jugglechat-server/storages/dbs/dbcommons"
 	"net/http"
+
+	"github.com/juggleim/jugglechat-server/apis"
+	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/log"
+	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 
 	"github.com/gin-gonic/gin"
 )

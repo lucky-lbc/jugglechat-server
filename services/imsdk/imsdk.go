@@ -1,9 +1,10 @@
 package imsdk
 
 import (
-	"jugglechat-server/configures"
-	"jugglechat-server/storages/dbs"
 	"sync"
+
+	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )

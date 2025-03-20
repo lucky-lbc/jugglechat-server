@@ -2,9 +2,10 @@ package fileengine
 
 import (
 	"fmt"
-	"jugglechat-server/utils"
 	"path/filepath"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/utils"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"

@@ -2,13 +2,14 @@ package services
 
 import (
 	"context"
-	"jugglechat-server/errs"
-	"jugglechat-server/services/sms"
-	"jugglechat-server/storages"
-	"jugglechat-server/storages/models"
-	"jugglechat-server/utils"
 	"math/rand"
 	"time"
+
+	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/services/sms"
+	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/utils"
 )
 
 var random *rand.Rand
