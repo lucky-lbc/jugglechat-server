@@ -13,7 +13,7 @@ message AuthToken {
     bytes tokenValue = 3;
 }
 
-message TokenValue{
+message AuthTokenValue{
     string userId = 1;
     string deviceId = 2;
     int64 tokenTime = 3;

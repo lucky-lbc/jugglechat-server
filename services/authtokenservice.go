@@ -17,7 +17,7 @@ type ImToken struct {
 }
 
 func (t ImToken) ToTokenString(secureKey []byte) (string, error) {
-	tokenValue := &pbobjs.TokenValue{
+	tokenValue := &pbobjs.AuthTokenValue{
 		UserId:    t.UserId,
 		DeviceId:  t.DeviceId,
 		TokenTime: t.TokenTime,
@@ -83,7 +83,7 @@ func ParseToken(tokenWrap *pbobjs.AuthToken, secureKey []byte) (ImToken, error) 
 	cryptedToken := tokenWrap.TokenValue
 	tokenBs, err := decrypt(cryptedToken, secureKey)
 	if err == nil {
-		tokenValue := &pbobjs.TokenValue{}
+		tokenValue := &pbobjs.AuthTokenValue{}
 		err = utils.PbUnMarshal(tokenBs, tokenValue)
 		if err != nil {
 			return token, err
