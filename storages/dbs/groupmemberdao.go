@@ -128,14 +128,23 @@ func (member GroupMemberDao) QueryMembers(appkey, groupId string, startId, limit
 	return ret, err
 }
 
+type GroupMemberWithGroup struct {
+	GroupMemberDao
+	GroupName     string `gorm:"group_name"`
+	GroupPortrait string `gorm:"group_portrait"`
+}
+
 func (member GroupMemberDao) QueryGroupsByMemberId(appkey, memberId string, startId, limit int64) ([]*models.GroupMember, error) {
-	var items []*GroupMemberDao
-	err := dbcommons.GetDb().Where("app_key=? and member_id=? and id>?", appkey, memberId, startId).Order("id asc").Limit(limit).Find(&items).Error
+	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>?", member.TableName(), GroupDao{}.TableName())
+	var items []*GroupMemberWithGroup
+	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId).Order("m.id asc").Limit(limit).Find(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		ret = append(ret, &models.GroupMember{
 			ID:             item.ID,
 			GroupId:        item.GroupId,
+			GroupName:      item.GroupName,
+			GroupPortrait:  item.GroupPortrait,
 			MemberId:       item.MemberId,
 			MemberType:     item.MemberType,
 			CreatedTime:    item.CreatedTime,

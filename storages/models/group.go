@@ -86,6 +86,8 @@ type IGroupExtStorage interface {
 type GroupMember struct {
 	ID             int64
 	GroupId        string
+	GroupName      string
+	GroupPortrait  string
 	MemberId       string
 	Nickname       string
 	UserPortrait   string

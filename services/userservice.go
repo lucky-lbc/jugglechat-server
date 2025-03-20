@@ -170,14 +170,11 @@ func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErro
 	}
 	for _, group := range groups {
 		ret.Offset, _ = utils.EncodeInt(group.ID)
-		dao := dbs.GroupDao{}
-		grpInfo, err := dao.FindById(appkey, group.GroupId)
 		if err == nil {
 			ret.Items = append(ret.Items, &apimodels.Group{
-				GroupId:       grpInfo.GroupId,
-				GroupName:     grpInfo.GroupName,
-				GroupPortrait: grpInfo.GroupPortrait,
-				// MemberCount:   grpInfo.MemberCount,
+				GroupId:       group.GroupId,
+				GroupName:     group.GroupName,
+				GroupPortrait: group.GroupPortrait,
 			})
 		} else {
 			fmt.Println(err)
