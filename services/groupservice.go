@@ -153,6 +153,7 @@ func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMEr
 		GroupName:     req.GroupName,
 		GroupPortrait: req.GroupPortrait,
 		CreatorId:     requestId,
+		AppKey:        appkey,
 	})
 	memberStorage := storages.NewGroupMemberStorage()
 	items := []models.GroupMember{}
