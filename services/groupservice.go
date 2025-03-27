@@ -15,6 +15,11 @@ import (
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
 
+func TestGroup(ctx context.Context) errs.IMErrorCode {
+	fmt.Println("xxxxxxxxxx")
+	return errs.IMErrorCode_SUCCESS
+}
+
 func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GrpInfo) {
 	appkey := GetAppKeyFromCtx(ctx)
 	requestId := GetRequesterIdFromCtx(ctx)
@@ -331,7 +336,8 @@ func GrpInviteMembers(ctx context.Context, req *apimodels.GroupInviteReq) (errs.
 				AppKey:   appkey,
 			})
 		}
-		memberStorage.BatchCreate(items)
+		err := memberStorage.BatchCreate(items)
+		fmt.Println("batchcreate:", err, directAddMemberIds)
 		//sync to imserver
 		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
 			sdk.GroupAddMembers(juggleimsdk.GroupMembersReq{
