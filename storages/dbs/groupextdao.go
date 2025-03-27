@@ -24,7 +24,7 @@ func (ext GroupExtDao) TableName() string {
 
 func (ext GroupExtDao) Find(appkey, groupId string, itemKey string) (*models.GroupExt, error) {
 	var item GroupExtDao
-	err := dbcommons.GetDb().Where("app_key=? and group_id=? and app_item_key=?", appkey, groupId, itemKey).Take(&item).Error
+	err := dbcommons.GetDb().Where("app_key=? and group_id=? and item_key=?", appkey, groupId, itemKey).Take(&item).Error
 	if err != nil {
 		return nil, err
 	}
