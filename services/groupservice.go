@@ -294,7 +294,7 @@ func AddGrpMembers(ctx context.Context, grpMembers *apimodels.GroupMembersReq) e
 }
 
 func GrpInviteMembers(ctx context.Context, req *apimodels.GroupInviteReq) (errs.IMErrorCode, *apimodels.GroupInviteResp) {
-	appkey := GetRequesterIdFromCtx(ctx)
+	appkey := GetAppKeyFromCtx(ctx)
 	requesterId := GetRequesterIdFromCtx(ctx)
 	//TODO check operator
 	results := &apimodels.GroupInviteResp{
@@ -336,8 +336,7 @@ func GrpInviteMembers(ctx context.Context, req *apimodels.GroupInviteReq) (errs.
 				AppKey:   appkey,
 			})
 		}
-		err := memberStorage.BatchCreate(items)
-		fmt.Println("batchcreate:", err, directAddMemberIds)
+		memberStorage.BatchCreate(items)
 		//sync to imserver
 		if sdk := imsdk.GetImSdk(appkey); sdk != nil {
 			sdk.GroupAddMembers(juggleimsdk.GroupMembersReq{
