@@ -59,21 +59,31 @@ func GetUserSettings(ctx context.Context, userId string) *apimodels.UserSettings
 func SearchByPhone(ctx context.Context, phone string) (errs.IMErrorCode, *apimodels.Users) {
 	requestId := GetRequesterIdFromCtx(ctx)
 	appkey := GetAppKeyFromCtx(ctx)
+	users := &apimodels.Users{
+		Items: []*apimodels.UserObj{},
+	}
 	targetUserId := utils.ShortMd5(phone)
 	storage := storages.NewUserStorage()
 	user, err := storage.FindByPhone(appkey, phone)
 	if err == nil && user != nil {
 		targetUserId = user.UserId
+		users.Items = append(users.Items, &apimodels.UserObj{
+			UserId:   user.UserId,
+			Nickname: user.Nickname,
+			Avatar:   user.UserPortrait,
+			IsFriend: checkFriend(ctx, requestId, targetUserId),
+		})
+	} else {
+		user, err := storage.FindByUserId(appkey, targetUserId)
+		if err == nil && user != nil {
+			users.Items = append(users.Items, &apimodels.UserObj{
+				UserId:   user.UserId,
+				Nickname: user.Nickname,
+				Avatar:   user.UserPortrait,
+				IsFriend: checkFriend(ctx, requestId, targetUserId),
+			})
+		}
 	}
-	users := &apimodels.Users{
-		Items: []*apimodels.UserObj{},
-	}
-	users.Items = append(users.Items, &apimodels.UserObj{
-		UserId:   user.UserId,
-		Nickname: user.Nickname,
-		Avatar:   user.UserPortrait,
-		IsFriend: checkFriend(ctx, requestId, targetUserId),
-	})
 	return errs.IMErrorCode_SUCCESS, users
 }
 
