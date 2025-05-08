@@ -1,4 +1,4 @@
-CREATE TABLE `apps` (
+CREATE TABLE IF NOT EXISTS `apps` (
   `id` int NOT NULL AUTO_INCREMENT,
   `app_key` varchar(45) NOT NULL,
   `app_secret` varchar(45) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE `apps` (
   UNIQUE KEY `uniq_appkey` (`app_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `appexts` (
+CREATE TABLE IF NOT EXISTS `appexts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `app_key` varchar(50) DEFAULT NULL,
   `app_item_key` varchar(50) DEFAULT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE `appexts` (
   UNIQUE KEY `IDX_APPKEY_APPITEMKEY` (`app_key`,`app_item_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `fileconfs` (
+CREATE TABLE IF NOT EXISTS `fileconfs` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `app_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `channel` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE `fileconfs` (
   UNIQUE KEY `app_key` (`app_key`,`channel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `friendrels` (
+CREATE TABLE IF NOT EXISTS `friendrels` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` varchar(32) DEFAULT NULL,
   `friend_id` varchar(32) DEFAULT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE `friendrels` (
   KEY `idx_order` (`app_key`, `user_id`, `order_tag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `groupadmins` (
+CREATE TABLE IF NOT EXISTS `groupadmins` (
   `id` int NOT NULL AUTO_INCREMENT,
   `group_id` varchar(64) DEFAULT NULL,
   `admin_id` varchar(64) DEFAULT NULL,
@@ -57,11 +57,12 @@ CREATE TABLE `groupadmins` (
   UNIQUE KEY `uniq_admin` (`app_key`,`group_id`,`admin_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `groupinfos` (
+CREATE TABLE IF NOT EXISTS `groupinfos` (
   `id` int NOT NULL AUTO_INCREMENT,
   `group_id` varchar(64) DEFAULT NULL,
   `group_name` varchar(64) DEFAULT NULL,
   `group_portrait` varchar(200) DEFAULT NULL,
+  `creator_id` varchar(64) DEFAULT NULL,
   `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
   `app_key` varchar(20) DEFAULT NULL,
   `is_mute` tinyint DEFAULT '0',
@@ -70,7 +71,7 @@ CREATE TABLE `groupinfos` (
   UNIQUE KEY `uniq_appkey_groupid` (`app_key`,`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `groupinfoexts` (
+CREATE TABLE IF NOT EXISTS `groupinfoexts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `group_id` varchar(32) DEFAULT NULL,
   `item_key` varchar(50) DEFAULT NULL,
@@ -82,7 +83,7 @@ CREATE TABLE `groupinfoexts` (
   UNIQUE KEY `uniq_appkey_groupid` (`app_key`,`group_id`,`item_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `groupmembers` (
+CREATE TABLE IF NOT EXISTS `groupmembers` (
   `id` int NOT NULL AUTO_INCREMENT,
   `group_id` varchar(64) DEFAULT NULL,
   `member_id` varchar(64) DEFAULT NULL,
@@ -92,12 +93,13 @@ CREATE TABLE `groupmembers` (
   `is_mute` tinyint DEFAULT '0',
   `is_allow` tinyint DEFAULT '0',
   `mute_end_at` bigint DEFAULT '0',
+  `grp_display_name` varchar(100) DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_appkey_grpid_memid` (`app_key`,`group_id`,`member_id`),
   KEY `idx_memberid` (`app_key`,`member_id`,`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_type` tinyint DEFAULT '0',
   `user_id` varchar(32) NOT NULL,
@@ -119,7 +121,7 @@ CREATE TABLE `users` (
   KEY `idx_userid` (`app_key`,`user_type`,`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `userexts` (
+CREATE TABLE IF NOT EXISTS `userexts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` varchar(32) DEFAULT NULL,
   `item_key` varchar(50) DEFAULT NULL,
@@ -132,8 +134,7 @@ CREATE TABLE `userexts` (
   KEY `idx_item_key` (`app_key`,`item_key`,`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `friendapplications`;
-CREATE TABLE `friendapplications` (
+CREATE TABLE IF NOT EXISTS `friendapplications` (
   `id` int NOT NULL AUTO_INCREMENT,
   `recipient_id` varchar(32) DEFAULT NULL,
   `sponsor_id` varchar(32) DEFAULT NULL,
@@ -146,8 +147,7 @@ CREATE TABLE `friendapplications` (
   KEY `idx_sponsor` (`app_key`,`sponsor_id`,`apply_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `grpapplications`;
-CREATE TABLE `grpapplications` (
+CREATE TABLE IF NOT EXISTS `grpapplications` (
   `id` int NOT NULL AUTO_INCREMENT,
   `group_id` varchar(32) DEFAULT NULL,
   `apply_type` tinyint DEFAULT '0',
@@ -165,8 +165,7 @@ CREATE TABLE `grpapplications` (
   KEY `idx_recipient` (`app_key`,`apply_type`,`recipient_id`,`apply_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `qrcoderecords`;
-CREATE TABLE `qrcoderecords` (
+CREATE TABLE IF NOT EXISTS `qrcoderecords` (
   `id` int NOT NULL AUTO_INCREMENT,
   `code_id` varchar(50) DEFAULT NULL,
   `status` tinyint DEFAULT NULL,
@@ -177,8 +176,7 @@ CREATE TABLE `qrcoderecords` (
   UNIQUE KEY `uniq_id` (`app_key`,`code_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `smsrecords`;
-CREATE TABLE `smsrecords` (
+CREATE TABLE IF NOT EXISTS `smsrecords` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `phone` varchar(50) DEFAULT NULL,
   `code` varchar(10) DEFAULT NULL,
@@ -188,8 +186,7 @@ CREATE TABLE `smsrecords` (
   KEY `idx_phone` (`app_key`,`phone`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `ai_engines`;
-CREATE TABLE `ai_engines` (
+CREATE TABLE IF NOT EXISTS `ai_engines` (
   `id` int NOT NULL AUTO_INCREMENT,
   `engine_type` tinyint DEFAULT '0',
   `engine_conf` varchar(5000) DEFAULT NULL,
@@ -199,8 +196,7 @@ CREATE TABLE `ai_engines` (
   KEY `idx_appkey` (`app_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `assistant_prompts`;
-CREATE TABLE `assistant_prompts` (
+CREATE TABLE IF NOT EXISTS `assistant_prompts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` varchar(32) DEFAULT NULL,
   `prompts` varchar(2000) DEFAULT NULL,
@@ -212,8 +208,7 @@ CREATE TABLE `assistant_prompts` (
   KEY `idx_user` (`app_key`,`user_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `botconfs`;
-CREATE TABLE `botconfs` (
+CREATE TABLE IF NOT EXISTS `botconfs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `bot_id` varchar(32) NULL,
   `nickname` varchar(50) DEFAULT NULL,
@@ -229,8 +224,7 @@ CREATE TABLE `botconfs` (
   UNIQUE INDEX `uniq_botid` (`app_key`, `bot_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `telebots`;
-CREATE TABLE `telebots` (
+CREATE TABLE IF NOT EXISTS `telebots` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` varchar(50) DEFAULT NULL,
   `bot_name` varchar(50) DEFAULT NULL,
@@ -243,8 +237,7 @@ CREATE TABLE `telebots` (
   KEY `idx_user` (`app_key`,`user_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `posts`;
-CREATE TABLE `posts` (
+CREATE TABLE IF NOT EXISTS `posts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `post_id` varchar(32) DEFAULT NULL,
   `title` varchar(200) DEFAULT NULL,
@@ -261,8 +254,7 @@ CREATE TABLE `posts` (
   KEY `uniq_id` (`app_key`,`post_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-DROP TABLE IF EXISTS `postcomments`;
-CREATE TABLE `postcomments` (
+CREATE TABLE IF NOT EXISTS `postcomments` (
   `id` int NOT NULL AUTO_INCREMENT,
   `comment_id` varchar(32) DEFAULT NULL,
   `post_id` varchar(32) DEFAULT NULL,
@@ -279,3 +271,5 @@ CREATE TABLE `postcomments` (
   UNIQUE KEY `uniq_id` (`app_key`,`comment_id`),
   KEY `idx_post` (`app_key`,`post_id`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_versaion','20240716');
