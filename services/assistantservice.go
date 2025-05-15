@@ -39,7 +39,7 @@ func InitUserAssistant(ctx context.Context, userId, nickname, portrait string) {
 					SenderId:       botId,
 					TargetIds:      []string{userId},
 					MsgType:        "jg:text",
-					MsgContent:     `{"content":"欢迎注册JuggleIM，我是您的私人助理，任何问题都可以问我！"}`,
+					MsgContent:     `{"content":"欢迎注册，我是您的私人助理，任何问题都可以问我！"}`,
 					IsNotifySender: utils.BoolPtr(false),
 				})
 			}

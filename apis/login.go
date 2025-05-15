@@ -103,6 +103,15 @@ func SmsLogin(ctx *gin.Context) {
 				if err != nil {
 					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
+				} else {
+					userExtStorage := storages.NewUserExtStorage()
+					userExtStorage.Upsert(models.UserExt{
+						UserId:    userId,
+						ItemKey:   apimodels.UserExtKey_FriendVerifyType,
+						ItemValue: utils.Int2String(int64(apimodels.FriendVerifyType_NeedFriendVerify)),
+						ItemType:  apimodels.AttItemType_Setting,
+						AppKey:    appkey,
+					})
 				}
 				//assistant send welcome message
 				services.InitUserAssistant(services.ToCtx(ctx), userId, nickname, "")
@@ -188,6 +197,15 @@ func EmailLogin(ctx *gin.Context) {
 				if err != nil {
 					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
+				} else {
+					userExtStorage := storages.NewUserExtStorage()
+					userExtStorage.Upsert(models.UserExt{
+						UserId:    userId,
+						ItemKey:   apimodels.UserExtKey_FriendVerifyType,
+						ItemValue: utils.Int2String(int64(apimodels.FriendVerifyType_NeedFriendVerify)),
+						ItemType:  apimodels.AttItemType_Setting,
+						AppKey:    appkey,
+					})
 				}
 				//assistant send welcome message
 				services.InitUserAssistant(services.ToCtx(ctx), userId, nickname, "")
