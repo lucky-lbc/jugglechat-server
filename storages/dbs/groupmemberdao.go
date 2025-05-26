@@ -63,7 +63,7 @@ func (member GroupMemberDao) Find(appkey, groupId, memberId string) (*models.Gro
 
 func (member GroupMemberDao) FindByMemberIds(appkey, groupId string, memberIds []string) ([]*models.GroupMember, error) {
 	var items []*GroupMemberDao
-	err := dbcommons.GetDb().Where("app_key=? and group_id=? and id>?", appkey, groupId, memberIds).Find(&items).Error
+	err := dbcommons.GetDb().Where("app_key=? and group_id=? and member_id in (?)", appkey, groupId, memberIds).Find(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		ret = append(ret, &models.GroupMember{
