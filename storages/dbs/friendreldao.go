@@ -119,6 +119,6 @@ func (rel FriendRelDao) QueryFriendRelsByFriendIds(appkey, userId string, friend
 	return ret, nil
 }
 
-func (rel FriendRelDao) UpdateOrderTag(appkey, friendId string, orderTag string) error {
-	return dbcommons.GetDb().Model(&FriendRelDao{}).Where("app_key=? and friend_id=?", appkey, friendId).Update("order_tag", orderTag).Error
+func (rel FriendRelDao) UpdateOrderTag(appkey, userId, friendId string, orderTag string) error {
+	return dbcommons.GetDb().Model(&FriendRelDao{}).Where("app_key=? and user_id=? and friend_id=?", appkey, userId, friendId).Update("order_tag", orderTag).Error
 }

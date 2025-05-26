@@ -15,7 +15,7 @@ type IFriendRelStorage interface {
 	QueryFriendRelsWithPage(appkey, userId string, orderTag string, page, size int64) ([]*FriendRel, error)
 	BatchDelete(appkey, userId string, friendIds []string) error
 	QueryFriendRelsByFriendIds(appkey, userId string, friendIds []string) ([]*FriendRel, error)
-	UpdateOrderTag(appkey, friendId string, orderTag string) error
+	UpdateOrderTag(appkey, userId, friendId string, orderTag string) error
 }
 
 type FriendApplicationStatus int
