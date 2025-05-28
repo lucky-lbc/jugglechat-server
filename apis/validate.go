@@ -44,29 +44,27 @@ func Validate(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		if tokenStr != "" {
-			if strings.HasPrefix(tokenStr, "Bearer ") {
-				tokenStr = tokenStr[7:]
-				if !services.CheckApiKey(tokenStr, appkey, appInfo.AppSecureKey) {
-					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					ctx.Abort()
-					return
-				}
-			} else {
-				authToken, err := services.ParseTokenString(tokenStr)
-				if err != nil {
-					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					ctx.Abort()
-					return
-				}
-				token, err := services.ParseToken(authToken, []byte(appInfo.AppSecureKey))
-				if err != nil {
-					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					ctx.Abort()
-					return
-				}
-				ctx.Set(string(services.CtxKey_RequesterId), token.UserId)
+		if strings.HasPrefix(tokenStr, "Bearer ") {
+			tokenStr = tokenStr[7:]
+			if !services.CheckApiKey(tokenStr, appkey, appInfo.AppSecureKey) {
+				ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				ctx.Abort()
+				return
 			}
+		} else {
+			authToken, err := services.ParseTokenString(tokenStr)
+			if err != nil {
+				ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				ctx.Abort()
+				return
+			}
+			token, err := services.ParseToken(authToken, []byte(appInfo.AppSecureKey))
+			if err != nil {
+				ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				ctx.Abort()
+				return
+			}
+			ctx.Set(string(services.CtxKey_RequesterId), token.UserId)
 		}
 	}
 }
