@@ -105,7 +105,7 @@ type GroupMemberWithUser struct {
 }
 
 func (member GroupMemberDao) QueryMembers(appkey, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? and m.id>?", member.TableName(), UserDao{}.TableName())
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? and m.id>?", member.TableName(), UserDao{}.TableName())
 	var items []*GroupMemberWithUser
 	err := dbcommons.GetDb().Raw(sql, appkey, groupId, startId).Order("m.id asc").Limit(limit).Find(&items).Error
 	ret := []*models.GroupMember{}
