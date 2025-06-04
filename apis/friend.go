@@ -83,6 +83,20 @@ func QryFriendsWithPage(ctx *gin.Context) {
 	SuccessHttpResp(ctx, ret)
 }
 
+func SearchFriends(ctx *gin.Context) {
+	req := apimodels.SearchFriendsReq{}
+	if err := ctx.BindJSON(&req); err != nil || req.Key == "" {
+		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code, resp := services.SearchFriends(services.ToCtx(ctx), &req)
+	if code != errs.IMErrorCode_SUCCESS {
+		ErrorHttpResp(ctx, code)
+		return
+	}
+	SuccessHttpResp(ctx, resp)
+}
+
 func AddFriend(ctx *gin.Context) {
 	req := apimodels.Friend{}
 	if err := ctx.BindJSON(&req); err != nil {

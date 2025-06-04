@@ -144,6 +144,39 @@ func CheckGroupMembers(ctx context.Context, req *apimodels.CheckGroupMembersReq)
 	return errs.IMErrorCode_SUCCESS, ret
 }
 
+func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersReq) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
+	appkey := GetAppKeyFromCtx(ctx)
+	groupId := req.GroupId
+	var startId int64 = 0
+	if req.Offset != "" {
+		id, err := utils.DecodeInt(req.Offset)
+		if err == nil && id > 0 {
+			startId = id
+		}
+	}
+	var limit int64 = 100
+	if req.Limit > 0 {
+		limit = req.Limit
+	}
+	ret := &apimodels.GroupMemberInfos{
+		Items: []*apimodels.GroupMemberInfo{},
+	}
+	storage := storages.NewGroupMemberStorage()
+	members, err := storage.SearchMembersByName(appkey, groupId, req.Key, startId, limit)
+	if err == nil {
+		for _, member := range members {
+			ret.Offset, _ = utils.EncodeInt(member.ID)
+			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
+				UserId:     member.MemberId,
+				MemberType: member.MemberType,
+				Nickname:   member.Nickname,
+				Avatar:     member.UserPortrait,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, nil
+}
+
 func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMErrorCode, *apimodels.GroupInfo) {
 	appkey := GetAppKeyFromCtx(ctx)
 	grpId := utils.GenerateUUIDShort11()

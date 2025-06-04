@@ -75,6 +75,7 @@ func main() {
 	group.POST("/groups/members/del", apis.DelGrpMembers)
 	group.GET("/groups/members/list", apis.QryGrpMembers)
 	group.POST("/groups/members/check", apis.CheckGroupMembers)
+	group.POST("/groups/members/search", apis.SearchGroupMembers)
 	group.GET("/groups/info", apis.QryGroupInfo)
 	group.GET("/groups/qrcode", apis.QryGrpQrCode)
 	group.POST("/groups/setgrpannouncement", apis.SetGrpAnnouncement)
@@ -96,6 +97,7 @@ func main() {
 	group.GET("/groups/grppendingapplications", apis.QryGrpPendingApplications)
 
 	group.GET("/friends/list", apis.QryFriendsWithPage)
+	group.POST("/friends/search", apis.SearchFriends)
 	group.POST("/friends/add", apis.AddFriend)
 	group.POST("/friends/apply", apis.ApplyFriend)
 	group.POST("/friends/confirm", apis.ConfirmFriend)

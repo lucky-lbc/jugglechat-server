@@ -96,6 +96,33 @@ func (rel FriendRelDao) QueryFriendRelsWithPage(appkey, userId string, orderTag 
 	return ret, nil
 }
 
+type FriendRelWithUser struct {
+	FriendRelDao
+	Nickname     string `gorm:"nickname"`
+	UserPortrait string `gorm:"user_portrait"`
+	UserType     int    `gorm:"user_type"`
+}
+
+func (rel FriendRelDao) SearchFriendsByName(appkey, userId string, nickname string, startId, limit int64) ([]*models.User, error) {
+	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and u.nickname like ?", rel.TableName(), UserDao{}.TableName())
+	var items []*FriendRelWithUser
+	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%").Order("r.id asc").Limit(limit).Find(&items).Error
+	ret := []*models.User{}
+	if err == nil {
+		for _, item := range items {
+			ret = append(ret, &models.User{
+				ID:           item.ID,
+				UserId:       item.FriendId,
+				Nickname:     item.Nickname,
+				UserPortrait: item.UserPortrait,
+				UserType:     item.UserType,
+				AppKey:       item.AppKey,
+			})
+		}
+	}
+	return ret, err
+}
+
 func (rel FriendRelDao) BatchDelete(appkey, userId string, friendIds []string) error {
 	return dbcommons.GetDb().Where("app_key=? and user_id=? and friend_id in (?)", appkey, userId, friendIds).Delete(&FriendRelDao{}).Error
 }

@@ -106,6 +106,7 @@ type IGroupMemberStorage interface {
 	FindByMemberIds(appkey, groupId string, memberIds []string) ([]*GroupMember, error)
 	BatchCreate(items []GroupMember) error
 	QueryMembers(appkey, groupId string, startId, limit int64) ([]*GroupMember, error)
+	SearchMembersByName(appkey, groupId, nickname string, startId, limit int64) ([]*GroupMember, error)
 	QueryGroupsByMemberId(appkey, memberId string, startId, limit int64) ([]*GroupMember, error)
 	BatchDelete(appkey, groupId string, memberIds []string) error
 	DeleteByGroupId(appkey, groupId string) error

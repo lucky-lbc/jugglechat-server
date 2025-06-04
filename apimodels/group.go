@@ -50,6 +50,13 @@ type CheckGroupMembersResp struct {
 	MemberExistMap map[string]bool `json:"member_exist_map"`
 }
 
+type SearchGroupMembersReq struct {
+	GroupId string `json:"group_id"`
+	Key     string `json:"key"`
+	Offset  string `json:"offset"`
+	Limit   int64  `json:"limit"`
+}
+
 type KvItem struct {
 	Key     string `json:"key"`
 	Value   string `json:"value"`

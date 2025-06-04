@@ -84,6 +84,39 @@ func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) 
 	return errs.IMErrorCode_SUCCESS, ret
 }
 
+func SearchFriends(ctx context.Context, req *apimodels.SearchFriendsReq) (errs.IMErrorCode, *apimodels.Users) {
+	appkey := GetAppKeyFromCtx(ctx)
+	userId := GetRequesterIdFromCtx(ctx)
+	ret := &apimodels.Users{
+		Items: []*apimodels.UserObj{},
+	}
+	var startId int64 = 0
+	if req.Offset != "" {
+		id, err := utils.DecodeInt(req.Offset)
+		if err == nil && id > 0 {
+			startId = id
+		}
+	}
+	var limit int64 = 100
+	if req.Limit > 0 {
+		limit = req.Limit
+	}
+	storage := storages.NewFriendRelStorage()
+	users, err := storage.SearchFriendsByName(appkey, userId, req.Key, startId, limit)
+	if err == nil {
+		for _, u := range users {
+			ret.Offset, _ = utils.EncodeInt(u.ID)
+			ret.Items = append(ret.Items, &apimodels.UserObj{
+				UserId:   u.UserId,
+				Nickname: u.Nickname,
+				Avatar:   u.UserPortrait,
+				UserType: u.UserType,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
 func AddFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCode {
 	appkey := GetAppKeyFromCtx(ctx)
 	userId := GetRequesterIdFromCtx(ctx)

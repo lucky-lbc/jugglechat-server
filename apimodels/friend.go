@@ -36,3 +36,9 @@ type FriendApplicationItem struct {
 	Status     int32    `json:"status,omitempty"`
 	ApplyTime  int64    `json:"apply_time,omitempty"`
 }
+
+type SearchFriendsReq struct {
+	Key    string `json:"key"`
+	Offset string `json:"offset"`
+	Limit  int64  `json:"limit"`
+}

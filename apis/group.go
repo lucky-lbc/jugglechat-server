@@ -218,6 +218,20 @@ func CheckGroupMembers(ctx *gin.Context) {
 	SuccessHttpResp(ctx, resp)
 }
 
+func SearchGroupMembers(ctx *gin.Context) {
+	req := apimodels.SearchGroupMembersReq{}
+	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || req.Key == "" {
+		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code, resp := services.SearchGroupMembers(services.ToCtx(ctx), &req)
+	if code != errs.IMErrorCode_SUCCESS {
+		ErrorHttpResp(ctx, code)
+		return
+	}
+	SuccessHttpResp(ctx, resp)
+}
+
 func SetGrpAnnouncement(ctx *gin.Context) {
 	req := apimodels.GroupAnnouncement{}
 	if err := ctx.BindJSON(&req); err != nil {
