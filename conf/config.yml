@@ -5,10 +5,10 @@ log:
   logName: jugglechat-server
 
 mysql:
-  user: <db_user>
-  password: <db_password>
+  user: root
+  password: 123456
   address: 127.0.0.1:3306
-  name: app_db
+  name: im_db
 
 imApiDomain: https://api.juggle.im
 botConnector:
