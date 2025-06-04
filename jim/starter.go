@@ -125,7 +125,7 @@ func (server JuggleChatServer) Startup(args map[string]interface{}) {
 
 	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
 
-	fmt.Println("Start", serviceName, "with port:", configures.Config.Port)
+	fmt.Println("Startup", serviceName, "with port:", configures.Config.Port)
 }
 
 func (server JuggleChatServer) Shutdown(force bool) {
