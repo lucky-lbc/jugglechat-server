@@ -25,6 +25,7 @@ func Validate(ctx *gin.Context) {
 	appkey := ctx.Request.Header.Get(Header_AppKey)
 	if appkey == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_APPKEY_REQUIRED)
+		ctx.Abort()
 		return
 	}
 	ctx.Set(string(services.CtxKey_AppKey), appkey)

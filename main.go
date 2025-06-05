@@ -1,25 +1,30 @@
 package main
 
 import (
-	"os"
-	"os/signal"
-	"syscall"
+	"fmt"
 
-	"github.com/juggleim/jugglechat-server/jim"
+	"github.com/gin-gonic/gin"
+	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/log"
+	"github.com/juggleim/jugglechat-server/routers"
+	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 )
 
 func main() {
-	server := &jim.JuggleChatServer{}
-	server.Startup(map[string]interface{}{})
+	//init configure
+	if err := configures.InitConfigures(); err != nil {
+		fmt.Println("Init Configures failed", err)
+		return
+	}
+	//init log
+	log.InitLogs()
+	//init mysql
+	if err := dbcommons.InitMysql(); err != nil {
+		log.Error("Init Mysql failed.", err)
+		return
+	}
 
-	closeChan := make(chan struct{})
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	go func() {
-		<-sigChan
-		server.Shutdown(true)
-		signal.Stop(sigChan)
-		close(closeChan)
-	}()
-	<-closeChan
+	httpServer := gin.Default()
+	routers.Route(httpServer, "jim")
+	httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
 }

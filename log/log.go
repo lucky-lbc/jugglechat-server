@@ -23,6 +23,11 @@ func InitLogs() {
 	initInfoLogger()
 }
 
+func SetLogger(info *logrus.Logger, err *logrus.Logger) {
+	infoLogger = info
+	errorLogger = err
+}
+
 func initInfoLogger() {
 	infoLogger = logrus.New()
 	_, err := rotatelogs.New(

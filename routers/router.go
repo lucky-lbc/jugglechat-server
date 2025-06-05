@@ -1,37 +1,16 @@
-package jim
+package routers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juggleim/jugglechat-server/apis"
-	"github.com/juggleim/jugglechat-server/configures"
-	"github.com/juggleim/jugglechat-server/log"
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 )
 
-var serviceName string = "jugglechat"
-
-type JuggleChatServer struct{}
-
-func (server JuggleChatServer) Startup(args map[string]interface{}) {
-	//init configure
-	if err := configures.InitConfigures(); err != nil {
-		fmt.Println("Init Configures failed", err)
-		return
-	}
-	//init log
-	log.InitLogs()
-	//init mysql
-	if err := dbcommons.InitMysql(); err != nil {
-		log.Error("Init Mysql failed.", err)
-		return
-	}
-
-	httpServer := gin.Default()
-	httpServer.Use(CorsHandler())
-	group := httpServer.Group("/jim")
+func Route(eng *gin.Engine, prefix string) {
+	ginEng := gin.Default()
+	group := ginEng.Group("/" + prefix)
+	group.Use(corsHandler())
 	group.Use(apis.Validate)
 
 	group.POST("/login", apis.Login)
@@ -122,17 +101,9 @@ func (server JuggleChatServer) Startup(args map[string]interface{}) {
 	group.POST("/postcomments/add", apis.PostCommentAdd)
 	group.POST("/postcomments/update")
 	group.POST("/postcomments/del")
-
-	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
-
-	fmt.Println("Startup", serviceName, "with port:", configures.Config.Port)
 }
 
-func (server JuggleChatServer) Shutdown(force bool) {
-
-}
-
-func CorsHandler() gin.HandlerFunc {
+func corsHandler() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		method := context.Request.Method
 		context.Writer.Header().Add("Access-Control-Allow-Origin", "*")
