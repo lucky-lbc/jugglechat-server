@@ -8,8 +8,8 @@ import (
 )
 
 func Route(eng *gin.Engine, prefix string) {
+	eng.Use(corsHandler())
 	group := eng.Group("/" + prefix)
-	group.Use(corsHandler())
 	group.Use(apis.Validate)
 
 	group.POST("/login", apis.Login)
@@ -106,7 +106,7 @@ func corsHandler() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		method := context.Request.Method
 		context.Writer.Header().Add("Access-Control-Allow-Origin", "*")
-		context.Writer.Header().Add("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization")
+		context.Writer.Header().Add("Access-Control-Allow-Headers", "*")
 		context.Writer.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
 		context.Writer.Header().Add("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
 		context.Writer.Header().Add("Access-Control-Allow-Credentials", "true")
