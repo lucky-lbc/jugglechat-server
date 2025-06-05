@@ -8,8 +8,7 @@ import (
 )
 
 func Route(eng *gin.Engine, prefix string) {
-	ginEng := gin.Default()
-	group := ginEng.Group("/" + prefix)
+	group := eng.Group("/" + prefix)
 	group.Use(corsHandler())
 	group.Use(apis.Validate)
 
