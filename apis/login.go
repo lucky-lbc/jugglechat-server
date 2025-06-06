@@ -32,7 +32,7 @@ func Login(ctx *gin.Context) {
 	userId := utils.ShortMd5(req.Account)
 	nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
 	fmt.Println(userId, nickname)
-	appkey := ctx.GetString(Header_AppKey)
+	appkey := ctx.GetString(string(services.CtxKey_AppKey))
 	sdk := imsdk.GetImSdk(appkey)
 	if sdk == nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
@@ -283,7 +283,7 @@ func CheckQrCode(ctx *gin.Context) {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_QRCODE_EXPIRED)
 		return
 	}
-	appkey := ctx.GetString(Header_AppKey)
+	appkey := ctx.GetString(string(services.CtxKey_AppKey))
 	if record.Status == models.QrCodeRecordStatus_OK {
 		userId := record.UserId
 		sdk := imsdk.GetImSdk(appkey)
