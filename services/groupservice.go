@@ -174,7 +174,7 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 			})
 		}
 	}
-	return errs.IMErrorCode_SUCCESS, nil
+	return errs.IMErrorCode_SUCCESS, ret
 }
 
 func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMErrorCode, *apimodels.GroupInfo) {
