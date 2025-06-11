@@ -2,8 +2,12 @@ package services
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/juggleim/jugglechat-server/apimodels"
 	"github.com/juggleim/jugglechat-server/configures"
@@ -27,7 +31,7 @@ func TelegramBotAdd(ctx context.Context, req *apimodels.TelegramBot) (errs.IMErr
 	})
 	if err == nil {
 		//active telegram bot client
-		ActiveTelebotProxy(&TeleBotRel{
+		ActiveTelebotProxy(ctx, &TeleBotRel{
 			AppKey:   appkey,
 			UserId:   userId,
 			BotToken: req.BotToken,
@@ -61,7 +65,7 @@ func TelegramBotBatchDel(ctx context.Context, req *apimodels.TelegramBotIds) err
 		for _, id := range botIds {
 			bot, err := storage.FindById(id, appkey, userId)
 			if err == nil && bot != nil {
-				UnActiveTelebotProxy(&TeleBotRel{
+				UnActiveTelebotProxy(ctx, &TeleBotRel{
 					AppKey:    appkey,
 					TeleBotId: "",
 					BotToken:  bot.BotToken,
@@ -101,11 +105,9 @@ func QryTelegramBots(ctx context.Context, limit int64, offset string) (errs.IMEr
 	return errs.IMErrorCode_SUCCESS, ret
 }
 
-func ActiveTelebotProxy(rel *TeleBotRel) {
+func ActiveTelebotProxy(ctx context.Context, rel *TeleBotRel) {
 	url := fmt.Sprintf("%s/bot-connector/telebot/add", configures.Config.BotConnector.Domain)
-	headers := map[string]string{}
-	headers["Authorization"] = fmt.Sprintf("Bearer %s", configures.Config.BotConnector.ApiKey)
-	headers["Content-Type"] = "application/json"
+	headers := getBotConnectorHeaders(ctx)
 	if rel.TeleBotId == "" && rel.BotToken != "" {
 		arr := strings.Split(rel.BotToken, ":")
 		if len(arr) >= 2 {
@@ -118,11 +120,9 @@ func ActiveTelebotProxy(rel *TeleBotRel) {
 	fmt.Println("activetelebot:", resp, code, err)
 }
 
-func UnActiveTelebotProxy(rel *TeleBotRel) {
+func UnActiveTelebotProxy(ctx context.Context, rel *TeleBotRel) {
 	url := fmt.Sprintf("%s/bot-connector/telebot/del", configures.Config.BotConnector.Domain)
-	headers := map[string]string{}
-	headers["Authorization"] = fmt.Sprintf("Bearer %s", configures.Config.BotConnector.ApiKey)
-	headers["Content-Type"] = "application/json"
+	headers := getBotConnectorHeaders(ctx)
 	if rel.TeleBotId == "" && rel.BotToken != "" {
 		arr := strings.Split(rel.BotToken, ":")
 		if len(arr) >= 2 {
@@ -133,6 +133,35 @@ func UnActiveTelebotProxy(rel *TeleBotRel) {
 	}
 	resp, code, err := utils.HttpDo(http.MethodPost, url, headers, utils.ToJson(rel))
 	fmt.Println("unactivetelebot:", resp, code, err)
+}
+
+func getBotConnectorHeaders(ctx context.Context) map[string]string {
+	appkey := GetAppKeyFromCtx(ctx)
+	appinfo, exist := GetAppInfo(appkey)
+	if exist {
+		nonce := fmt.Sprintf("%d", rand.Int31n(10000))
+		timestamp := fmt.Sprintf("%d", time.Now().UnixMilli())
+		signature := SHA1(fmt.Sprintf("%s%s%s", appinfo.AppSecret, nonce, timestamp))
+
+		return map[string]string{
+			"Content-Type": "application/json",
+			"appkey":       appkey,
+			"nonce":        nonce,
+			"timestamp":    timestamp,
+			"signature":    signature,
+		}
+	} else {
+		return map[string]string{
+			"Content-Type": "application/json",
+			"appkey":       appkey,
+		}
+	}
+}
+
+func SHA1(s string) string {
+	o := sha1.New()
+	o.Write([]byte(s))
+	return hex.EncodeToString(o.Sum(nil))
 }
 
 type TeleBotRel struct {

@@ -33,7 +33,6 @@ type AppConfig struct {
 
 	BotConnector struct {
 		Domain string `yaml:"domain"`
-		ApiKey string `yaml:"apiKey"`
 	} `yaml:"botConnector"`
 }
 

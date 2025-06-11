@@ -14,4 +14,3 @@ imApiDomain: https://api.juggle.im
 
 botConnector:
   domain: <bot-connector url>
-  apiKey: <api_key>
