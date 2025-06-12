@@ -23,6 +23,8 @@ func main() {
 		log.Error("Init Mysql failed.", err)
 		return
 	}
+	//upgrade db
+	dbcommons.Upgrade()
 
 	httpServer := gin.Default()
 	routers.Route(httpServer, "jim")
