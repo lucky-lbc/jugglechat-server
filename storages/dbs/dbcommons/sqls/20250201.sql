@@ -284,4 +284,4 @@ CREATE TABLE IF NOT EXISTS `postcomments` (
   KEY `idx_post` (`app_key`,`post_id`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_versaion','20240716');
+INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_versaion','20250201');
