@@ -7,7 +7,7 @@ import (
 	"github.com/juggleim/jugglechat-server/apis"
 )
 
-func Route(eng *gin.Engine, prefix string) {
+func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	eng.Use(corsHandler())
 	group := eng.Group("/" + prefix)
 	group.Use(apis.Validate)
@@ -86,20 +86,7 @@ func Route(eng *gin.Engine, prefix string) {
 	group.GET("/friends/applications", apis.FriendApplications)
 	group.GET("/friends/myapplications", apis.MyFriendApplications)
 	group.GET("/friends/mypendingapplications", apis.MyPendingFriendApplications)
-
-	//post
-	group.GET("/posts/list", apis.QryPosts)
-	group.GET("/posts/info", apis.PostInfo)
-	group.POST("/posts/add", apis.PostAdd)
-	group.POST("/posts/update")
-	group.POST("/posts/del")
-	group.POST("/posts/reactions/add")
-	group.GET("/posts/reactions/list")
-
-	group.GET("/postcomments/list", apis.QryPostComments)
-	group.POST("/postcomments/add", apis.PostCommentAdd)
-	group.POST("/postcomments/update")
-	group.POST("/postcomments/del")
+	return group
 }
 
 func corsHandler() gin.HandlerFunc {

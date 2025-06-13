@@ -72,11 +72,3 @@ func NewGroupMemberStorage() models.IGroupMemberStorage {
 func NewGroupAdminStorage() models.IGroupAdminStorage {
 	return &dbs.GroupAdminDao{}
 }
-
-func NewPostStorage() models.IPostStorage {
-	return &dbs.PostDao{}
-}
-
-func NewPostCommentStorage() models.IPostCommentStorage {
-	return &dbs.PostCommentDao{}
-}
