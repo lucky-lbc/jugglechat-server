@@ -1,4 +1,4 @@
-package apimodels
+package models
 
 type AssistantAnswerReq struct {
 	ConverId    string            `json:"conver_id"`

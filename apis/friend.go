@@ -3,7 +3,7 @@ package apis
 import (
 	"strconv"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -27,12 +27,12 @@ func QryFriends(ctx *gin.Context) {
 		ErrorHttpResp(ctx, code)
 		return
 	}
-	ret := &apimodels.Friends{
-		Items:  []*apimodels.UserObj{},
+	ret := &models.Friends{
+		Items:  []*models.UserObj{},
 		Offset: friends.Offset,
 	}
 	for _, friend := range friends.Items {
-		ret.Items = append(ret.Items, &apimodels.UserObj{
+		ret.Items = append(ret.Items, &models.UserObj{
 			UserId:   friend.UserId,
 			Nickname: friend.Nickname,
 			Avatar:   friend.Avatar,
@@ -68,11 +68,11 @@ func QryFriendsWithPage(ctx *gin.Context) {
 		ErrorHttpResp(ctx, code)
 		return
 	}
-	ret := &apimodels.Friends{
-		Items: []*apimodels.UserObj{},
+	ret := &models.Friends{
+		Items: []*models.UserObj{},
 	}
 	for _, friend := range friends.Items {
-		ret.Items = append(ret.Items, &apimodels.UserObj{
+		ret.Items = append(ret.Items, &models.UserObj{
 			UserId:   friend.UserId,
 			Nickname: friend.Nickname,
 			Avatar:   friend.Avatar,
@@ -84,7 +84,7 @@ func QryFriendsWithPage(ctx *gin.Context) {
 }
 
 func SearchFriends(ctx *gin.Context) {
-	req := apimodels.SearchFriendsReq{}
+	req := models.SearchFriendsReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.Key == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -98,12 +98,12 @@ func SearchFriends(ctx *gin.Context) {
 }
 
 func AddFriend(ctx *gin.Context) {
-	req := apimodels.Friend{}
+	req := models.Friend{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.AddFriends(services.ToCtx(ctx), &apimodels.FriendIdsReq{
+	code := services.AddFriends(services.ToCtx(ctx), &models.FriendIdsReq{
 		FriendIds: []string{req.FriendId},
 	})
 	if code != errs.IMErrorCode_SUCCESS {
@@ -114,12 +114,12 @@ func AddFriend(ctx *gin.Context) {
 }
 
 func DelFriend(ctx *gin.Context) {
-	req := apimodels.FriendIds{}
+	req := models.FriendIds{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.DelFriends(services.ToCtx(ctx), &apimodels.FriendIdsReq{
+	code := services.DelFriends(services.ToCtx(ctx), &models.FriendIdsReq{
 		FriendIds: req.FriendIds,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
@@ -130,12 +130,12 @@ func DelFriend(ctx *gin.Context) {
 }
 
 func ApplyFriend(ctx *gin.Context) {
-	req := apimodels.ApplyFriend{}
+	req := models.ApplyFriend{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.ApplyFriend(services.ToCtx(ctx), &apimodels.ApplyFriend{
+	code := services.ApplyFriend(services.ToCtx(ctx), &models.ApplyFriend{
 		FriendId: req.FriendId,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
@@ -146,7 +146,7 @@ func ApplyFriend(ctx *gin.Context) {
 }
 
 func ConfirmFriend(ctx *gin.Context) {
-	req := apimodels.ConfirmFriend{}
+	req := models.ConfirmFriend{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

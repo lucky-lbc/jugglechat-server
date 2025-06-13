@@ -1,4 +1,4 @@
-package apimodels
+package models
 
 type Posts struct {
 	Items      []*Post `json:"items"`

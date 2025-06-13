@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"

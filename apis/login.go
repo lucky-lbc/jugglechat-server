@@ -5,12 +5,12 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
 	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	dbModels "github.com/juggleim/jugglechat-server/storages/models"
 	"github.com/juggleim/jugglechat-server/utils"
 
 	"image/png"
@@ -24,7 +24,7 @@ import (
 )
 
 func Login(ctx *gin.Context) {
-	req := &apimodels.LoginReq{}
+	req := &models.LoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Account == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -54,7 +54,7 @@ func Login(ctx *gin.Context) {
 }
 
 func SmsSend(ctx *gin.Context) {
-	req := &apimodels.SmsLoginReq{}
+	req := &models.SmsLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Phone == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -68,7 +68,7 @@ func SmsSend(ctx *gin.Context) {
 }
 
 func SmsLogin(ctx *gin.Context) {
-	req := &apimodels.SmsLoginReq{}
+	req := &models.SmsLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Phone == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -94,7 +94,7 @@ func SmsLogin(ctx *gin.Context) {
 					return
 				}
 				userId = utils.GenerateUUIDShort11()
-				err = storage.Create(models.User{
+				err = storage.Create(dbModels.User{
 					UserId:   userId,
 					Nickname: nickname,
 					Phone:    req.Phone,
@@ -105,11 +105,11 @@ func SmsLogin(ctx *gin.Context) {
 					return
 				} else {
 					userExtStorage := storages.NewUserExtStorage()
-					userExtStorage.Upsert(models.UserExt{
+					userExtStorage.Upsert(dbModels.UserExt{
 						UserId:    userId,
-						ItemKey:   apimodels.UserExtKey_FriendVerifyType,
-						ItemValue: utils.Int2String(int64(apimodels.FriendVerifyType_NeedFriendVerify)),
-						ItemType:  apimodels.AttItemType_Setting,
+						ItemKey:   models.UserExtKey_FriendVerifyType,
+						ItemValue: utils.Int2String(int64(models.FriendVerifyType_NeedFriendVerify)),
+						ItemType:  models.AttItemType_Setting,
 						AppKey:    appkey,
 					})
 				}
@@ -135,7 +135,7 @@ func SmsLogin(ctx *gin.Context) {
 			return
 		}
 
-		SuccessHttpResp(ctx, &apimodels.LoginUserResp{
+		SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
 			Authorization: services.GenerateToken(appkey, userId),
@@ -148,7 +148,7 @@ func SmsLogin(ctx *gin.Context) {
 }
 
 func EmailSend(ctx *gin.Context) {
-	req := &apimodels.EmailLoginReq{}
+	req := &models.EmailLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Email == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -162,7 +162,7 @@ func EmailSend(ctx *gin.Context) {
 }
 
 func EmailLogin(ctx *gin.Context) {
-	req := &apimodels.EmailLoginReq{}
+	req := &models.EmailLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Email == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -188,7 +188,7 @@ func EmailLogin(ctx *gin.Context) {
 					return
 				}
 				userId = utils.GenerateUUIDShort11()
-				err = storage.Create(models.User{
+				err = storage.Create(dbModels.User{
 					UserId:   userId,
 					Nickname: nickname,
 					Email:    req.Email,
@@ -199,11 +199,11 @@ func EmailLogin(ctx *gin.Context) {
 					return
 				} else {
 					userExtStorage := storages.NewUserExtStorage()
-					userExtStorage.Upsert(models.UserExt{
+					userExtStorage.Upsert(dbModels.UserExt{
 						UserId:    userId,
-						ItemKey:   apimodels.UserExtKey_FriendVerifyType,
-						ItemValue: utils.Int2String(int64(apimodels.FriendVerifyType_NeedFriendVerify)),
-						ItemType:  apimodels.AttItemType_Setting,
+						ItemKey:   models.UserExtKey_FriendVerifyType,
+						ItemValue: utils.Int2String(int64(models.FriendVerifyType_NeedFriendVerify)),
+						ItemType:  models.AttItemType_Setting,
 						AppKey:    appkey,
 					})
 				}
@@ -229,7 +229,7 @@ func EmailLogin(ctx *gin.Context) {
 			return
 		}
 
-		SuccessHttpResp(ctx, &apimodels.LoginUserResp{
+		SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
 			Authorization: services.GenerateToken(appkey, userId),
@@ -256,7 +256,7 @@ func GenerateQrCode(ctx *gin.Context) {
 		return
 	}
 	storage := storages.NewQrCodeRecordStorage()
-	storage.Create(models.QrCodeRecord{
+	storage.Create(dbModels.QrCodeRecord{
 		CodeId:      uuidStr,
 		AppKey:      ctx.GetString(string(services.CtxKey_AppKey)),
 		CreatedTime: time.Now().UnixMilli(),
@@ -268,7 +268,7 @@ func GenerateQrCode(ctx *gin.Context) {
 }
 
 func CheckQrCode(ctx *gin.Context) {
-	req := &apimodels.QrCode{}
+	req := &models.QrCode{}
 	if err := ctx.BindJSON(req); err != nil || req.Id == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -284,7 +284,7 @@ func CheckQrCode(ctx *gin.Context) {
 		return
 	}
 	appkey := ctx.GetString(string(services.CtxKey_AppKey))
-	if record.Status == models.QrCodeRecordStatus_OK {
+	if record.Status == dbModels.QrCodeRecordStatus_OK {
 		userId := record.UserId
 		sdk := imsdk.GetImSdk(appkey)
 		if sdk == nil {
@@ -303,20 +303,20 @@ func CheckQrCode(ctx *gin.Context) {
 			ErrorHttpResp(ctx, errs.IMErrorCode(code))
 			return
 		}
-		SuccessHttpResp(ctx, &apimodels.LoginUserResp{
+		SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      "",
 			Authorization: services.GenerateToken(appkey, userId),
 			ImToken:       resp.Token,
 		})
-	} else if record.Status == models.QrCodeRecordStatus_Default {
+	} else if record.Status == dbModels.QrCodeRecordStatus_Default {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_CONTINUE)
 		return
 	}
 }
 
 func ConfirmQrCode(ctx *gin.Context) {
-	req := &apimodels.QrCode{}
+	req := &models.QrCode{}
 	if err := ctx.BindJSON(req); err != nil || req.Id == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -324,7 +324,7 @@ func ConfirmQrCode(ctx *gin.Context) {
 	appkey := ctx.GetString(string(services.CtxKey_AppKey))
 	userId := ctx.GetString(string(services.CtxKey_RequesterId))
 	storage := storages.NewQrCodeRecordStorage()
-	err := storage.UpdateStatus(appkey, req.Id, models.QrCodeRecordStatus_OK, userId)
+	err := storage.UpdateStatus(appkey, req.Id, dbModels.QrCodeRecordStatus_OK, userId)
 	if err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return

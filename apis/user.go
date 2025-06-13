@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"image/png"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -26,7 +26,7 @@ func QryUserInfo(ctx *gin.Context) {
 }
 
 func UpdateUser(ctx *gin.Context) {
-	req := &apimodels.UserObj{}
+	req := &models.UserObj{}
 	if err := ctx.BindJSON(req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -36,7 +36,7 @@ func UpdateUser(ctx *gin.Context) {
 }
 
 func UpdateUserSettings(ctx *gin.Context) {
-	req := &apimodels.UserSettings{}
+	req := &models.UserSettings{}
 	if err := ctx.BindJSON(req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -50,7 +50,7 @@ func UpdateUserSettings(ctx *gin.Context) {
 }
 
 func SearchByPhone(ctx *gin.Context) {
-	req := &apimodels.UserObj{}
+	req := &models.UserObj{}
 	if err := ctx.BindJSON(req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

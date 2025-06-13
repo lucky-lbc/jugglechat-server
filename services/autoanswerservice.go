@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	apiModels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/aiengines"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
@@ -16,7 +16,7 @@ import (
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
 
-func AutoAnswer(ctx context.Context, req *apimodels.AssistantAnswerReq) (errs.IMErrorCode, *apimodels.AssistantAnswerResp) {
+func AutoAnswer(ctx context.Context, req *apiModels.AssistantAnswerReq) (errs.IMErrorCode, *apiModels.AssistantAnswerResp) {
 	if req == nil {
 		return errs.IMErrorCode_APP_DEFAULT, nil
 	}
@@ -86,7 +86,7 @@ func AutoAnswer(ctx context.Context, req *apimodels.AssistantAnswerReq) (errs.IM
 	fmt.Println("----------------------------------------------------")
 
 	answer, streamMsgId := GenerateAnswer(ctx, promptStr, content, true)
-	return errs.IMErrorCode_SUCCESS, &apimodels.AssistantAnswerResp{
+	return errs.IMErrorCode_SUCCESS, &apiModels.AssistantAnswerResp{
 		Answer:      answer,
 		StreamMsgId: streamMsgId,
 	}

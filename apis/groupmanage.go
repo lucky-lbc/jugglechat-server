@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 
@@ -9,7 +9,7 @@ import (
 )
 
 func ChgGroupOwner(ctx *gin.Context) {
-	req := &apimodels.GroupOwnerChgReq{}
+	req := &models.GroupOwnerChgReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -23,7 +23,7 @@ func ChgGroupOwner(ctx *gin.Context) {
 }
 
 func AddGrpAdministrator(ctx *gin.Context) {
-	req := &apimodels.GroupAdministratorsReq{}
+	req := &models.GroupAdministratorsReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -37,7 +37,7 @@ func AddGrpAdministrator(ctx *gin.Context) {
 }
 
 func DelGrpAdministrator(ctx *gin.Context) {
-	req := &apimodels.GroupAdministratorsReq{}
+	req := &models.GroupAdministratorsReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -61,7 +61,7 @@ func QryGrpAdministrators(ctx *gin.Context) {
 }
 
 func SetGroupMute(ctx *gin.Context) {
-	req := &apimodels.SetGroupMuteReq{}
+	req := &models.SetGroupMuteReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -75,7 +75,7 @@ func SetGroupMute(ctx *gin.Context) {
 }
 
 func SetGrpVerifyType(ctx *gin.Context) {
-	req := &apimodels.SetGroupVerifyTypeReq{}
+	req := &models.SetGroupVerifyTypeReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -89,7 +89,7 @@ func SetGrpVerifyType(ctx *gin.Context) {
 }
 
 func SetGrpHisMsgVisible(ctx *gin.Context) {
-	req := &apimodels.SetGroupHisMsgVisibleReq{}
+	req := &models.SetGroupHisMsgVisibleReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

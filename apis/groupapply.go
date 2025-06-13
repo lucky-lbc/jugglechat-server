@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -10,7 +10,7 @@ import (
 )
 
 func GroupApply(ctx *gin.Context) {
-	req := apimodels.GroupInviteReq{}
+	req := models.GroupInviteReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -24,7 +24,7 @@ func GroupApply(ctx *gin.Context) {
 }
 
 func GroupInvite(ctx *gin.Context) {
-	req := apimodels.GroupInviteReq{}
+	req := models.GroupInviteReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || len(req.MemberIds) <= 0 {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

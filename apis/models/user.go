@@ -1,4 +1,4 @@
-package apimodels
+package models
 
 var (
 	UserExtKey_Phone            string = "phone"

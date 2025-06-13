@@ -1,4 +1,4 @@
-package apimodels
+package models
 
 var GroupNotifyMsgType string = "jgd:grpntf"
 

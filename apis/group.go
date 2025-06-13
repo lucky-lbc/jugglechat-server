@@ -6,7 +6,7 @@ import (
 	"image/png"
 	"strconv"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -17,7 +17,7 @@ import (
 )
 
 func CreateGroup(ctx *gin.Context) {
-	req := apimodels.Group{}
+	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -30,7 +30,7 @@ func CreateGroup(ctx *gin.Context) {
 		}
 		memberIds = ids
 	}
-	code, grpInfo := services.CreateGroup(services.ToCtx(ctx), &apimodels.GroupMembersReq{
+	code, grpInfo := services.CreateGroup(services.ToCtx(ctx), &models.GroupMembersReq{
 		GroupName:     req.GroupName,
 		GroupPortrait: req.GroupPortrait,
 		MemberIds:     memberIds,
@@ -39,7 +39,7 @@ func CreateGroup(ctx *gin.Context) {
 		ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, &apimodels.Group{
+	SuccessHttpResp(ctx, &models.Group{
 		GroupId:       grpInfo.GroupId,
 		GroupName:     grpInfo.GroupName,
 		GroupPortrait: grpInfo.GroupPortrait,
@@ -47,12 +47,12 @@ func CreateGroup(ctx *gin.Context) {
 }
 
 func UpdateGroup(ctx *gin.Context) {
-	req := apimodels.Group{}
+	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.UpdateGroup(services.ToCtx(ctx), &apimodels.GroupInfo{
+	code := services.UpdateGroup(services.ToCtx(ctx), &models.GroupInfo{
 		GroupId:       req.GroupId,
 		GroupName:     req.GroupName,
 		GroupPortrait: req.GroupPortrait,
@@ -65,7 +65,7 @@ func UpdateGroup(ctx *gin.Context) {
 }
 
 func DissolveGroup(ctx *gin.Context) {
-	req := apimodels.Group{}
+	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -79,7 +79,7 @@ func DissolveGroup(ctx *gin.Context) {
 }
 
 func QuitGroup(ctx *gin.Context) {
-	req := apimodels.Group{}
+	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -93,7 +93,7 @@ func QuitGroup(ctx *gin.Context) {
 }
 
 func AddGrpMembers(ctx *gin.Context) {
-	req := apimodels.Group{}
+	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -102,7 +102,7 @@ func AddGrpMembers(ctx *gin.Context) {
 	for _, user := range req.GrpMembers {
 		memberIds = append(memberIds, user.UserId)
 	}
-	code := services.AddGrpMembers(services.ToCtx(ctx), &apimodels.GroupMembersReq{
+	code := services.AddGrpMembers(services.ToCtx(ctx), &models.GroupMembersReq{
 		GroupId:   req.GroupId,
 		MemberIds: memberIds,
 	})
@@ -114,12 +114,12 @@ func AddGrpMembers(ctx *gin.Context) {
 }
 
 func DelGrpMembers(ctx *gin.Context) {
-	req := apimodels.Group{}
+	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || len(req.MemberIds) <= 0 {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.DelGrpMembers(services.ToCtx(ctx), &apimodels.GroupMembersReq{
+	code := services.DelGrpMembers(services.ToCtx(ctx), &models.GroupMembersReq{
 		GroupId:   req.GroupId,
 		MemberIds: req.MemberIds,
 	})
@@ -157,12 +157,12 @@ func QryMyGroups(ctx *gin.Context) {
 		ErrorHttpResp(ctx, code)
 		return
 	}
-	ret := &apimodels.Groups{
+	ret := &models.Groups{
 		Offset: grps.Offset,
-		Items:  []*apimodels.Group{},
+		Items:  []*models.Group{},
 	}
 	for _, grp := range grps.Items {
-		ret.Items = append(ret.Items, &apimodels.Group{
+		ret.Items = append(ret.Items, &models.Group{
 			GroupId:       grp.GroupId,
 			GroupName:     grp.GroupName,
 			GroupPortrait: grp.GroupPortrait,
@@ -188,12 +188,12 @@ func QryGrpMembers(ctx *gin.Context) {
 		ErrorHttpResp(ctx, code)
 		return
 	}
-	ret := &apimodels.GroupMembersResp{
-		Items: []*apimodels.GroupMember{},
+	ret := &models.GroupMembersResp{
+		Items: []*models.GroupMember{},
 	}
 	for _, member := range members.Items {
-		ret.Items = append(ret.Items, &apimodels.GroupMember{
-			UserObj: apimodels.UserObj{
+		ret.Items = append(ret.Items, &models.GroupMember{
+			UserObj: models.UserObj{
 				UserId:   member.UserId,
 				Nickname: member.Nickname,
 				Avatar:   member.Avatar,
@@ -205,7 +205,7 @@ func QryGrpMembers(ctx *gin.Context) {
 }
 
 func CheckGroupMembers(ctx *gin.Context) {
-	req := apimodels.CheckGroupMembersReq{}
+	req := models.CheckGroupMembersReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -219,7 +219,7 @@ func CheckGroupMembers(ctx *gin.Context) {
 }
 
 func SearchGroupMembers(ctx *gin.Context) {
-	req := apimodels.SearchGroupMembersReq{}
+	req := models.SearchGroupMembersReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || req.Key == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -233,12 +233,12 @@ func SearchGroupMembers(ctx *gin.Context) {
 }
 
 func SetGrpAnnouncement(ctx *gin.Context) {
-	req := apimodels.GroupAnnouncement{}
+	req := models.GroupAnnouncement{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SetGrpAnnouncement(services.ToCtx(ctx), &apimodels.GroupAnnouncement{
+	code := services.SetGrpAnnouncement(services.ToCtx(ctx), &models.GroupAnnouncement{
 		GroupId: req.GroupId,
 		Content: req.Content,
 	})
@@ -256,14 +256,14 @@ func GetGrpAnnouncement(ctx *gin.Context) {
 		ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, &apimodels.GroupAnnouncement{
+	SuccessHttpResp(ctx, &models.GroupAnnouncement{
 		GroupId: grpAnnounce.GroupId,
 		Content: grpAnnounce.Content,
 	})
 }
 
 func SetGrpDisplayName(ctx *gin.Context) {
-	req := apimodels.SetGroupDisplayNameReq{}
+	req := models.SetGroupDisplayNameReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

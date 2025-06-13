@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/utils"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"

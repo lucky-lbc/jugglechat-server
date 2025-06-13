@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/services/aiengines"
@@ -33,7 +33,7 @@ func QryBots(ctx *gin.Context) {
 }
 
 func BotMsgListener(ctx *gin.Context) {
-	req := apimodels.BotMsg{}
+	req := models.BotMsg{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -48,7 +48,7 @@ func BotMsgListener(ctx *gin.Context) {
 			idIndex := 1
 			assistantInfo.AiEngine.StreamChat(services.ToCtx(ctx), req.SenderId, req.BotId, prompt, req.Messages[0].Content, func(answerPart string, isEnd bool) {
 				if !isEnd {
-					item := &apimodels.BotResponsePartData{
+					item := &models.BotResponsePartData{
 						Id:      utils.Int2String(int64(idIndex)),
 						Type:    "message",
 						Content: answerPart,

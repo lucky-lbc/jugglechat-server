@@ -1,4 +1,4 @@
-package apimodels
+package models
 
 const (
 	FriendVerifyType_NoNeedFriendVerify int = 0

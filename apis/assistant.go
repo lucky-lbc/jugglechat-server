@@ -3,7 +3,7 @@ package apis
 import (
 	"strconv"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 
@@ -11,7 +11,7 @@ import (
 )
 
 func AssistantAnswer(ctx *gin.Context) {
-	req := apimodels.AssistantAnswerReq{}
+	req := models.AssistantAnswerReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -25,7 +25,7 @@ func AssistantAnswer(ctx *gin.Context) {
 }
 
 func PromptAdd(ctx *gin.Context) {
-	req := apimodels.Prompt{}
+	req := models.Prompt{}
 	if err := ctx.BindJSON(&req); err != nil || req.Prompts == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -39,7 +39,7 @@ func PromptAdd(ctx *gin.Context) {
 }
 
 func PromptUpdate(ctx *gin.Context) {
-	req := apimodels.Prompt{}
+	req := models.Prompt{}
 	if err := ctx.BindJSON(&req); err != nil || req.Id == "" || req.Prompts == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -53,7 +53,7 @@ func PromptUpdate(ctx *gin.Context) {
 }
 
 func PromptDel(ctx *gin.Context) {
-	req := apimodels.Prompt{}
+	req := models.Prompt{}
 	if err := ctx.BindJSON(&req); err != nil || req.Id == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -67,7 +67,7 @@ func PromptDel(ctx *gin.Context) {
 }
 
 func PromptBatchDel(ctx *gin.Context) {
-	req := apimodels.PromptIds{}
+	req := models.PromptIds{}
 	if err := ctx.BindJSON(&req); err != nil || len(req.Ids) <= 0 {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

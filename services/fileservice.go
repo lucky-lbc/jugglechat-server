@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/fileengine"
 	"github.com/juggleim/jugglechat-server/storages/dbs"

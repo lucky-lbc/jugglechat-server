@@ -1,9 +1,7 @@
 package apis
 
 import (
-	"fmt"
-
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 
@@ -11,8 +9,7 @@ import (
 )
 
 func GetFileCred(ctx *gin.Context) {
-	fmt.Print("xxxxxx")
-	req := apimodels.QryFileCredReq{}
+	req := models.QryFileCredReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

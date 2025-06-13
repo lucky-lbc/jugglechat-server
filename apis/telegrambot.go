@@ -3,7 +3,7 @@ package apis
 import (
 	"strconv"
 
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 
@@ -11,7 +11,7 @@ import (
 )
 
 func TelegramBotAdd(ctx *gin.Context) {
-	req := apimodels.TelegramBot{}
+	req := models.TelegramBot{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -25,7 +25,7 @@ func TelegramBotAdd(ctx *gin.Context) {
 }
 
 func TelegramBotDel(ctx *gin.Context) {
-	req := apimodels.TelegramBot{}
+	req := models.TelegramBot{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -39,7 +39,7 @@ func TelegramBotDel(ctx *gin.Context) {
 }
 
 func TelegramBotBatchDel(ctx *gin.Context) {
-	req := apimodels.TelegramBotIds{}
+	req := models.TelegramBotIds{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

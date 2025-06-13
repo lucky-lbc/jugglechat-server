@@ -1,4 +1,4 @@
-package apimodels
+package models
 
 type Group struct {
 	GroupId         string           `json:"group_id"`

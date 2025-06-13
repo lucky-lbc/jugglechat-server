@@ -1,4 +1,4 @@
-package apimodels
+package models
 
 type FileType int32
 

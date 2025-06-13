@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/juggleim/jugglechat-server/apimodels"
+	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -10,7 +10,7 @@ import (
 )
 
 func PostAdd(ctx *gin.Context) {
-	req := apimodels.Post{}
+	req := models.Post{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -107,7 +107,7 @@ func QryPostComments(ctx *gin.Context) {
 }
 
 func PostCommentAdd(ctx *gin.Context) {
-	req := apimodels.PostComment{}
+	req := models.PostComment{}
 	if err := ctx.BindJSON(&req); err != nil || req.PostId == "" {
 		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
