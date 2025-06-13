@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -16,7 +17,7 @@ import (
 )
 
 func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimodels.UserObj) {
-	requestId := GetRequesterIdFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	ret := &apimodels.UserObj{
 		UserId: userId,
 	}
@@ -35,7 +36,7 @@ func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimode
 
 func GetUserSettings(ctx context.Context, userId string) *apimodels.UserSettings {
 	settings := &apimodels.UserSettings{}
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewUserExtStorage()
 	exts, err := storage.QryExtFields(appkey, userId)
 	if err == nil {
@@ -57,8 +58,8 @@ func GetUserSettings(ctx context.Context, userId string) *apimodels.UserSettings
 }
 
 func SearchByPhone(ctx context.Context, phone string) (errs.IMErrorCode, *apimodels.Users) {
-	requestId := GetRequesterIdFromCtx(ctx)
-	appkey := GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	users := &apimodels.Users{
 		Items: []*apimodels.UserObj{},
 	}
@@ -88,7 +89,7 @@ func SearchByPhone(ctx context.Context, phone string) (errs.IMErrorCode, *apimod
 }
 
 func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewUserStorage()
 	storage.Update(appkey, req.UserId, req.Nickname, req.Avatar)
 	// sync to imserver
@@ -113,8 +114,8 @@ func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
 }
 
 func UpdateUserSettings(ctx context.Context, req *apimodels.UserSettings) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewUserExtStorage()
 	settings := map[juggleimsdk.UserSettingKey]string{}
 	if req.Language != "" {
@@ -164,8 +165,8 @@ func UpdateUserSettings(ctx context.Context, req *apimodels.UserSettings) errs.I
 }
 
 func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.Groups) {
-	appkey := GetAppKeyFromCtx(ctx)
-	memberId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	memberId := ctxs.GetRequesterIdFromCtx(ctx)
 	dao := dbs.GroupMemberDao{}
 	var startId int64
 	if offset != "" {
@@ -194,7 +195,7 @@ func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErro
 }
 
 func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	u := &apimodels.UserObj{
 		UserId: userId,
 	}

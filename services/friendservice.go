@@ -5,6 +5,7 @@ import (
 	"time"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -15,8 +16,8 @@ import (
 )
 
 func QryFriends(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.Users) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendRelStorage()
 	var startId int64 = 0
 	if offset != "" {
@@ -53,8 +54,8 @@ func QryFriends(ctx context.Context, limit int64, offset string) (errs.IMErrorCo
 }
 
 func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) (errs.IMErrorCode, *apimodels.Users) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendRelStorage()
 	rels, err := storage.QueryFriendRelsWithPage(appkey, userId, orderTag, page, size)
 	ret := &apimodels.Users{
@@ -85,8 +86,8 @@ func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) 
 }
 
 func SearchFriends(ctx context.Context, req *apimodels.SearchFriendsReq) (errs.IMErrorCode, *apimodels.Users) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	ret := &apimodels.Users{
 		Items: []*apimodels.UserObj{},
 	}
@@ -118,8 +119,8 @@ func SearchFriends(ctx context.Context, req *apimodels.SearchFriendsReq) (errs.I
 }
 
 func AddFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendRelStorage()
 	for _, friendId := range req.FriendIds {
 		storage.BatchUpsert([]models.FriendRel{
@@ -154,8 +155,8 @@ func AddFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCo
 }
 
 func DelFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendRelStorage()
 	storage.BatchDelete(appkey, userId, req.FriendIds)
 	// sync to imserver
@@ -169,8 +170,8 @@ func DelFriends(ctx context.Context, req *apimodels.FriendIdsReq) errs.IMErrorCo
 }
 
 func ApplyFriend(ctx context.Context, req *apimodels.ApplyFriend) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	fStorage := storages.NewFriendRelStorage()
 	//check friend relation
 	if checkFriend(ctx, req.FriendId, userId) {
@@ -246,8 +247,8 @@ func ApplyFriend(ctx context.Context, req *apimodels.ApplyFriend) errs.IMErrorCo
 }
 
 func ConfirmFriend(ctx context.Context, req *apimodels.ConfirmFriend) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendApplicationStorage()
 	if req.IsAgree {
 		fStorage := storages.NewFriendRelStorage()
@@ -294,8 +295,8 @@ func checkFriend(ctx context.Context, userId, friendId string) bool {
 }
 
 func QryMyFriendApplications(ctx context.Context, startTime int64, count int32, order int32) (errs.IMErrorCode, *apimodels.QryFriendApplicationsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendApplicationStorage()
 	ret := &apimodels.QryFriendApplicationsResp{
 		Items: []*apimodels.FriendApplicationItem{},
@@ -316,8 +317,8 @@ func QryMyFriendApplications(ctx context.Context, startTime int64, count int32, 
 }
 
 func QryMyPendingFriendApplications(ctx context.Context, startTime int64, count int32, order int32) (errs.IMErrorCode, *apimodels.QryFriendApplicationsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendApplicationStorage()
 	ret := &apimodels.QryFriendApplicationsResp{
 		Items: []*apimodels.FriendApplicationItem{},
@@ -338,8 +339,8 @@ func QryMyPendingFriendApplications(ctx context.Context, startTime int64, count 
 }
 
 func QryFriendApplications(ctx context.Context, startTime, count int64, order int32) (errs.IMErrorCode, *apimodels.QryFriendApplicationsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendApplicationStorage()
 	ret := &apimodels.QryFriendApplicationsResp{
 		Items: []*apimodels.FriendApplicationItem{},
@@ -372,7 +373,7 @@ func CheckFriends(ctx context.Context, userId string, friendIds []string) map[st
 		ret[friend] = false
 	}
 	storage := storages.NewFriendRelStorage()
-	rels, err := storage.QueryFriendRelsByFriendIds(GetAppKeyFromCtx(ctx), userId, friendIds)
+	rels, err := storage.QueryFriendRelsByFriendIds(ctxs.GetAppKeyFromCtx(ctx), userId, friendIds)
 	if err == nil {
 		for _, rel := range rels {
 			ret[rel.FriendId] = true

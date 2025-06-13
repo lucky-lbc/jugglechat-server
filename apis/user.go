@@ -6,6 +6,8 @@ import (
 	"image/png"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -17,54 +19,54 @@ import (
 
 func QryUserInfo(ctx *gin.Context) {
 	userId := ctx.Query("user_id")
-	code, user := services.QryUserInfo(services.ToCtx(ctx), userId)
+	code, user := services.QryUserInfo(ctxs.ToCtx(ctx), userId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, user)
+	responses.SuccessHttpResp(ctx, user)
 }
 
 func UpdateUser(ctx *gin.Context) {
 	req := &models.UserObj{}
 	if err := ctx.BindJSON(req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	services.UpdateUser(services.ToCtx(ctx), req)
-	SuccessHttpResp(ctx, nil)
+	services.UpdateUser(ctxs.ToCtx(ctx), req)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func UpdateUserSettings(ctx *gin.Context) {
 	req := &models.UserSettings{}
 	if err := ctx.BindJSON(req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.UpdateUserSettings(services.ToCtx(ctx), req)
+	code := services.UpdateUserSettings(ctxs.ToCtx(ctx), req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func SearchByPhone(ctx *gin.Context) {
 	req := &models.UserObj{}
 	if err := ctx.BindJSON(req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, users := services.SearchByPhone(services.ToCtx(ctx), req.Phone)
+	code, users := services.SearchByPhone(ctxs.ToCtx(ctx), req.Phone)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, users)
+	responses.SuccessHttpResp(ctx, users)
 }
 
 func QryUserQrCode(ctx *gin.Context) {
-	userId := ctx.GetString(string(services.CtxKey_RequesterId))
+	userId := ctx.GetString(string(ctxs.CtxKey_RequesterId))
 
 	m := map[string]interface{}{
 		"action":  "add_friend",
@@ -75,10 +77,10 @@ func QryUserQrCode(ctx *gin.Context) {
 	qrCode, _ = barcode.Scale(qrCode, 400, 400)
 	err := png.Encode(buf, qrCode)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return
 	}
-	SuccessHttpResp(ctx, map[string]string{
+	responses.SuccessHttpResp(ctx, map[string]string{
 		"qr_code": base64.StdEncoding.EncodeToString(buf.Bytes()),
 	})
 }

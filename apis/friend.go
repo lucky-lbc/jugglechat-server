@@ -4,6 +4,8 @@ import (
 	"strconv"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -22,9 +24,9 @@ func QryFriends(ctx *gin.Context) {
 			count = 20
 		}
 	}
-	code, friends := services.QryFriends(services.ToCtx(ctx), int64(count), offset)
+	code, friends := services.QryFriends(ctxs.ToCtx(ctx), int64(count), offset)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
 	ret := &models.Friends{
@@ -40,7 +42,7 @@ func QryFriends(ctx *gin.Context) {
 			IsFriend: true,
 		})
 	}
-	SuccessHttpResp(ctx, ret)
+	responses.SuccessHttpResp(ctx, ret)
 }
 
 func QryFriendsWithPage(ctx *gin.Context) {
@@ -63,9 +65,9 @@ func QryFriendsWithPage(ctx *gin.Context) {
 		}
 	}
 	orderTag := ctx.Query("order_tag")
-	code, friends := services.QryFriendsWithPage(services.ToCtx(ctx), int64(page), int64(size), orderTag)
+	code, friends := services.QryFriendsWithPage(ctxs.ToCtx(ctx), int64(page), int64(size), orderTag)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
 	ret := &models.Friends{
@@ -80,90 +82,90 @@ func QryFriendsWithPage(ctx *gin.Context) {
 			IsFriend: true,
 		})
 	}
-	SuccessHttpResp(ctx, ret)
+	responses.SuccessHttpResp(ctx, ret)
 }
 
 func SearchFriends(ctx *gin.Context) {
 	req := models.SearchFriendsReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.Key == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.SearchFriends(services.ToCtx(ctx), &req)
+	code, resp := services.SearchFriends(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func AddFriend(ctx *gin.Context) {
 	req := models.Friend{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.AddFriends(services.ToCtx(ctx), &models.FriendIdsReq{
+	code := services.AddFriends(ctxs.ToCtx(ctx), &models.FriendIdsReq{
 		FriendIds: []string{req.FriendId},
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func DelFriend(ctx *gin.Context) {
 	req := models.FriendIds{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.DelFriends(services.ToCtx(ctx), &models.FriendIdsReq{
+	code := services.DelFriends(ctxs.ToCtx(ctx), &models.FriendIdsReq{
 		FriendIds: req.FriendIds,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func ApplyFriend(ctx *gin.Context) {
 	req := models.ApplyFriend{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.ApplyFriend(services.ToCtx(ctx), &models.ApplyFriend{
+	code := services.ApplyFriend(ctxs.ToCtx(ctx), &models.ApplyFriend{
 		FriendId: req.FriendId,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func ConfirmFriend(ctx *gin.Context) {
 	req := models.ConfirmFriend{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.ConfirmFriend(services.ToCtx(ctx), &req)
+	code := services.ConfirmFriend(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func MyFriendApplications(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	countStr := ctx.Query("count")
@@ -180,19 +182,19 @@ func MyFriendApplications(ctx *gin.Context) {
 	if err != nil || order > 1 || order < 0 {
 		order = 0
 	}
-	code, resp := services.QryMyFriendApplications(services.ToCtx(ctx), start, int32(count), int32(order))
+	code, resp := services.QryMyFriendApplications(ctxs.ToCtx(ctx), start, int32(count), int32(order))
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func MyPendingFriendApplications(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	countStr := ctx.Query("count")
@@ -209,19 +211,19 @@ func MyPendingFriendApplications(ctx *gin.Context) {
 	if err != nil || order > 1 || order < 0 {
 		order = 0
 	}
-	code, resp := services.QryMyPendingFriendApplications(services.ToCtx(ctx), start, int32(count), int32(order))
+	code, resp := services.QryMyPendingFriendApplications(ctxs.ToCtx(ctx), start, int32(count), int32(order))
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func FriendApplications(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	countStr := ctx.Query("count")
@@ -238,10 +240,10 @@ func FriendApplications(ctx *gin.Context) {
 	if err != nil || order > 1 || order < 0 {
 		order = 0
 	}
-	code, resp := services.QryFriendApplications(services.ToCtx(ctx), start, count, int32(order))
+	code, resp := services.QryFriendApplications(ctxs.ToCtx(ctx), start, count, int32(order))
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }

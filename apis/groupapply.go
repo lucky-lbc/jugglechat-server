@@ -2,6 +2,8 @@ package apis
 
 import (
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -12,36 +14,36 @@ import (
 func GroupApply(ctx *gin.Context) {
 	req := models.GroupInviteReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.GrpJoinApply(services.ToCtx(ctx), &req)
+	code := services.GrpJoinApply(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func GroupInvite(ctx *gin.Context) {
 	req := models.GroupInviteReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || len(req.MemberIds) <= 0 {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.GrpInviteMembers(services.ToCtx(ctx), &req)
+	code, resp := services.GrpInviteMembers(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func QryMyGrpApplications(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	countStr := ctx.Query("count")
@@ -58,19 +60,19 @@ func QryMyGrpApplications(ctx *gin.Context) {
 	if err != nil || order > 1 || order < 0 {
 		order = 0
 	}
-	code, resp := services.QryMyGrpApplications(services.ToCtx(ctx), start, int32(count), int32(order), "")
+	code, resp := services.QryMyGrpApplications(ctxs.ToCtx(ctx), start, int32(count), int32(order), "")
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func QryMyPendingGrpInvitations(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	countStr := ctx.Query("count")
@@ -87,12 +89,12 @@ func QryMyPendingGrpInvitations(ctx *gin.Context) {
 	if err != nil || order > 1 || order < 0 {
 		order = 0
 	}
-	code, resp := services.QryMyPendingGrpInvitations(services.ToCtx(ctx), start, int32(count), int32(order), "")
+	code, resp := services.QryMyPendingGrpInvitations(ctxs.ToCtx(ctx), start, int32(count), int32(order), "")
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func QryGrpInvitations(ctx *gin.Context) {
@@ -100,7 +102,7 @@ func QryGrpInvitations(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	countStr := ctx.Query("count")
@@ -117,12 +119,12 @@ func QryGrpInvitations(ctx *gin.Context) {
 	if err != nil || order > 1 || order < 0 {
 		order = 0
 	}
-	code, resp := services.QryGrpInvitations(services.ToCtx(ctx), start, int32(count), int32(order), groupId)
+	code, resp := services.QryGrpInvitations(ctxs.ToCtx(ctx), start, int32(count), int32(order), groupId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func QryGrpPendingApplications(ctx *gin.Context) {
@@ -130,7 +132,7 @@ func QryGrpPendingApplications(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	countStr := ctx.Query("count")
@@ -147,10 +149,10 @@ func QryGrpPendingApplications(ctx *gin.Context) {
 	if err != nil || order > 1 || order < 0 {
 		order = 0
 	}
-	code, resp := services.QryGrpPendingApplications(services.ToCtx(ctx), start, int32(count), int32(order), groupId)
+	code, resp := services.QryGrpPendingApplications(ctxs.ToCtx(ctx), start, int32(count), int32(order), groupId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }

@@ -2,6 +2,8 @@ package apis
 
 import (
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 
@@ -11,93 +13,93 @@ import (
 func ChgGroupOwner(ctx *gin.Context) {
 	req := &models.GroupOwnerChgReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.ChgGroupOwner(services.ToCtx(ctx), req)
+	code := services.ChgGroupOwner(ctxs.ToCtx(ctx), req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func AddGrpAdministrator(ctx *gin.Context) {
 	req := &models.GroupAdministratorsReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.AddGroupAdministrators(services.ToCtx(ctx), req)
+	code := services.AddGroupAdministrators(ctxs.ToCtx(ctx), req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func DelGrpAdministrator(ctx *gin.Context) {
 	req := &models.GroupAdministratorsReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.DelGroupAdministrators(services.ToCtx(ctx), req)
+	code := services.DelGroupAdministrators(ctxs.ToCtx(ctx), req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func QryGrpAdministrators(ctx *gin.Context) {
 	groupId := ctx.Query("group_id")
-	code, resp := services.QryGroupAdministrators(services.ToCtx(ctx), groupId)
+	code, resp := services.QryGroupAdministrators(ctxs.ToCtx(ctx), groupId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func SetGroupMute(ctx *gin.Context) {
 	req := &models.SetGroupMuteReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SetGroupMute(services.ToCtx(ctx), req)
+	code := services.SetGroupMute(ctxs.ToCtx(ctx), req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func SetGrpVerifyType(ctx *gin.Context) {
 	req := &models.SetGroupVerifyTypeReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SetGroupVerifyType(services.ToCtx(ctx), req)
+	code := services.SetGroupVerifyType(ctxs.ToCtx(ctx), req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func SetGrpHisMsgVisible(ctx *gin.Context) {
 	req := &models.SetGroupHisMsgVisibleReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SetGroupHisMsgVisible(services.ToCtx(ctx), req)
+	code := services.SetGroupHisMsgVisible(ctxs.ToCtx(ctx), req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }

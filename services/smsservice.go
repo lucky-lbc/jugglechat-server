@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/sms"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -28,7 +29,7 @@ func RandomSms() string {
 }
 
 func SmsSend(ctx context.Context, phone string) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	smsEngine := GetSmsEngine(appkey)
 	if smsEngine != nil && smsEngine != sms.DefaultSmsEngine {
 		// 检查是否还有有效的
@@ -62,7 +63,7 @@ func CheckPhoneSmsCode(ctx context.Context, phone, code string) errs.IMErrorCode
 	if code == "000000" {
 		return errs.IMErrorCode_SUCCESS
 	}
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewSmsRecordStorage()
 	record, err := storage.FindByPhoneCode(appkey, phone, code)
 	if err != nil {

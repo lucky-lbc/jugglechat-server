@@ -7,6 +7,7 @@ import (
 	"time"
 
 	apiModels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/aiengines"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
@@ -27,9 +28,9 @@ func AutoAnswer(ctx context.Context, req *apiModels.AssistantAnswerReq) (errs.IM
 			return errs.IMErrorCode_APP_DEFAULT, nil
 		}
 	}
-	userId := GetRequesterIdFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	promptStr := "你是一个智能回复生成器，能够根据用户提供的聊天记录，生成精彩回复。\n生成回复的一些限制条件：\n1. 只根据提供的聊天记录和上下文，生成回复，不进行无关的话题拓展；\n2. 确保回复的语音恰当、得体，不要产生冒犯性的表达；\n3. 回答简洁，不做过多延伸；\n4. 不要给我建议，直接以我的身份生成我该回复的内容；\n"
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	if req.PromptId != "" {
 		pId, err := utils.DecodeInt(req.PromptId)
 		if err == nil && pId > 0 {
@@ -93,8 +94,8 @@ func AutoAnswer(ctx context.Context, req *apiModels.AssistantAnswerReq) (errs.IM
 }
 
 func GenerateAnswer(ctx context.Context, prompt, question string, isSync bool) (string, string) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	streamMsgId := utils.GenerateMsgId(time.Now().UnixMilli(), 0, "assistant")
 	assistantInfo := aiengines.GetAiEngineInfo(ctx, appkey)
 	if assistantInfo != nil && assistantInfo.AiEngine != nil {

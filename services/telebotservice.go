@@ -11,6 +11,7 @@ import (
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -20,8 +21,8 @@ import (
 )
 
 func TelegramBotAdd(ctx context.Context, req *apimodels.TelegramBot) (errs.IMErrorCode, *apimodels.TelegramBot) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewTeleBotStorage()
 	id, err := storage.Create(models.TeleBot{
 		UserId:   userId,
@@ -51,8 +52,8 @@ func TelegramBotDel(ctx context.Context, req *apimodels.TelegramBot) errs.IMErro
 }
 
 func TelegramBotBatchDel(ctx context.Context, req *apimodels.TelegramBotIds) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	botIds := []int64{}
 	for _, idStr := range req.BotIds {
 		id, err := utils.DecodeInt(idStr)
@@ -78,8 +79,8 @@ func TelegramBotBatchDel(ctx context.Context, req *apimodels.TelegramBotIds) err
 }
 
 func QryTelegramBots(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.TelegramBots) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewTeleBotStorage()
 	var startId int64 = 0
 	id, err := utils.DecodeInt(offset)
@@ -136,7 +137,7 @@ func UnActiveTelebotProxy(ctx context.Context, rel *TeleBotRel) {
 }
 
 func getBotConnectorHeaders(ctx context.Context) map[string]string {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	appinfo, exist := GetAppInfo(appkey)
 	if exist {
 		nonce := fmt.Sprintf("%d", rand.Int31n(10000))

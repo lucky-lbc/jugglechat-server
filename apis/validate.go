@@ -3,6 +3,8 @@ package apis
 import (
 	"strings"
 
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -19,20 +21,20 @@ const (
 func Validate(ctx *gin.Context) {
 	session := utils.GenerateUUIDShort11()
 	ctx.Header(Header_RequestId, session)
-	ctx.Set(string(services.CtxKey_Session), session)
+	ctx.Set(string(ctxs.CtxKey_Session), session)
 
 	//check appkey
 	appkey := ctx.Request.Header.Get(Header_AppKey)
 	if appkey == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_APPKEY_REQUIRED)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_APPKEY_REQUIRED)
 		ctx.Abort()
 		return
 	}
-	ctx.Set(string(services.CtxKey_AppKey), appkey)
+	ctx.Set(string(ctxs.CtxKey_AppKey), appkey)
 	//check app exist
 	appInfo, exist := services.GetAppInfo(appkey)
 	if !exist {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 		ctx.Abort()
 		return
 	}
@@ -41,31 +43,31 @@ func Validate(ctx *gin.Context) {
 		//current userId
 		tokenStr := ctx.Request.Header.Get(Header_Authorization)
 		if tokenStr == "" {
-			ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 			ctx.Abort()
 			return
 		}
 		if strings.HasPrefix(tokenStr, "Bearer ") {
 			tokenStr = tokenStr[7:]
 			if !services.CheckApiKey(tokenStr, appkey, appInfo.AppSecureKey) {
-				ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return
 			}
 		} else {
 			authToken, err := services.ParseTokenString(tokenStr)
 			if err != nil {
-				ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return
 			}
 			token, err := services.ParseToken(authToken, []byte(appInfo.AppSecureKey))
 			if err != nil {
-				ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				ctx.Abort()
 				return
 			}
-			ctx.Set(string(services.CtxKey_RequesterId), token.UserId)
+			ctx.Set(string(ctxs.CtxKey_RequesterId), token.UserId)
 		}
 	}
 }

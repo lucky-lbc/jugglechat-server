@@ -5,6 +5,7 @@ import (
 	"time"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -12,8 +13,8 @@ import (
 )
 
 func PostAdd(ctx context.Context, req *apimodels.Post) (errs.IMErrorCode, *apimodels.Post) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewPostStorage()
 	postId := utils.GenerateUUIDString()
 	createdTime := time.Now().UnixMilli()
@@ -32,7 +33,7 @@ func PostAdd(ctx context.Context, req *apimodels.Post) (errs.IMErrorCode, *apimo
 }
 
 func QryPosts(ctx context.Context, startTime int64, limit int64, isPositive bool) (errs.IMErrorCode, *apimodels.Posts) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	ret := &apimodels.Posts{
 		Items:      []*apimodels.Post{},
 		IsFinished: true,
@@ -66,7 +67,7 @@ func QryPosts(ctx context.Context, startTime int64, limit int64, isPositive bool
 }
 
 func QryPostInfo(ctx context.Context, postId string) (errs.IMErrorCode, *apimodels.Post) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	ret := &apimodels.Post{}
 	storage := storages.NewPostStorage()
 	post, err := storage.FindById(appkey, postId)
@@ -85,8 +86,8 @@ func QryPostInfo(ctx context.Context, postId string) (errs.IMErrorCode, *apimode
 }
 
 func PostCommentAdd(ctx context.Context, req *apimodels.PostComment) (errs.IMErrorCode, *apimodels.PostComment) {
-	appkey := GetRequesterIdFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetRequesterIdFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	postId := req.PostId
 	storage := storages.NewPostCommentStorage()
 	commentId := utils.GenerateUUIDString()
@@ -110,7 +111,7 @@ func PostCommentAdd(ctx context.Context, req *apimodels.PostComment) (errs.IMErr
 }
 
 func QryPostComments(ctx context.Context, postId string, startTime int64, limit int64, isPositive bool) (errs.IMErrorCode, *apimodels.PostComments) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	ret := &apimodels.PostComments{
 		Items:      []*apimodels.PostComment{},
 		IsFinished: true,

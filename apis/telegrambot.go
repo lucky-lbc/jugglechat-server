@@ -4,6 +4,8 @@ import (
 	"strconv"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 
@@ -13,43 +15,43 @@ import (
 func TelegramBotAdd(ctx *gin.Context) {
 	req := models.TelegramBot{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.TelegramBotAdd(services.ToCtx(ctx), &req)
+	code, resp := services.TelegramBotAdd(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func TelegramBotDel(ctx *gin.Context) {
 	req := models.TelegramBot{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.TelegramBotDel(services.ToCtx(ctx), &req)
+	code := services.TelegramBotDel(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func TelegramBotBatchDel(ctx *gin.Context) {
 	req := models.TelegramBotIds{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.TelegramBotBatchDel(services.ToCtx(ctx), &req)
+	code := services.TelegramBotBatchDel(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func TelegramBotList(ctx *gin.Context) {
@@ -64,10 +66,10 @@ func TelegramBotList(ctx *gin.Context) {
 		}
 	}
 
-	code, resp := services.QryTelegramBots(services.ToCtx(ctx), int64(count), offset)
+	code, resp := services.QryTelegramBots(ctxs.ToCtx(ctx), int64(count), offset)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }

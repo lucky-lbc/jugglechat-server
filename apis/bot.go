@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/services/aiengines"
@@ -24,18 +26,18 @@ func QryBots(ctx *gin.Context) {
 			count = 20
 		}
 	}
-	code, bots := services.QryAiBots(services.ToCtx(ctx), int64(count), offset)
+	code, bots := services.QryAiBots(ctxs.ToCtx(ctx), int64(count), offset)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, bots)
+	responses.SuccessHttpResp(ctx, bots)
 }
 
 func BotMsgListener(ctx *gin.Context) {
 	req := models.BotMsg{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	prompt := `你是我的个人助理，帮我解答一切问题。`
@@ -43,10 +45,10 @@ func BotMsgListener(ctx *gin.Context) {
 		ctx.Writer.Header().Set("Content-Type", "text/event-stream")
 		ctx.Writer.Header().Set("Cache-Control", "no-cache")
 		ctx.Writer.Header().Set("Connection", "keep-alive")
-		assistantInfo := aiengines.GetAiEngineInfo(services.ToCtx(ctx), ctx.GetString(string(services.CtxKey_AppKey)))
+		assistantInfo := aiengines.GetAiEngineInfo(ctxs.ToCtx(ctx), ctx.GetString(string(ctxs.CtxKey_AppKey)))
 		if assistantInfo != nil && assistantInfo.AiEngine != nil {
 			idIndex := 1
-			assistantInfo.AiEngine.StreamChat(services.ToCtx(ctx), req.SenderId, req.BotId, prompt, req.Messages[0].Content, func(answerPart string, isEnd bool) {
+			assistantInfo.AiEngine.StreamChat(ctxs.ToCtx(ctx), req.SenderId, req.BotId, prompt, req.Messages[0].Content, func(answerPart string, isEnd bool) {
 				if !isEnd {
 					item := &models.BotResponsePartData{
 						Id:      utils.Int2String(int64(idIndex)),

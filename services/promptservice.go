@@ -4,6 +4,7 @@ import (
 	"context"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -15,9 +16,9 @@ import (
 func PromptAdd(ctx context.Context, req *apimodels.Prompt) (errs.IMErrorCode, *apimodels.Prompt) {
 	storage := storages.NewPromptStorage()
 	id, err := storage.Create(models.Prompt{
-		UserId:  GetRequesterIdFromCtx(ctx),
+		UserId:  ctxs.GetRequesterIdFromCtx(ctx),
 		Prompts: req.Prompts,
-		AppKey:  GetAppKeyFromCtx(ctx),
+		AppKey:  ctxs.GetAppKeyFromCtx(ctx),
 	})
 	if err != nil {
 		return errs.IMErrorCode_APP_ASSISTANT_PROMPT_DBERROR, nil
@@ -34,7 +35,7 @@ func PromptUpdate(ctx context.Context, req *apimodels.Prompt) errs.IMErrorCode {
 		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
 	}
 	storage := storages.NewPromptStorage()
-	err := storage.UpdatePrompts(GetAppKeyFromCtx(ctx), GetRequesterIdFromCtx(ctx), id, req.Prompts)
+	err := storage.UpdatePrompts(ctxs.GetAppKeyFromCtx(ctx), ctxs.GetRequesterIdFromCtx(ctx), id, req.Prompts)
 	if err != nil {
 		return errs.IMErrorCode_APP_ASSISTANT_PROMPT_DBERROR
 	}
@@ -47,7 +48,7 @@ func PromptDel(ctx context.Context, req *apimodels.Prompt) errs.IMErrorCode {
 		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
 	}
 	storage := storages.NewPromptStorage()
-	err := storage.DelPrompts(GetAppKeyFromCtx(ctx), GetRequesterIdFromCtx(ctx), id)
+	err := storage.DelPrompts(ctxs.GetAppKeyFromCtx(ctx), ctxs.GetRequesterIdFromCtx(ctx), id)
 	if err != nil {
 		return errs.IMErrorCode_APP_ASSISTANT_PROMPT_DBERROR
 	}
@@ -63,7 +64,7 @@ func PromptBatchDel(ctx context.Context, req *apimodels.PromptIds) errs.IMErrorC
 		}
 	}
 	storage := storages.NewPromptStorage()
-	err := storage.BatchDelPrompts(GetAppKeyFromCtx(ctx), GetRequesterIdFromCtx(ctx), ids)
+	err := storage.BatchDelPrompts(ctxs.GetAppKeyFromCtx(ctx), ctxs.GetRequesterIdFromCtx(ctx), ids)
 	if err != nil {
 		return errs.IMErrorCode_APP_ASSISTANT_PROMPT_DBERROR
 	}
@@ -82,7 +83,7 @@ func QryPrompts(ctx context.Context, count int64, offset string) (errs.IMErrorCo
 		Items: []*apimodels.Prompt{},
 	}
 	storage := storages.NewPromptStorage()
-	items, err := storage.QryPrompts(GetAppKeyFromCtx(ctx), GetRequesterIdFromCtx(ctx), count, startId)
+	items, err := storage.QryPrompts(ctxs.GetAppKeyFromCtx(ctx), ctxs.GetRequesterIdFromCtx(ctx), count, startId)
 	if err == nil {
 		for _, item := range items {
 			idStr, _ := utils.EncodeInt(item.ID)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -21,8 +22,8 @@ func TestGroup(ctx context.Context) errs.IMErrorCode {
 }
 
 func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GrpInfo) {
-	appkey := GetAppKeyFromCtx(ctx)
-	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	grpStorage := storages.NewGroupStorage()
 	grpInfo, err := grpStorage.FindById(appkey, groupId)
 	if err != nil {
@@ -126,7 +127,7 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 }
 
 func CheckGroupMembers(ctx context.Context, req *apimodels.CheckGroupMembersReq) (errs.IMErrorCode, *apimodels.CheckGroupMembersResp) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	ret := &apimodels.CheckGroupMembersResp{
 		GroupId:        req.GroupId,
 		MemberExistMap: map[string]bool{},
@@ -145,7 +146,7 @@ func CheckGroupMembers(ctx context.Context, req *apimodels.CheckGroupMembersReq)
 }
 
 func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersReq) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	groupId := req.GroupId
 	var startId int64 = 0
 	if req.Offset != "" {
@@ -178,9 +179,9 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 }
 
 func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMErrorCode, *apimodels.GroupInfo) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	grpId := utils.GenerateUUIDShort11()
-	requestId := GetRequesterIdFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	memberIds := []string{requestId}
 	for _, memberId := range req.MemberIds {
 		if memberId != requestId {
@@ -236,8 +237,8 @@ func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMEr
 }
 
 func UpdateGroup(ctx context.Context, req *apimodels.GroupInfo) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGroupStorage()
 	storage.UpdateGrpName(appkey, req.GroupId, req.GroupName, req.GroupPortrait)
 	//sync to imserver
@@ -257,7 +258,7 @@ func UpdateGroup(ctx context.Context, req *apimodels.GroupInfo) errs.IMErrorCode
 }
 
 func DissolveGroup(ctx context.Context, groupId string) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGroupStorage()
 	storage.Delete(appkey, groupId)
 	memberStorage := storages.NewGroupMemberStorage()
@@ -270,8 +271,8 @@ func DissolveGroup(ctx context.Context, groupId string) errs.IMErrorCode {
 }
 
 func QuitGroup(ctx context.Context, groupId string) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	memberStorage := storages.NewGroupMemberStorage()
 	memberStorage.BatchDelete(appkey, groupId, []string{requestId})
 	//sync to imserver
@@ -292,8 +293,8 @@ func QuitGroup(ctx context.Context, groupId string) errs.IMErrorCode {
 }
 
 func AddGrpMembers(ctx context.Context, grpMembers *apimodels.GroupMembersReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	memberStorage := storages.NewGroupMemberStorage()
 	items := []models.GroupMember{}
 	for _, mId := range grpMembers.MemberIds {
@@ -329,8 +330,8 @@ func AddGrpMembers(ctx context.Context, grpMembers *apimodels.GroupMembersReq) e
 }
 
 func GrpInviteMembers(ctx context.Context, req *apimodels.GroupInviteReq) (errs.IMErrorCode, *apimodels.GroupInviteResp) {
-	appkey := GetAppKeyFromCtx(ctx)
-	requesterId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requesterId := ctxs.GetRequesterIdFromCtx(ctx)
 	//TODO check operator
 	results := &apimodels.GroupInviteResp{
 		Results: make(map[string]apimodels.GrpInviteResultReason),
@@ -395,8 +396,8 @@ func GrpInviteMembers(ctx context.Context, req *apimodels.GroupInviteReq) (errs.
 }
 
 func GrpJoinApply(ctx context.Context, req *apimodels.GroupInviteReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	groupId := req.GroupId
 
 	//check grp member exists
@@ -428,8 +429,8 @@ func GrpJoinApply(ctx context.Context, req *apimodels.GroupInviteReq) errs.IMErr
 }
 
 func DelGrpMembers(ctx context.Context, req *apimodels.GroupMembersReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 
 	memberStorage := storages.NewGroupMemberStorage()
 	memberStorage.BatchDelete(appkey, req.GroupId, req.MemberIds)
@@ -465,7 +466,7 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 	ret := &apimodels.GroupMemberInfos{
 		Items: []*apimodels.GroupMemberInfo{},
 	}
-	members, err := storage.QueryMembers(GetAppKeyFromCtx(ctx), groupId, startId, limit)
+	members, err := storage.QueryMembers(ctxs.GetAppKeyFromCtx(ctx), groupId, startId, limit)
 	if err == nil {
 		for _, member := range members {
 			ret.Offset, _ = utils.EncodeInt(member.ID)
@@ -481,8 +482,8 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 }
 
 func SetGrpAnnouncement(ctx context.Context, req *apimodels.GroupAnnouncement) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	requestId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGroupExtStorage()
 	storage.Upsert(models.GroupExt{
 		GroupId:   req.GroupId,
@@ -501,7 +502,7 @@ func SetGrpAnnouncement(ctx context.Context, req *apimodels.GroupAnnouncement) e
 }
 
 func GetGrpAnnouncement(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GroupAnnouncement) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGroupExtStorage()
 	ret := &apimodels.GroupAnnouncement{
 		GroupId: groupId,
@@ -516,9 +517,9 @@ func GetGrpAnnouncement(ctx context.Context, groupId string) (errs.IMErrorCode, 
 func ChgGroupOwner(ctx context.Context, req *apimodels.GroupOwnerChgReq) errs.IMErrorCode {
 	//TODO check right
 	storage := storages.NewGroupStorage()
-	storage.UpdateCreatorId(GetAppKeyFromCtx(ctx), req.GroupId, req.OwnerId)
+	storage.UpdateCreatorId(ctxs.GetAppKeyFromCtx(ctx), req.GroupId, req.OwnerId)
 	//send notify
-	requestId := GetRequesterIdFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	notify := &apimodels.GroupNotify{
 		Operator: GetUser(ctx, requestId),
 		Members: []*apimodels.UserObj{
@@ -531,7 +532,7 @@ func ChgGroupOwner(ctx context.Context, req *apimodels.GroupOwnerChgReq) errs.IM
 }
 
 func SetGroupMute(ctx context.Context, req *apimodels.SetGroupMuteReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	//TODO check right
 	storage := storages.NewGroupStorage()
 	storage.UpdateGroupMuteStatus(appkey, req.GroupId, req.IsMute)
@@ -543,7 +544,7 @@ func SetGroupMute(ctx context.Context, req *apimodels.SetGroupMuteReq) errs.IMEr
 }
 
 func SetGroupVerifyType(ctx context.Context, req *apimodels.SetGroupVerifyTypeReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGroupExtStorage()
 	storage.Upsert(models.GroupExt{
 		GroupId:   req.GroupId,
@@ -556,7 +557,7 @@ func SetGroupVerifyType(ctx context.Context, req *apimodels.SetGroupVerifyTypeRe
 }
 
 func SetGroupHisMsgVisible(ctx context.Context, req *apimodels.SetGroupHisMsgVisibleReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	//TODO check right
 	visible := req.GroupHisMsgVisible
 	hideGrpMsg := "1"
@@ -587,7 +588,7 @@ func SetGroupHisMsgVisible(ctx context.Context, req *apimodels.SetGroupHisMsgVis
 }
 
 func AddGroupAdministrators(ctx context.Context, req *apimodels.GroupAdministratorsReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGroupAdminStorage()
 	for _, adminId := range req.AdminIds {
 		storage.Upsert(models.GroupAdmin{
@@ -601,12 +602,12 @@ func AddGroupAdministrators(ctx context.Context, req *apimodels.GroupAdministrat
 
 func DelGroupAdministrators(ctx context.Context, req *apimodels.GroupAdministratorsReq) errs.IMErrorCode {
 	storage := storages.NewGroupAdminStorage()
-	storage.BatchDel(GetAppKeyFromCtx(ctx), req.GroupId, req.AdminIds)
+	storage.BatchDel(ctxs.GetAppKeyFromCtx(ctx), req.GroupId, req.AdminIds)
 	return errs.IMErrorCode_SUCCESS
 }
 
 func QryGroupAdministrators(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GroupAdministratorsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	ret := &apimodels.GroupAdministratorsResp{
 		GroupId: groupId,
 		Items:   []*apimodels.GroupMemberInfo{},
@@ -638,16 +639,16 @@ func QryGroupAdministrators(ctx context.Context, groupId string) (errs.IMErrorCo
 }
 
 func SetGrpDisplayName(ctx context.Context, req *apimodels.SetGroupDisplayNameReq) errs.IMErrorCode {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGroupMemberStorage()
 	storage.UpdateGrpDisplayName(appkey, req.GroupId, userId, req.GrpDisplayName)
 	return errs.IMErrorCode_SUCCESS
 }
 
 func QryMyGrpApplications(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGrpApplicationStorage()
 	ret := &apimodels.QryGrpApplicationsResp{
 		Items: []*apimodels.GrpApplicationItem{},
@@ -672,8 +673,8 @@ func QryMyGrpApplications(ctx context.Context, startTime int64, count int32, ord
 }
 
 func QryMyPendingGrpInvitations(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
-	userId := GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGrpApplicationStorage()
 	ret := &apimodels.QryGrpApplicationsResp{
 		Items: []*apimodels.GrpApplicationItem{},
@@ -698,7 +699,7 @@ func QryMyPendingGrpInvitations(ctx context.Context, startTime int64, count int3
 }
 
 func QryGrpInvitations(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGrpApplicationStorage()
 	ret := &apimodels.QryGrpApplicationsResp{
 		Items: []*apimodels.GrpApplicationItem{},
@@ -726,7 +727,7 @@ func QryGrpInvitations(ctx context.Context, startTime int64, count int32, order 
 }
 
 func QryGrpPendingApplications(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGrpApplicationStorage()
 	ret := &apimodels.QryGrpApplicationsResp{
 		Items: []*apimodels.GrpApplicationItem{},

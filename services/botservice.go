@@ -4,6 +4,7 @@ import (
 	"context"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -11,7 +12,7 @@ import (
 )
 
 func QryAiBots(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.AiBotInfos) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewBotConfStorage()
 	var startId int64 = 0
 	if offset != "" {

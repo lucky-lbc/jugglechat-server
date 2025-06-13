@@ -7,6 +7,7 @@ import (
 	"time"
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services/fileengine"
 	"github.com/juggleim/jugglechat-server/storages/dbs"
@@ -15,7 +16,7 @@ import (
 )
 
 func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErrorCode, *apimodels.QryFileCredResp) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	fileConf := GetFileConf(ctx, appkey)
 	if fileConf == nil || fileConf == notExistFileConf {
 		return errs.IMErrorCode_APP_FILE_NOOSS, nil

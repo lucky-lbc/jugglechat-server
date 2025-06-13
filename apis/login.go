@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
@@ -26,16 +28,16 @@ import (
 func Login(ctx *gin.Context) {
 	req := &models.LoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Account == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	userId := utils.ShortMd5(req.Account)
 	nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
 	fmt.Println(userId, nickname)
-	appkey := ctx.GetString(string(services.CtxKey_AppKey))
+	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 	sdk := imsdk.GetImSdk(appkey)
 	if sdk == nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 		return
 	}
 	resp, code, _, err := sdk.Register(juggleimsdk.User{
@@ -43,39 +45,39 @@ func Login(ctx *gin.Context) {
 		Nickname: nickname,
 	})
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
 		return
 	}
 	if code != juggleimsdk.ApiCode(errs.IMErrorCode_SUCCESS) {
-		ErrorHttpResp(ctx, errs.IMErrorCode(code))
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func SmsSend(ctx *gin.Context) {
 	req := &models.SmsLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Phone == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SmsSend(services.ToCtx(ctx), req.Phone)
+	code := services.SmsSend(ctxs.ToCtx(ctx), req.Phone)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func SmsLogin(ctx *gin.Context) {
 	req := &models.SmsLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Phone == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.CheckPhoneSmsCode(services.ToCtx(ctx), req.Phone, req.Code)
+	code := services.CheckPhoneSmsCode(ctxs.ToCtx(ctx), req.Phone, req.Code)
 	if code == errs.IMErrorCode_SUCCESS {
-		appkey := ctx.GetString(string(services.CtxKey_AppKey))
+		appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 		userId := utils.ShortMd5(req.Phone)
 		nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
 		storage := storages.NewUserStorage()
@@ -90,7 +92,7 @@ func SmsLogin(ctx *gin.Context) {
 				nickname = user.Nickname
 			} else {
 				if err != gorm.ErrRecordNotFound {
-					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
 				}
 				userId = utils.GenerateUUIDShort11()
@@ -101,7 +103,7 @@ func SmsLogin(ctx *gin.Context) {
 					AppKey:   appkey,
 				})
 				if err != nil {
-					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
 				} else {
 					userExtStorage := storages.NewUserExtStorage()
@@ -114,12 +116,12 @@ func SmsLogin(ctx *gin.Context) {
 					})
 				}
 				//assistant send welcome message
-				services.InitUserAssistant(services.ToCtx(ctx), userId, nickname, "")
+				services.InitUserAssistant(ctxs.ToCtx(ctx), userId, nickname, "")
 			}
 		}
 		sdk := imsdk.GetImSdk(appkey)
 		if sdk == nil {
-			ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 			return
 		}
 		resp, code, _, err := sdk.Register(juggleimsdk.User{
@@ -127,22 +129,22 @@ func SmsLogin(ctx *gin.Context) {
 			Nickname: nickname,
 		})
 		if err != nil {
-			ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
 			return
 		}
 		if code != juggleimsdk.ApiCode(errs.IMErrorCode_SUCCESS) {
-			ErrorHttpResp(ctx, errs.IMErrorCode(code))
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
 			return
 		}
 
-		SuccessHttpResp(ctx, &models.LoginUserResp{
+		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
 			Authorization: services.GenerateToken(appkey, userId),
 			ImToken:       resp.Token,
 		})
 	} else {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
 }
@@ -150,7 +152,7 @@ func SmsLogin(ctx *gin.Context) {
 func EmailSend(ctx *gin.Context) {
 	req := &models.EmailLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Email == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	// code := services.SmsSend(ctx.ToRpcCtx(), req.Email)
@@ -158,18 +160,18 @@ func EmailSend(ctx *gin.Context) {
 	// 	ctx.ResponseErr(code)
 	// 	return
 	// }
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func EmailLogin(ctx *gin.Context) {
 	req := &models.EmailLoginReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Email == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.CheckEmailCode(services.ToCtx(ctx), req.Email, req.Code)
+	code := services.CheckEmailCode(ctxs.ToCtx(ctx), req.Email, req.Code)
 	if code == errs.IMErrorCode_SUCCESS {
-		appkey := ctx.GetString(string(services.CtxKey_AppKey))
+		appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 		userId := utils.ShortMd5(req.Email)
 		nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
 		storage := storages.NewUserStorage()
@@ -184,7 +186,7 @@ func EmailLogin(ctx *gin.Context) {
 				nickname = user.Nickname
 			} else {
 				if err != gorm.ErrRecordNotFound {
-					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
 				}
 				userId = utils.GenerateUUIDShort11()
@@ -195,7 +197,7 @@ func EmailLogin(ctx *gin.Context) {
 					AppKey:   appkey,
 				})
 				if err != nil {
-					ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
 				} else {
 					userExtStorage := storages.NewUserExtStorage()
@@ -208,12 +210,12 @@ func EmailLogin(ctx *gin.Context) {
 					})
 				}
 				//assistant send welcome message
-				services.InitUserAssistant(services.ToCtx(ctx), userId, nickname, "")
+				services.InitUserAssistant(ctxs.ToCtx(ctx), userId, nickname, "")
 			}
 		}
 		sdk := imsdk.GetImSdk(appkey)
 		if sdk == nil {
-			ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 			return
 		}
 		resp, code, _, err := sdk.Register(juggleimsdk.User{
@@ -221,22 +223,22 @@ func EmailLogin(ctx *gin.Context) {
 			Nickname: nickname,
 		})
 		if err != nil {
-			ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
 			return
 		}
 		if code != juggleimsdk.ApiCode(errs.IMErrorCode_SUCCESS) {
-			ErrorHttpResp(ctx, errs.IMErrorCode(code))
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
 			return
 		}
 
-		SuccessHttpResp(ctx, &models.LoginUserResp{
+		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
 			Authorization: services.GenerateToken(appkey, userId),
 			ImToken:       resp.Token,
 		})
 	} else {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
 }
@@ -252,16 +254,16 @@ func GenerateQrCode(ctx *gin.Context) {
 	buf := bytes.NewBuffer([]byte{})
 	err := png.Encode(buf, qrCode)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return
 	}
 	storage := storages.NewQrCodeRecordStorage()
 	storage.Create(dbModels.QrCodeRecord{
 		CodeId:      uuidStr,
-		AppKey:      ctx.GetString(string(services.CtxKey_AppKey)),
+		AppKey:      ctx.GetString(string(ctxs.CtxKey_AppKey)),
 		CreatedTime: time.Now().UnixMilli(),
 	})
-	SuccessHttpResp(ctx, map[string]string{
+	responses.SuccessHttpResp(ctx, map[string]string{
 		"id":      uuidStr,
 		"qr_code": base64.StdEncoding.EncodeToString(buf.Bytes()),
 	})
@@ -270,25 +272,25 @@ func GenerateQrCode(ctx *gin.Context) {
 func CheckQrCode(ctx *gin.Context) {
 	req := &models.QrCode{}
 	if err := ctx.BindJSON(req); err != nil || req.Id == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	storage := storages.NewQrCodeRecordStorage()
-	record, err := storage.FindById(ctx.GetString(string(services.CtxKey_AppKey)), req.Id)
+	record, err := storage.FindById(ctx.GetString(string(ctxs.CtxKey_AppKey)), req.Id)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return
 	}
 	if time.Now().UnixMilli()-record.CreatedTime > 10*60*1000 {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_QRCODE_EXPIRED)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_QRCODE_EXPIRED)
 		return
 	}
-	appkey := ctx.GetString(string(services.CtxKey_AppKey))
+	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 	if record.Status == dbModels.QrCodeRecordStatus_OK {
 		userId := record.UserId
 		sdk := imsdk.GetImSdk(appkey)
 		if sdk == nil {
-			ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 			return
 		}
 		resp, code, _, err := sdk.Register(juggleimsdk.User{
@@ -296,21 +298,21 @@ func CheckQrCode(ctx *gin.Context) {
 			Nickname: "",
 		})
 		if err != nil {
-			ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
 			return
 		}
 		if code != juggleimsdk.ApiCode(errs.IMErrorCode_SUCCESS) {
-			ErrorHttpResp(ctx, errs.IMErrorCode(code))
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
 			return
 		}
-		SuccessHttpResp(ctx, &models.LoginUserResp{
+		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      "",
 			Authorization: services.GenerateToken(appkey, userId),
 			ImToken:       resp.Token,
 		})
 	} else if record.Status == dbModels.QrCodeRecordStatus_Default {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_CONTINUE)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_CONTINUE)
 		return
 	}
 }
@@ -318,16 +320,16 @@ func CheckQrCode(ctx *gin.Context) {
 func ConfirmQrCode(ctx *gin.Context) {
 	req := &models.QrCode{}
 	if err := ctx.BindJSON(req); err != nil || req.Id == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	appkey := ctx.GetString(string(services.CtxKey_AppKey))
-	userId := ctx.GetString(string(services.CtxKey_RequesterId))
+	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
+	userId := ctx.GetString(string(ctxs.CtxKey_RequesterId))
 	storage := storages.NewQrCodeRecordStorage()
 	err := storage.UpdateStatus(appkey, req.Id, dbModels.QrCodeRecordStatus_OK, userId)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }

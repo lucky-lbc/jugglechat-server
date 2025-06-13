@@ -6,6 +6,7 @@ import (
 
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
 	"github.com/juggleim/jugglechat-server/utils"
 
@@ -13,7 +14,7 @@ import (
 )
 
 func InitUserAssistant(ctx context.Context, userId, nickname, portrait string) {
-	appkey := GetAppKeyFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	sdk := imsdk.GetImSdk(appkey)
 	if sdk != nil {
 		if appinfo, exist := GetAppInfo(appkey); exist {

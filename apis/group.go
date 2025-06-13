@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -19,7 +21,7 @@ import (
 func CreateGroup(ctx *gin.Context) {
 	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	memberIds := req.MemberIds
@@ -30,16 +32,16 @@ func CreateGroup(ctx *gin.Context) {
 		}
 		memberIds = ids
 	}
-	code, grpInfo := services.CreateGroup(services.ToCtx(ctx), &models.GroupMembersReq{
+	code, grpInfo := services.CreateGroup(ctxs.ToCtx(ctx), &models.GroupMembersReq{
 		GroupName:     req.GroupName,
 		GroupPortrait: req.GroupPortrait,
 		MemberIds:     memberIds,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, &models.Group{
+	responses.SuccessHttpResp(ctx, &models.Group{
 		GroupId:       grpInfo.GroupId,
 		GroupName:     grpInfo.GroupName,
 		GroupPortrait: grpInfo.GroupPortrait,
@@ -49,96 +51,96 @@ func CreateGroup(ctx *gin.Context) {
 func UpdateGroup(ctx *gin.Context) {
 	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.UpdateGroup(services.ToCtx(ctx), &models.GroupInfo{
+	code := services.UpdateGroup(ctxs.ToCtx(ctx), &models.GroupInfo{
 		GroupId:       req.GroupId,
 		GroupName:     req.GroupName,
 		GroupPortrait: req.GroupPortrait,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func DissolveGroup(ctx *gin.Context) {
 	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.DissolveGroup(services.ToCtx(ctx), req.GroupId)
+	code := services.DissolveGroup(ctxs.ToCtx(ctx), req.GroupId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func QuitGroup(ctx *gin.Context) {
 	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.QuitGroup(services.ToCtx(ctx), req.GroupId)
+	code := services.QuitGroup(ctxs.ToCtx(ctx), req.GroupId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func AddGrpMembers(ctx *gin.Context) {
 	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	memberIds := []string{}
 	for _, user := range req.GrpMembers {
 		memberIds = append(memberIds, user.UserId)
 	}
-	code := services.AddGrpMembers(services.ToCtx(ctx), &models.GroupMembersReq{
+	code := services.AddGrpMembers(ctxs.ToCtx(ctx), &models.GroupMembersReq{
 		GroupId:   req.GroupId,
 		MemberIds: memberIds,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func DelGrpMembers(ctx *gin.Context) {
 	req := models.Group{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || len(req.MemberIds) <= 0 {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.DelGrpMembers(services.ToCtx(ctx), &models.GroupMembersReq{
+	code := services.DelGrpMembers(ctxs.ToCtx(ctx), &models.GroupMembersReq{
 		GroupId:   req.GroupId,
 		MemberIds: req.MemberIds,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func QryGroupInfo(ctx *gin.Context) {
 	groupId := ctx.Query("group_id")
-	rpcCtx := services.ToCtx(ctx)
+	rpcCtx := ctxs.ToCtx(ctx)
 	code, grpInfo := services.QryGroupInfo(rpcCtx, groupId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, grpInfo)
+	responses.SuccessHttpResp(ctx, grpInfo)
 }
 
 func QryMyGroups(ctx *gin.Context) {
@@ -152,9 +154,9 @@ func QryMyGroups(ctx *gin.Context) {
 			count = 20
 		}
 	}
-	code, grps := services.QueryMyGroups(services.ToCtx(ctx), int64(count), offset)
+	code, grps := services.QueryMyGroups(ctxs.ToCtx(ctx), int64(count), offset)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
 	ret := &models.Groups{
@@ -168,7 +170,7 @@ func QryMyGroups(ctx *gin.Context) {
 			GroupPortrait: grp.GroupPortrait,
 		})
 	}
-	SuccessHttpResp(ctx, ret)
+	responses.SuccessHttpResp(ctx, ret)
 }
 
 func QryGrpMembers(ctx *gin.Context) {
@@ -183,9 +185,9 @@ func QryGrpMembers(ctx *gin.Context) {
 			limit = 100
 		}
 	}
-	code, members := services.QueryGrpMembers(services.ToCtx(ctx), groupId, int64(limit), offset)
+	code, members := services.QueryGrpMembers(ctxs.ToCtx(ctx), groupId, int64(limit), offset)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
 	ret := &models.GroupMembersResp{
@@ -201,62 +203,62 @@ func QryGrpMembers(ctx *gin.Context) {
 		})
 	}
 	ret.Offset = members.Offset
-	SuccessHttpResp(ctx, ret)
+	responses.SuccessHttpResp(ctx, ret)
 }
 
 func CheckGroupMembers(ctx *gin.Context) {
 	req := models.CheckGroupMembersReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.CheckGroupMembers(services.ToCtx(ctx), &req)
+	code, resp := services.CheckGroupMembers(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func SearchGroupMembers(ctx *gin.Context) {
 	req := models.SearchGroupMembersReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || req.Key == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.SearchGroupMembers(services.ToCtx(ctx), &req)
+	code, resp := services.SearchGroupMembers(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func SetGrpAnnouncement(ctx *gin.Context) {
 	req := models.GroupAnnouncement{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SetGrpAnnouncement(services.ToCtx(ctx), &models.GroupAnnouncement{
+	code := services.SetGrpAnnouncement(ctxs.ToCtx(ctx), &models.GroupAnnouncement{
 		GroupId: req.GroupId,
 		Content: req.Content,
 	})
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func GetGrpAnnouncement(ctx *gin.Context) {
 	groupId := ctx.Query("group_id")
-	code, grpAnnounce := services.GetGrpAnnouncement(services.ToCtx(ctx), groupId)
+	code, grpAnnounce := services.GetGrpAnnouncement(ctxs.ToCtx(ctx), groupId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, &models.GroupAnnouncement{
+	responses.SuccessHttpResp(ctx, &models.GroupAnnouncement{
 		GroupId: grpAnnounce.GroupId,
 		Content: grpAnnounce.Content,
 	})
@@ -265,24 +267,24 @@ func GetGrpAnnouncement(ctx *gin.Context) {
 func SetGrpDisplayName(ctx *gin.Context) {
 	req := models.SetGroupDisplayNameReq{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SetGrpDisplayName(services.ToCtx(ctx), &req)
+	code := services.SetGrpDisplayName(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, nil)
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func QryGrpQrCode(ctx *gin.Context) {
 	grpId := ctx.Query("group_id")
 	if grpId == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	userId := ctx.GetString(string(services.CtxKey_RequesterId))
+	userId := ctx.GetString(string(ctxs.CtxKey_RequesterId))
 
 	m := map[string]interface{}{
 		"action":   "join_group",
@@ -294,10 +296,10 @@ func QryGrpQrCode(ctx *gin.Context) {
 	qrCode, _ = barcode.Scale(qrCode, 400, 400)
 	err := png.Encode(buf, qrCode)
 	if err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_DEFAULT)
 		return
 	}
-	SuccessHttpResp(ctx, map[string]string{
+	responses.SuccessHttpResp(ctx, map[string]string{
 		"qr_code": base64.StdEncoding.EncodeToString(buf.Bytes()),
 	})
 }

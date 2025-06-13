@@ -2,6 +2,8 @@ package apis
 
 import (
 	"github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/apis/responses"
+	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/utils"
@@ -12,15 +14,15 @@ import (
 func PostAdd(ctx *gin.Context) {
 	req := models.Post{}
 	if err := ctx.BindJSON(&req); err != nil {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.PostAdd(services.ToCtx(ctx), &req)
+	code, resp := services.PostAdd(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func QryPosts(ctx *gin.Context) {
@@ -47,32 +49,32 @@ func QryPosts(ctx *gin.Context) {
 			isPositive = true
 		}
 	}
-	code, resp := services.QryPosts(services.ToCtx(ctx), start, limit, isPositive)
+	code, resp := services.QryPosts(ctxs.ToCtx(ctx), start, limit, isPositive)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func PostInfo(ctx *gin.Context) {
 	postId := ctx.Query("post_id")
 	if postId == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.QryPostInfo(services.ToCtx(ctx), postId)
+	code, resp := services.QryPostInfo(ctxs.ToCtx(ctx), postId)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func QryPostComments(ctx *gin.Context) {
 	postId := ctx.Query("post_id")
 	if postId == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
 	var limit int64 = 20
@@ -98,24 +100,24 @@ func QryPostComments(ctx *gin.Context) {
 			isPositive = true
 		}
 	}
-	code, resp := services.QryPostComments(services.ToCtx(ctx), postId, start, limit, isPositive)
+	code, resp := services.QryPostComments(ctxs.ToCtx(ctx), postId, start, limit, isPositive)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
 
 func PostCommentAdd(ctx *gin.Context) {
 	req := models.PostComment{}
 	if err := ctx.BindJSON(&req); err != nil || req.PostId == "" {
-		ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, resp := services.PostCommentAdd(services.ToCtx(ctx), &req)
+	code, resp := services.PostCommentAdd(ctxs.ToCtx(ctx), &req)
 	if code != errs.IMErrorCode_SUCCESS {
-		ErrorHttpResp(ctx, code)
+		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, resp)
 }
