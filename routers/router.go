@@ -23,17 +23,6 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/login/qrcode/confirm", apis.ConfirmQrCode)
 	group.POST("/file_cred", apis.GetFileCred)
 
-	group.GET("/bots/list", apis.QryBots)
-
-	group.POST("/assistants/answer", apis.AssistantAnswer)
-	group.POST("/assistants/prompts/add", apis.PromptAdd)
-	group.POST("/assistants/prompts/update", apis.PromptUpdate)
-	group.POST("/assistants/prompts/del", apis.PromptDel)
-	group.POST("/assistants/prompts/batchdel", apis.PromptBatchDel)
-	group.GET("/assistants/prompts/list", apis.QryPrompts)
-
-	group.POST("/bots/messages/listener", apis.BotMsgListener)
-
 	group.POST("/users/update", apis.UpdateUser)
 	group.POST("/users/updsettings", apis.UpdateUserSettings)
 	group.POST("/users/search", apis.SearchByPhone)

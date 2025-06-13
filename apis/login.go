@@ -115,8 +115,6 @@ func SmsLogin(ctx *gin.Context) {
 						AppKey:    appkey,
 					})
 				}
-				//assistant send welcome message
-				services.InitUserAssistant(ctxs.ToCtx(ctx), userId, nickname, "")
 			}
 		}
 		sdk := imsdk.GetImSdk(appkey)
@@ -209,8 +207,6 @@ func EmailLogin(ctx *gin.Context) {
 						AppKey:    appkey,
 					})
 				}
-				//assistant send welcome message
-				services.InitUserAssistant(ctxs.ToCtx(ctx), userId, nickname, "")
 			}
 		}
 		sdk := imsdk.GetImSdk(appkey)

@@ -100,15 +100,6 @@ func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
 			Nickname:     req.Nickname,
 			UserPortrait: req.Avatar,
 		})
-		if req.Nickname != "" {
-			//update assistant
-			sdk.AddBot(juggleimsdk.BotInfo{
-				BotId:    GetAssistantId(req.UserId),
-				Nickname: GetAssistantNickname(req.Nickname),
-				Portrait: req.Avatar,
-				BotType:  utils.IntPtr(int(apimodels.BotType_Custom)),
-			})
-		}
 	}
 	return errs.IMErrorCode_SUCCESS
 }

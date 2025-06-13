@@ -45,18 +45,6 @@ func NewTeleBotStorage() models.ITeleBotStorage {
 	return &dbs.TeleBotDao{}
 }
 
-func NewPromptStorage() models.IPromptStorage {
-	return &dbs.PromptDao{}
-}
-
-func NewBotConfStorage() models.IBotConfStorage {
-	return &dbs.BotConfDao{}
-}
-
-func NewAiEngineStorage() models.IAiEngineStorage {
-	return &dbs.AiEngineDao{}
-}
-
 func NewGroupStorage() models.IGroupStorage {
 	return &dbs.GroupDao{}
 }
