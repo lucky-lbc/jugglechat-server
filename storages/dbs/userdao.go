@@ -190,3 +190,9 @@ func (user UserDao) CountByTime(appkey string, start, end int64) int64 {
 	}
 	return count
 }
+
+func (user UserDao) QryUsers(appkey string, startId, limit int64) ([]*UserDao, error) {
+	var items []*UserDao
+	err := dbcommons.GetDb().Where("app_key=? and id>?", appkey, startId).Order("id asc").Limit(limit).Find(&items).Error
+	return items, err
+}

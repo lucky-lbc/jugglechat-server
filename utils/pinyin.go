@@ -50,9 +50,15 @@ func GetPinyin(str string) string {
 	} else {
 		opts := pinyin.NewArgs()
 		opts.Style = pinyin.Normal
-		pyArr := pinyin.LazyPinyin(string(array[0]), opts)
+		pyArr := pinyin.LazyPinyin(str, opts)
 		if len(pyArr) > 0 {
-			return strings.Join(pyArr, "")
+			ret := strings.Join(pyArr, "")
+			ret = strings.TrimSpace(ret)
+			if len(ret) > 0 {
+				return string(ret[0])
+			} else {
+				return "#"
+			}
 		} else {
 			return "#"
 		}
