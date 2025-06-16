@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/juggleim/jugglechat-server/services/sms"
+	"github.com/juggleim/jugglechat-server/services/transengines"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/utils/caches"
 )
@@ -24,7 +25,8 @@ type AppInfo struct {
 	AppSecureKey string `gorm:"app_secure_key"`
 	AppStatus    int    `gorm:"app_status"`
 
-	SmsEngine sms.ISmsEngine
+	SmsEngine   sms.ISmsEngine
+	TransEngine transengines.ITransEngine
 }
 
 func GetAppInfo(appkey string) (*AppInfo, bool) {

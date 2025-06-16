@@ -22,6 +22,7 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/email/login", apis.EmailLogin)
 	group.POST("/login/qrcode/confirm", apis.ConfirmQrCode)
 	group.POST("/file_cred", apis.GetFileCred)
+	group.POST("/translate", apis.Translate)
 
 	group.POST("/users/update", apis.UpdateUser)
 	group.POST("/users/updsettings", apis.UpdateUserSettings)

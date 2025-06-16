@@ -17,16 +17,17 @@ var IMErrorCode_DEFAULT IMErrorCode = 2
 
 // app errorcode
 var (
-	IMErrorCode_APP_DEFAULT          IMErrorCode = 17000
-	IMErrorCode_APP_APPKEY_REQUIRED  IMErrorCode = 17001
-	IMErrorCode_APP_NOT_EXISTED      IMErrorCode = 17002
-	IMErrorCode_APP_REQ_BODY_ILLEGAL IMErrorCode = 17003
-	IMErrorCode_APP_INTERNAL_TIMEOUT IMErrorCode = 17004
-	IMErrorCode_APP_NOT_LOGIN        IMErrorCode = 17005
-	IMErrorCode_APP_CONTINUE         IMErrorCode = 17006
-	IMErrorCode_APP_QRCODE_EXPIRED   IMErrorCode = 17007
-	IMErrorCode_APP_SMS_SEND_FAILED  IMErrorCode = 17008
-	IMErrorCode_APP_SMS_CODE_EXPIRED IMErrorCode = 17009
+	IMErrorCode_APP_DEFAULT             IMErrorCode = 17000
+	IMErrorCode_APP_APPKEY_REQUIRED     IMErrorCode = 17001
+	IMErrorCode_APP_NOT_EXISTED         IMErrorCode = 17002
+	IMErrorCode_APP_REQ_BODY_ILLEGAL    IMErrorCode = 17003
+	IMErrorCode_APP_INTERNAL_TIMEOUT    IMErrorCode = 17004
+	IMErrorCode_APP_NOT_LOGIN           IMErrorCode = 17005
+	IMErrorCode_APP_CONTINUE            IMErrorCode = 17006
+	IMErrorCode_APP_QRCODE_EXPIRED      IMErrorCode = 17007
+	IMErrorCode_APP_SMS_SEND_FAILED     IMErrorCode = 17008
+	IMErrorCode_APP_SMS_CODE_EXPIRED    IMErrorCode = 17009
+	IMErrorCode_APP_TRANS_NOTRANSENGINE IMErrorCode = 17010
 
 	//friends
 	IMErrorCode_APP_FRIEND_DEFAULT         IMErrorCode = 17100

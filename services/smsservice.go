@@ -101,7 +101,7 @@ func GetSmsEngine(appkey string) sms.ISmsEngine {
 func loadSmsEngine(appInfo *AppInfo) {
 	storage := storages.NewAppExtStorage()
 	ext, err := storage.Find(appInfo.AppKey, "sms_engine_conf")
-	if err == nil {
+	if err == nil && ext.AppItemValue != "" {
 		smsConf := &SmsEngineConf{}
 		err := utils.JsonUnMarshal([]byte(ext.AppItemValue), smsConf)
 		if err == nil {
