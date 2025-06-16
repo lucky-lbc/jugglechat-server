@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"math/rand"
 	"strconv"
@@ -115,4 +116,10 @@ func MapToStruct[T any](m map[string]interface{}) T {
 	_ = json.Unmarshal(data, &t)
 
 	return t
+}
+
+func SHA1(s string) string {
+	o := sha1.New()
+	o.Write([]byte(s))
+	return hex.EncodeToString(o.Sum(nil))
 }

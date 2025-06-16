@@ -12,6 +12,8 @@ const (
 	CtxKey_AppKey      CtxKey = "CtxKey_AppKey"
 	CtxKey_Session     CtxKey = "CtxKey_Session"
 	CtxKey_RequesterId CtxKey = "CtxKey_RequesterId"
+
+	CtxKey_Account CtxKey = "CtxKey_Account"
 )
 
 func ToCtx(ginCtx *gin.Context) context.Context {

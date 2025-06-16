@@ -7,7 +7,8 @@ import (
 )
 
 type AppConfig struct {
-	Port int `yaml:"port"`
+	Port      int `yaml:"port"`
+	AdminPort int `yaml:"adminPort"`
 
 	Log struct {
 		LogPath string `yaml:"logPath"`
@@ -22,7 +23,8 @@ type AppConfig struct {
 		Debug    bool   `yaml:"debug"`
 	} `yaml:"mysql"`
 
-	ImApiDomain string `yaml:"imApiDomain"`
+	ImApiDomain   string `yaml:"imApiDomain"`
+	ImAdminDomain string `yaml:"imAdminDomain"`
 
 	ConnectManager struct {
 		WsPort      int `yaml:"wsPort"`
@@ -50,6 +52,12 @@ func InitConfigures() error {
 		var conf AppConfig
 		yaml.Unmarshal(cfBytes, &conf)
 		Config = conf
+		if Config.Port <= 0 {
+			Config.Port = 8070
+		}
+		if Config.AdminPort <= 0 {
+			Config.AdminPort = 8060
+		}
 		return nil
 	} else {
 		return err

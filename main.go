@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
+	adminRouters "github.com/juggleim/jugglechat-server/admins/routers"
 	"github.com/juggleim/jugglechat-server/configures"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
@@ -28,5 +32,21 @@ func main() {
 
 	httpServer := gin.Default()
 	routers.Route(httpServer, "jim")
-	httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
+	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
+
+	//start admin
+	adminServer := gin.Default()
+	adminRouters.Route(adminServer, "jconsole")
+	go adminServer.Run(fmt.Sprintf(":%d", configures.Config.AdminPort))
+
+	closeChan := make(chan struct{})
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		<-sigChan
+		signal.Stop(sigChan)
+		close(closeChan)
+	}()
+
+	<-closeChan
 }

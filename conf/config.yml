@@ -1,4 +1,5 @@
 port: 8070
+adminPort: 8060
 
 log:
   logPath: ./logs
@@ -11,6 +12,7 @@ mysql:
   name: im_db
 
 imApiDomain: https://api.juggle.im
+imAdminDomain: http://127.0.0.1:8090
 
 botConnector:
   domain: <bot-connector url>

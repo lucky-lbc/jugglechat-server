@@ -1,0 +1,111 @@
+package routers
+
+import (
+	"fmt"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/juggleim/jugglechat-server/admins/apis"
+	"github.com/juggleim/jugglechat-server/configures"
+	"github.com/juggleim/jugglechat-server/ctxs"
+)
+
+var Prefix string = ""
+
+func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
+	Prefix = prefix
+	eng.Use(CorsHandler(), InjectCtx())
+	group := eng.Group("/" + prefix)
+
+	group.POST("/login", apis.Login)
+	group.POST("/accounts/updpass", apis.UpdPassword)
+	group.POST("/accounts/add", apis.AddAccount)
+	group.POST("/accounts/delete", apis.DeleteAccounts)
+	group.POST("/accounts/disable", apis.DisableAccounts)
+	group.GET("/accounts/list", apis.QryAccounts)
+
+	imAdminProxy := getImAdminProxy()
+	if imAdminProxy != nil {
+		group.GET("/apps/list", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+	}
+
+	return group
+}
+
+func CorsHandler() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		method := context.Request.Method
+		context.Writer.Header().Add("Access-Control-Allow-Origin", "*")
+		context.Writer.Header().Add("Access-Control-Allow-Headers", "*")
+		context.Writer.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH, PUT")
+		context.Writer.Header().Add("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+		context.Writer.Header().Add("Access-Control-Allow-Credentials", "true")
+
+		if method == "OPTIONS" {
+			context.AbortWithStatus(http.StatusNoContent)
+		}
+		context.Next()
+	}
+}
+
+func InjectCtx() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		appKey := ctx.Request.Header.Get("appkey")
+		ctx.Set(string(ctxs.CtxKey_AppKey), appKey)
+		ctx.Next()
+	}
+}
+
+func getImAdminProxy() *httputil.ReverseProxy {
+	if configures.Config.ImAdminDomain != "" {
+		adminUrl, err := url.Parse(configures.Config.ImAdminDomain)
+		if err == nil {
+			proxy := httputil.NewSingleHostReverseProxy(adminUrl)
+			proxy.Director = func(r *http.Request) {
+				r.URL.Scheme = adminUrl.Scheme
+				r.URL.Host = adminUrl.Host
+				r.Host = adminUrl.Host
+
+				r.Header.Set("X-Forwared-For", r.RemoteAddr)
+
+				//rewrite path
+				originalPath := r.URL.Path
+				originalRawPath := r.URL.RawPath
+				newPath, newRawPath := rewritePath(originalPath, originalRawPath)
+				r.URL.Path = newPath
+				if newRawPath != "" {
+					r.URL.RawPath = newRawPath
+				}
+			}
+			proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+				fmt.Println("xxxx:", err)
+				http.Error(w, "Internal error", http.StatusServiceUnavailable)
+			}
+			return proxy
+		}
+	}
+	return nil
+}
+
+func rewritePath(path, rawPath string) (string, string) {
+	newPath := strings.TrimPrefix(path, "/"+Prefix)
+	if newPath == "" {
+		newPath = "/"
+	}
+	newPath = "/admingateway" + newPath
+
+	var newRawPath string
+	if rawPath != "" {
+		newRawPath = strings.TrimPrefix(rawPath, "/"+Prefix)
+		if newRawPath == "" {
+			newRawPath = "/"
+		}
+		newRawPath = "/admingateway" + newRawPath
+	}
+	return newPath, newRawPath
+}
