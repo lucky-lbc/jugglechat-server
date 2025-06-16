@@ -7,6 +7,7 @@ import (
 
 	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/juggleim/jugglechat-server/utils"
 )
 
 type UserDao struct {
@@ -124,7 +125,8 @@ func (user UserDao) Create(item models.User) error {
 	params = append(params, item.UserType)
 	params = append(params, item.Nickname)
 	params = append(params, item.UserPortrait)
-	params = append(params, item.Pinyin)
+	pinyin := utils.GetPinyin(item.Nickname)
+	params = append(params, pinyin)
 	if item.Phone != "" {
 		sqlBuilder.WriteString(",phone")
 		params = append(params, item.Phone)
@@ -157,6 +159,7 @@ func (user UserDao) Update(appkey, userId, nickname, userPortrait string) error 
 	upd := map[string]interface{}{}
 	if nickname != "" {
 		upd["nickname"] = nickname
+		upd["pinyin"] = utils.GetPinyin(nickname)
 	}
 	if userPortrait != "" {
 		upd["user_portrait"] = userPortrait

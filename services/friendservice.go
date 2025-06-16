@@ -46,6 +46,7 @@ func QryFriends(ctx context.Context, limit int64, offset string) (errs.IMErrorCo
 					user.Nickname = u.Nickname
 					user.Avatar = u.UserPortrait
 					user.UserType = u.UserType
+					user.Pinyin = u.Pinyin
 				}
 			}
 		}
@@ -57,29 +58,19 @@ func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) 
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendRelStorage()
-	rels, err := storage.QueryFriendRelsWithPage(appkey, userId, orderTag, page, size)
+	users, err := storage.QueryFriendRelsWithPage(appkey, userId, orderTag, page, size)
 	ret := &apimodels.Users{
 		Items: []*apimodels.UserObj{},
 	}
 	if err == nil {
-		uIds := []string{}
-		for _, rel := range rels {
-			uIds = append(uIds, rel.FriendId)
+		for _, user := range users {
 			ret.Items = append(ret.Items, &apimodels.UserObj{
-				UserId: rel.FriendId,
-				Pinyin: rel.OrderTag,
+				UserId:   user.UserId,
+				Pinyin:   user.Pinyin,
+				Nickname: user.Nickname,
+				Avatar:   user.UserPortrait,
+				UserType: user.UserType,
 			})
-		}
-		userStorage := storages.NewUserStorage()
-		userMap, err := userStorage.FindByUserIds(appkey, uIds)
-		if err == nil {
-			for _, user := range ret.Items {
-				if u, exist := userMap[user.UserId]; exist {
-					user.Nickname = u.Nickname
-					user.Avatar = u.UserPortrait
-					user.UserType = u.UserType
-				}
-			}
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret

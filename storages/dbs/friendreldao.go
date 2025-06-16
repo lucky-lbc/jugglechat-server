@@ -70,27 +70,38 @@ func (rel FriendRelDao) QueryFriendRels(appkey, userId string, startId, limit in
 	return ret, nil
 }
 
-func (rel FriendRelDao) QueryFriendRelsWithPage(appkey, userId string, orderTag string, page, size int64) ([]*models.FriendRel, error) {
-	var items []*FriendRelDao
+func (rel FriendRelDao) QueryFriendRelsWithPage(appkey, userId string, orderTag string, page, size int64) ([]*models.User, error) {
+	sql := fmt.Sprintf("select r.*, u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=?", rel.TableName(), UserDao{}.TableName())
 	params := []interface{}{}
-	condition := "app_key=? and user_id=?"
 	params = append(params, appkey, userId)
 	if orderTag != "" {
-		condition = condition + " and order_tag>=?"
+		sql = sql + " and u.pinyin>=?"
 		params = append(params, orderTag)
 	}
-	err := dbcommons.GetDb().Where(condition, params...).Order("order_tag asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
+
+	var items []*FriendRelWithUser
+	err := dbcommons.GetDb().Raw(sql, params...).Order("case when u.pinyin REGEXP '^[A-Za-z]' then 1 else 0 end desc, u.pinyin asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
+	// var items []*FriendRelDao
+	// params := []interface{}{}
+	// condition := "app_key=? and user_id=?"
+	// params = append(params, appkey, userId)
+	// if orderTag != "" {
+	// 	condition = condition + " and order_tag>=?"
+	// 	params = append(params, orderTag)
+	// }
+	// err := dbcommons.GetDb().Where(condition, params...).Order("order_tag asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
-	ret := []*models.FriendRel{}
-	for _, rel := range items {
-		ret = append(ret, &models.FriendRel{
-			ID:       rel.ID,
-			AppKey:   rel.AppKey,
-			UserId:   rel.UserId,
-			FriendId: rel.FriendId,
-			OrderTag: rel.OrderTag,
+	ret := []*models.User{}
+	for _, item := range items {
+		ret = append(ret, &models.User{
+			UserId:       item.FriendId,
+			Nickname:     item.Nickname,
+			UserPortrait: item.UserPortrait,
+			UserType:     item.UserType,
+			Pinyin:       item.Pinyin,
+			AppKey:       item.AppKey,
 		})
 	}
 	return ret, nil
@@ -101,10 +112,11 @@ type FriendRelWithUser struct {
 	Nickname     string `gorm:"nickname"`
 	UserPortrait string `gorm:"user_portrait"`
 	UserType     int    `gorm:"user_type"`
+	Pinyin       string `gorm:"pinyin"`
 }
 
 func (rel FriendRelDao) SearchFriendsByName(appkey, userId string, nickname string, startId, limit int64) ([]*models.User, error) {
-	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and u.nickname like ?", rel.TableName(), UserDao{}.TableName())
+	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and u.nickname like ?", rel.TableName(), UserDao{}.TableName())
 	var items []*FriendRelWithUser
 	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%").Order("r.id asc").Limit(limit).Find(&items).Error
 	ret := []*models.User{}
@@ -116,6 +128,7 @@ func (rel FriendRelDao) SearchFriendsByName(appkey, userId string, nickname stri
 				Nickname:     item.Nickname,
 				UserPortrait: item.UserPortrait,
 				UserType:     item.UserType,
+				Pinyin:       item.Pinyin,
 				AppKey:       item.AppKey,
 			})
 		}

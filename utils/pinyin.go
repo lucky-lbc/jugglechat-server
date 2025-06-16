@@ -6,7 +6,7 @@ import (
 	"github.com/mozillazg/go-pinyin"
 )
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 var letterMap map[rune]bool
 
 func init() {
@@ -37,4 +37,24 @@ func GetFirstLetter(str string) string {
 		}
 	}
 	return strings.ToLower(string(array[0]))
+}
+
+func GetPinyin(str string) string {
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return "#"
+	}
+	array := []rune(str)
+	if letterMap[array[0]] {
+		return strings.ToLower(string(array[0]))
+	} else {
+		opts := pinyin.NewArgs()
+		opts.Style = pinyin.Normal
+		pyArr := pinyin.LazyPinyin(string(array[0]), opts)
+		if len(pyArr) > 0 {
+			return strings.Join(pyArr, "")
+		} else {
+			return "#"
+		}
+	}
 }
