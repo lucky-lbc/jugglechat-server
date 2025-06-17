@@ -25,6 +25,8 @@ func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimode
 	if user != nil {
 		ret.Nickname = user.Nickname
 		ret.Avatar = user.Avatar
+		ret.UserType = user.UserType
+		ret.Pinyin = user.Pinyin
 	}
 	if userId == requestId {
 		ret.Settings = GetUserSettings(ctx, userId)
@@ -196,6 +198,7 @@ func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
 		u.Nickname = user.Nickname
 		u.Avatar = user.UserPortrait
 		u.UserType = user.UserType
+		u.Pinyin = user.Pinyin
 	}
 	return u
 }

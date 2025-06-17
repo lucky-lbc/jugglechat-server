@@ -19,6 +19,10 @@ import (
 
 func QryUserInfo(ctx *gin.Context) {
 	userId := ctx.Query("user_id")
+	if userId == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
 	code, user := services.QryUserInfo(ctxs.ToCtx(ctx), userId)
 	if code != errs.IMErrorCode_SUCCESS {
 		responses.ErrorHttpResp(ctx, code)
