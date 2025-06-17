@@ -3,9 +3,9 @@ package services
 import (
 	"time"
 
+	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/admins/errs"
 	"github.com/juggleim/jugglechat-server/storages/dbs"
-	"github.com/juggleim/jugglechat-server/utils"
 )
 
 func CheckLogin(account, password string) (errs.AdminErrorCode, *Account) {

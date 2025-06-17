@@ -6,13 +6,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/juggleim/commons/caches"
+	"github.com/juggleim/commons/fileengines"
+	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
-	"github.com/juggleim/jugglechat-server/services/fileengine"
 	"github.com/juggleim/jugglechat-server/storages/dbs"
-	"github.com/juggleim/jugglechat-server/utils"
-	"github.com/juggleim/jugglechat-server/utils/caches"
 )
 
 func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErrorCode, *apimodels.QryFileCredResp) {
@@ -23,7 +23,7 @@ func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErr
 	}
 	dir := fileTypeToDir(req.FileType)
 	switch fileConf.FileEngine {
-	case fileengine.ChannelQiNiu:
+	case fileengines.ChannelQiNiu:
 		if fileConf.QiNiu == nil {
 			return errs.IMErrorCode_APP_FILE_NOOSS, nil
 		}
@@ -35,7 +35,7 @@ func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErr
 				Token:  uploadToken,
 			},
 		}
-	case fileengine.ChannelMinio:
+	case fileengines.ChannelMinio:
 		if fileConf.Minio == nil {
 			return errs.IMErrorCode_APP_FILE_NOOSS, nil
 		}
@@ -49,7 +49,7 @@ func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErr
 				Url: signedURL,
 			},
 		}
-	case fileengine.ChannelAws:
+	case fileengines.ChannelAws:
 		if fileConf.S3 == nil {
 			return errs.IMErrorCode_APP_FILE_NOOSS, nil
 		}
@@ -64,7 +64,7 @@ func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErr
 				Url: signedURL,
 			},
 		}
-	case fileengine.ChannelOss:
+	case fileengines.ChannelOss:
 		if fileConf.Oss == nil {
 			return errs.IMErrorCode_APP_FILE_NOOSS, nil
 		}
@@ -95,10 +95,10 @@ type FileConfItem struct {
 	FileEngine string `json:"file_engine"`
 	//QiniuConfig *QiniuFileConfig `json:"qiniu,omitempty"`
 
-	QiNiu *fileengine.QiNiuStorage
-	Oss   *fileengine.OssStorage
-	Minio *fileengine.MinioStorage
-	S3    *fileengine.S3Storage
+	QiNiu *fileengines.QiNiuStorage
+	Oss   *fileengines.OssStorage
+	Minio *fileengines.MinioStorage
+	S3    *fileengines.S3Storage
 }
 
 var fileConfCache *caches.LruCache
@@ -106,7 +106,7 @@ var fileLock *sync.RWMutex
 var notExistFileConf *FileConfItem
 
 func init() {
-	fileConfCache = caches.NewLruCacheWithAddReadTimeout(1000, nil, 5*time.Minute, 10*time.Minute)
+	fileConfCache = caches.NewLruCacheWithAddReadTimeout("fileconf_caches", 1000, nil, 5*time.Minute, 10*time.Minute)
 	fileLock = &sync.RWMutex{}
 	notExistFileConf = &FileConfItem{}
 }
@@ -145,18 +145,18 @@ func loadFileConfFromDb(appkey string) (*FileConfItem, error) {
 	_ = json.Unmarshal([]byte(conf.Conf), &confData)
 
 	switch conf.Channel {
-	case fileengine.ChannelQiNiu:
-		c := utils.MapToStruct[fileengine.QiNiuConfig](confData)
-		fileConf.QiNiu = fileengine.NewQiNiu(c)
-	case fileengine.ChannelMinio:
-		c := utils.MapToStruct[fileengine.MinioConfig](confData)
-		fileConf.Minio = fileengine.NewMinio(c)
-	case fileengine.ChannelOss:
-		c := utils.MapToStruct[fileengine.OssConfig](confData)
-		fileConf.Oss = fileengine.NewOss(c)
-	case fileengine.ChannelAws:
-		c := utils.MapToStruct[fileengine.S3Config](confData)
-		fileConf.S3 = fileengine.NewS3Storage(fileengine.WithConf(c))
+	case fileengines.ChannelQiNiu:
+		c := utils.MapToStruct[fileengines.QiNiuConfig](confData)
+		fileConf.QiNiu = fileengines.NewQiNiu(c)
+	case fileengines.ChannelMinio:
+		c := utils.MapToStruct[fileengines.MinioConfig](confData)
+		fileConf.Minio = fileengines.NewMinio(c)
+	case fileengines.ChannelOss:
+		c := utils.MapToStruct[fileengines.OssConfig](confData)
+		fileConf.Oss = fileengines.NewOss(c)
+	case fileengines.ChannelAws:
+		c := utils.MapToStruct[fileengines.S3Config](confData)
+		fileConf.S3 = fileengines.NewS3Storage(fileengines.WithConf(c))
 	}
 	return fileConf, nil
 }

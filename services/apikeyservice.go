@@ -4,8 +4,8 @@ import (
 	"encoding/base64"
 	"time"
 
+	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/services/pbobjs"
-	"github.com/juggleim/jugglechat-server/utils"
 )
 
 func CheckApiKey(apiKey string, appkey, secureKey string) bool {

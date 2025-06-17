@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/juggleim/jugglechat-server/utils"
+	utils "github.com/juggleim/commons/tools"
 )
 
 //go:embed sqls/*

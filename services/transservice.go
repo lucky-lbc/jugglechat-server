@@ -4,12 +4,12 @@ import (
 	"context"
 	"sync"
 
+	utils "github.com/juggleim/commons/tools"
+	"github.com/juggleim/commons/transengines"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
-	"github.com/juggleim/jugglechat-server/services/transengines"
 	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/utils"
 )
 
 func Translate(ctx context.Context, req *apimodels.TransReq) (errs.IMErrorCode, *apimodels.TransReq) {

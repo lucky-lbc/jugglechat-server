@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
-	"github.com/juggleim/jugglechat-server/utils"
 )
 
 type UserDao struct {

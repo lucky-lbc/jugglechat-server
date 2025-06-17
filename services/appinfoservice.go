@@ -4,17 +4,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/juggleim/jugglechat-server/services/sms"
-	"github.com/juggleim/jugglechat-server/services/transengines"
+	"github.com/juggleim/commons/caches"
+	"github.com/juggleim/commons/smsengines"
+	"github.com/juggleim/commons/transengines"
 	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/utils/caches"
 )
 
 var appCache *caches.LruCache
 var appLock *sync.RWMutex
 
 func init() {
-	appCache = caches.NewLruCacheWithAddReadTimeout(1000, nil, 5*time.Minute, 5*time.Minute)
+	appCache = caches.NewLruCacheWithAddReadTimeout("appcaches", 1000, nil, 5*time.Minute, 5*time.Minute)
 	appLock = &sync.RWMutex{}
 }
 
@@ -25,7 +25,7 @@ type AppInfo struct {
 	AppSecureKey string `gorm:"app_secure_key"`
 	AppStatus    int    `gorm:"app_status"`
 
-	SmsEngine   sms.ISmsEngine
+	SmsEngine   smsengines.ISmsEngine
 	TransEngine transengines.ITransEngine
 }
 

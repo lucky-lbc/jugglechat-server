@@ -5,12 +5,12 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/juggleim/commons/smsengines"
+	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
-	"github.com/juggleim/jugglechat-server/services/sms"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
-	"github.com/juggleim/jugglechat-server/utils"
 )
 
 var random *rand.Rand
@@ -31,7 +31,7 @@ func RandomSms() string {
 func SmsSend(ctx context.Context, phone string) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	smsEngine := GetSmsEngine(appkey)
-	if smsEngine != nil && smsEngine != sms.DefaultSmsEngine {
+	if smsEngine != nil && smsEngine != smsengines.DefaultSmsEngine {
 		// 检查是否还有有效的
 		storage := storages.NewSmsRecordStorage()
 		record, err := storage.FindByPhone(appkey, phone, time.Now().Add(-3*time.Minute))
@@ -83,7 +83,7 @@ func CheckEmailCode(ctx context.Context, email, code string) errs.IMErrorCode {
 	return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
 }
 
-func GetSmsEngine(appkey string) sms.ISmsEngine {
+func GetSmsEngine(appkey string) smsengines.ISmsEngine {
 	appInfo, exist := GetAppInfo(appkey)
 	if exist && appInfo != nil {
 		if appInfo.SmsEngine == nil {
@@ -95,7 +95,7 @@ func GetSmsEngine(appkey string) sms.ISmsEngine {
 			return appInfo.SmsEngine
 		}
 	}
-	return sms.DefaultSmsEngine
+	return smsengines.DefaultSmsEngine
 }
 
 func loadSmsEngine(appInfo *AppInfo) {
@@ -111,10 +111,10 @@ func loadSmsEngine(appInfo *AppInfo) {
 			}
 		}
 	}
-	appInfo.SmsEngine = sms.DefaultSmsEngine
+	appInfo.SmsEngine = smsengines.DefaultSmsEngine
 }
 
 type SmsEngineConf struct {
-	Channel     string           `json:"channel,omitempty"`
-	BdSmsEngine *sms.BdSmsEngine `json:"baidu,omitempty"`
+	Channel     string                  `json:"channel,omitempty"`
+	BdSmsEngine *smsengines.BdSmsEngine `json:"baidu,omitempty"`
 }
