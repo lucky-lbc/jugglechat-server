@@ -134,6 +134,10 @@ func DelGrpMembers(ctx *gin.Context) {
 
 func QryGroupInfo(ctx *gin.Context) {
 	groupId := ctx.Query("group_id")
+	if groupId == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
 	rpcCtx := ctxs.ToCtx(ctx)
 	code, grpInfo := services.QryGroupInfo(rpcCtx, groupId)
 	if code != errs.IMErrorCode_SUCCESS {
