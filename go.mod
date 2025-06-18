@@ -2,7 +2,7 @@ module github.com/juggleim/jugglechat-server
 
 go 1.23.2
 
-require github.com/juggleim/imserver-sdk-go v1.0.5
+require github.com/juggleim/imserver-sdk-go v1.0.6
 
 require (
 	github.com/BurntSushi/toml v1.3.2 // indirect

@@ -495,7 +495,9 @@ func SetGrpAnnouncement(ctx context.Context, req *apimodels.GroupAnnouncement) e
 	if req.Content != "" {
 		//send announce msg
 		SendGroupMsg(ctx, requestId, req.GroupId, "jg:text", map[string]string{
-			"content": req.Content,
+			"content": "{all}" + req.Content,
+		}, &juggleimsdk.MentionInfo{
+			MentionType: juggleimsdk.MentionType_All,
 		})
 	}
 	return errs.IMErrorCode_SUCCESS

@@ -92,8 +92,8 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/juggleim/commons v1.0.1 h1:HNuCy+qkYvGGlb43FgqvdipSlCV9/WGmP+tfhiTbtUo=
 github.com/juggleim/commons v1.0.1/go.mod h1:DCcj+TFBXuJIaENWj1wrAwOxJrzasfsSKBbFHfhDLpw=
-github.com/juggleim/imserver-sdk-go v1.0.5 h1:KtIocIYSUsXafeSAmCxYRsv0DXn3336aV0oGE1TCtxg=
-github.com/juggleim/imserver-sdk-go v1.0.5/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
+github.com/juggleim/imserver-sdk-go v1.0.6 h1:NL639nM2g4MKgRJSpwsMFLlAF/PBPg7BCrJnikdAeLE=
+github.com/juggleim/imserver-sdk-go v1.0.6/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
 github.com/klauspost/compress v1.18.0/go.mod h1:2Pp+KzxcywXVXMr50+X0Q/Lsb43OQHYWRCY2AiWywWQ=
 github.com/klauspost/cpuid/v2 v2.0.1/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=

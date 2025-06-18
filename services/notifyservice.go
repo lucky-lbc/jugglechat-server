@@ -70,16 +70,17 @@ func SendPriMsg(ctx context.Context, senderId, targetId string, msgType string, 
 	}
 }
 
-func SendGroupMsg(ctx context.Context, senderId, targetId string, msgType string, msg interface{}) {
+func SendGroupMsg(ctx context.Context, senderId, targetId string, msgType string, msg interface{}, mentionInfo *juggleimsdk.MentionInfo) {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	sdk := imsdk.GetImSdk(appkey)
 	if sdk != nil {
 		sdk.SendGroupMsg(juggleimsdk.Message{
-			SenderId:   requestId,
-			TargetIds:  []string{targetId},
-			MsgType:    msgType,
-			MsgContent: utils.ToJson(msg),
+			SenderId:    requestId,
+			TargetIds:   []string{targetId},
+			MsgType:     msgType,
+			MsgContent:  utils.ToJson(msg),
+			MentionInfo: mentionInfo,
 		})
 	}
 }
