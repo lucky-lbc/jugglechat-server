@@ -72,7 +72,7 @@ func (user UserDao) FindByUserIds(appkey string, userIds []string) (map[string]*
 	return ret, err
 }
 
-func (user UserDao) FindByKeyword(appkey string, userId, keyword string) ([]*models.User, error) {
+func (user UserDao) SearchByKeyword(appkey string, userId, keyword string) ([]*models.User, error) {
 	var items []*UserDao
 	keyword = "%" + keyword + "%"
 	err := dbcommons.GetDb().Where("app_key=? and user_id!=? and (phone like ? or email like ? or nickname like ? or login_account like ?)", appkey, userId, keyword, keyword, keyword, keyword).Find(&items).Error
@@ -114,6 +114,7 @@ func (user UserDao) FindByPhone(appkey, phone string) (*models.User, error) {
 		Phone:        item.Phone,
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
+		LoginPass:    item.LoginPass,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
 	}, nil
@@ -135,6 +136,29 @@ func (user UserDao) FindByEmail(appkey, email string) (*models.User, error) {
 		Phone:        item.Phone,
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
+		LoginPass:    item.LoginPass,
+		UpdatedTime:  item.UpdatedTime,
+		AppKey:       item.AppKey,
+	}, nil
+}
+
+func (user UserDao) FindByAccount(appkey, account string) (*models.User, error) {
+	var item UserDao
+	err := dbcommons.GetDb().Where("app_key=? and login_account=?", appkey, account).Take(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	return &models.User{
+		ID:           item.ID,
+		UserId:       item.UserId,
+		Nickname:     item.Nickname,
+		UserPortrait: item.UserPortrait,
+		Pinyin:       item.Pinyin,
+		UserType:     item.UserType,
+		Phone:        item.Phone,
+		Email:        item.Email,
+		LoginAccount: item.LoginAccount,
+		LoginPass:    item.LoginPass,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
 	}, nil

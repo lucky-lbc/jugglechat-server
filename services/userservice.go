@@ -99,7 +99,7 @@ func SearchByKeyword(ctx context.Context, keyword string) (errs.IMErrorCode, *ap
 		Items: []*apimodels.UserObj{},
 	}
 	storage := storages.NewUserStorage()
-	users, err := storage.FindByKeyword(appkey, requestId, keyword)
+	users, err := storage.SearchByKeyword(appkey, requestId, keyword)
 	if err == nil {
 		targetUIds := []string{}
 		for _, user := range users {
@@ -125,7 +125,7 @@ func SetUserAccount(ctx context.Context, req *apimodels.SetUserAccountReq) errs.
 	storage := storages.NewUserStorage()
 	err := storage.UpdateAccount(appkey, requestId, req.Account)
 	if err != nil {
-		return errs.IMErrorCode_APP_USER_EXTISTED
+		return errs.IMErrorCode_APP_USER_EXISTED
 	}
 	return errs.IMErrorCode_SUCCESS
 }

@@ -28,7 +28,9 @@ var (
 	IMErrorCode_APP_SMS_SEND_FAILED     IMErrorCode = 17008
 	IMErrorCode_APP_SMS_CODE_EXPIRED    IMErrorCode = 17009
 	IMErrorCode_APP_TRANS_NOTRANSENGINE IMErrorCode = 17010
-	IMErrorCode_APP_USER_EXTISTED       IMErrorCode = 17011
+	IMErrorCode_APP_USER_EXISTED        IMErrorCode = 17011
+	IMErrorCode_APP_USER_NOT_EXIST      IMErrorCode = 17012
+	IMErrorCode_APP_LOGIN_FAILED        IMErrorCode = 17013
 
 	//friends
 	IMErrorCode_APP_FRIEND_DEFAULT         IMErrorCode = 17100

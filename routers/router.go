@@ -13,6 +13,7 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.Use(apis.Validate)
 
 	group.POST("/login", apis.Login)
+	group.POST("/register", apis.Register)
 	group.GET("/login/qrcode", apis.GenerateQrCode)
 	group.POST("/login/qrcode/check", apis.CheckQrCode)
 	group.POST("/login/qrcode/confirm", apis.ConfirmQrCode)

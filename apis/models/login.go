@@ -1,7 +1,10 @@
 package models
 
-type LoginReq struct {
+type RegisterReq struct {
 	Account  string `json:"account"`
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+	Code     string `json:"code"`
 	Password string `json:"password"`
 }
 

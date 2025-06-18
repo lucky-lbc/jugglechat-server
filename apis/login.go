@@ -27,23 +27,39 @@ import (
 )
 
 func Login(ctx *gin.Context) {
-	req := &models.LoginReq{}
-	if err := ctx.BindJSON(req); err != nil || req.Account == "" {
+	req := &models.RegisterReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Password == "" || (req.Account == "" && req.Phone == "" && req.Email == "") {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	userId := utils.ShortMd5(req.Account)
-	nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
-	fmt.Println(userId, nickname)
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
+	storage := storages.NewUserStorage()
+	var err error
+	var user *dbModels.User
+	if req.Account != "" {
+		user, err = storage.FindByAccount(appkey, req.Account)
+	} else if req.Phone != "" {
+		user, err = storage.FindByPhone(appkey, req.Phone)
+	} else if req.Email != "" {
+		user, err = storage.FindByEmail(appkey, req.Email)
+	}
+	if err != nil || user == nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_USER_NOT_EXIST)
+		return
+	}
+	if user.LoginPass != utils.SHA1(req.Password) {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_LOGIN_FAILED)
+		return
+	}
 	sdk := imsdk.GetImSdk(appkey)
 	if sdk == nil {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 		return
 	}
 	resp, code, _, err := sdk.Register(juggleimsdk.User{
-		UserId:   userId,
-		Nickname: nickname,
+		UserId:       user.UserId,
+		Nickname:     user.Nickname,
+		UserPortrait: user.UserPortrait,
 	})
 	if err != nil {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
@@ -53,7 +69,72 @@ func Login(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
 		return
 	}
-	responses.SuccessHttpResp(ctx, resp)
+	responses.SuccessHttpResp(ctx, &models.LoginUserResp{
+		UserId:        user.UserId,
+		NickName:      user.Nickname,
+		Avatar:        user.UserPortrait,
+		Authorization: services.GenerateToken(appkey, user.UserId),
+		ImToken:       resp.Token,
+	})
+}
+
+func Register(ctx *gin.Context) {
+	req := &models.RegisterReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Password == "" || (req.Account == "" && req.Phone == "" && req.Email == "") {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
+	userId := utils.GenerateUUIDShort11()
+	nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
+	storage := storages.NewUserStorage()
+	var err error
+	if req.Account != "" {
+		err = storage.Create(dbModels.User{
+			UserId:       userId,
+			Nickname:     nickname,
+			LoginAccount: req.Account,
+			LoginPass:    utils.SHA1(req.Password),
+			AppKey:       appkey,
+		})
+	} else if req.Phone != "" {
+		err = storage.Create(dbModels.User{
+			UserId:    userId,
+			Nickname:  nickname,
+			Phone:     req.Phone,
+			LoginPass: utils.SHA1(req.Password),
+			AppKey:    appkey,
+		})
+	} else if req.Email != "" {
+		err = storage.Create(dbModels.User{
+			UserId:    userId,
+			Nickname:  nickname,
+			Email:     req.Email,
+			LoginPass: utils.SHA1(req.Password),
+			AppKey:    appkey,
+		})
+	}
+	if err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+		return
+	}
+	events.TriggerUserRegiste(dbModels.User{
+		UserId:       userId,
+		Nickname:     nickname,
+		LoginAccount: req.Account,
+		Phone:        req.Phone,
+		Email:        req.Email,
+		AppKey:       appkey,
+	})
+	userExtStorage := storages.NewUserExtStorage()
+	userExtStorage.Upsert(dbModels.UserExt{
+		UserId:    userId,
+		ItemKey:   models.UserExtKey_FriendVerifyType,
+		ItemValue: utils.Int2String(int64(models.FriendVerifyType_NeedFriendVerify)),
+		ItemType:  models.AttItemType_Setting,
+		AppKey:    appkey,
+	})
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func SmsSend(ctx *gin.Context) {
