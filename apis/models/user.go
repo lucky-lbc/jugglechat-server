@@ -21,6 +21,8 @@ type UserObj struct {
 	Pinyin   string        `json:"pinyin"`
 	UserType int           `json:"user_type"`
 	Phone    string        `json:"phone"`
+	Email    string        `json:"email"`
+	Account  string        `json:"account"`
 	Status   int32         `json:"status"`
 	IsFriend bool          `json:"is_friend"`
 	Settings *UserSettings `json:"settings"`
@@ -41,6 +43,11 @@ type Users struct {
 type SearchUsersReq struct {
 	Keyword string `json:"keyword"`
 	Phone   string `json:"phone"`
+}
+
+type SetUserAccountReq struct {
+	Account  string `json:"account"`
+	Password string `json:"password"`
 }
 
 type Friends struct {

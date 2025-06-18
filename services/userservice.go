@@ -119,6 +119,17 @@ func SearchByKeyword(ctx context.Context, keyword string) (errs.IMErrorCode, *ap
 	return errs.IMErrorCode_SUCCESS, ret
 }
 
+func SetUserAccount(ctx context.Context, req *apimodels.SetUserAccountReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
+	storage := storages.NewUserStorage()
+	err := storage.UpdateAccount(appkey, requestId, req.Account)
+	if err != nil {
+		return errs.IMErrorCode_APP_USER_EXTISTED
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
 func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewUserStorage()

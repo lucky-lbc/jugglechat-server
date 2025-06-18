@@ -199,6 +199,10 @@ func (user UserDao) Update(appkey, userId, nickname, userPortrait string) error 
 	return err
 }
 
+func (user UserDao) UpdateAccount(appkey, userId, account string) error {
+	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("login_account", account).Error
+}
+
 func (user UserDao) Count(appkey string) int {
 	var count int
 	err := dbcommons.GetDb().Model(&UserDao{}).Where("app_key=?", appkey).Count(&count).Error

@@ -31,6 +31,16 @@ func QryUserInfo(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, user)
 }
 
+func SetLoginAccount(ctx *gin.Context) {
+	req := &models.SetUserAccountReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Account == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.SetUserAccount(ctxs.ToCtx(ctx), req)
+	responses.SuccessHttpResp(ctx, code)
+}
+
 func UpdateUser(ctx *gin.Context) {
 	req := &models.UserObj{}
 	if err := ctx.BindJSON(req); err != nil {

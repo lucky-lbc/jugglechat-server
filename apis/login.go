@@ -10,6 +10,7 @@ import (
 	"github.com/juggleim/jugglechat-server/apis/responses"
 	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
+	"github.com/juggleim/jugglechat-server/events"
 	"github.com/juggleim/jugglechat-server/services"
 	"github.com/juggleim/jugglechat-server/services/imsdk"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -106,6 +107,12 @@ func SmsLogin(ctx *gin.Context) {
 					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
 				} else {
+					events.TriggerUserRegiste(dbModels.User{
+						UserId:   userId,
+						Nickname: nickname,
+						Phone:    req.Phone,
+						AppKey:   appkey,
+					})
 					userExtStorage := storages.NewUserExtStorage()
 					userExtStorage.Upsert(dbModels.UserExt{
 						UserId:    userId,
@@ -170,43 +177,43 @@ func EmailLogin(ctx *gin.Context) {
 	code := services.CheckEmailCode(ctxs.ToCtx(ctx), req.Email, req.Code)
 	if code == errs.IMErrorCode_SUCCESS {
 		appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
-		userId := utils.ShortMd5(req.Email)
+		var userId string
 		nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
 		storage := storages.NewUserStorage()
-		user, err := storage.FindByPhone(appkey, req.Email)
+		user, err := storage.FindByEmail(appkey, req.Email)
 		if err == nil && user != nil {
 			userId = user.UserId
 			nickname = user.Nickname
 		} else {
-			user, err = storage.FindByUserId(appkey, userId)
-			if err == nil && user != nil {
-				userId = user.UserId
-				nickname = user.Nickname
+			if err != gorm.ErrRecordNotFound {
+				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				return
+			}
+			userId = utils.GenerateUUIDShort11()
+			err = storage.Create(dbModels.User{
+				UserId:   userId,
+				Nickname: nickname,
+				Email:    req.Email,
+				AppKey:   appkey,
+			})
+			if err != nil {
+				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+				return
 			} else {
-				if err != gorm.ErrRecordNotFound {
-					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					return
-				}
-				userId = utils.GenerateUUIDShort11()
-				err = storage.Create(dbModels.User{
+				events.TriggerUserRegiste(dbModels.User{
 					UserId:   userId,
 					Nickname: nickname,
 					Email:    req.Email,
 					AppKey:   appkey,
 				})
-				if err != nil {
-					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					return
-				} else {
-					userExtStorage := storages.NewUserExtStorage()
-					userExtStorage.Upsert(dbModels.UserExt{
-						UserId:    userId,
-						ItemKey:   models.UserExtKey_FriendVerifyType,
-						ItemValue: utils.Int2String(int64(models.FriendVerifyType_NeedFriendVerify)),
-						ItemType:  models.AttItemType_Setting,
-						AppKey:    appkey,
-					})
-				}
+				userExtStorage := storages.NewUserExtStorage()
+				userExtStorage.Upsert(dbModels.UserExt{
+					UserId:    userId,
+					ItemKey:   models.UserExtKey_FriendVerifyType,
+					ItemValue: utils.Int2String(int64(models.FriendVerifyType_NeedFriendVerify)),
+					ItemType:  models.AttItemType_Setting,
+					AppKey:    appkey,
+				})
 			}
 		}
 		sdk := imsdk.GetImSdk(appkey)
