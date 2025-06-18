@@ -25,6 +25,7 @@ type IUserStorage interface {
 	FindByEmail(appkey, email string) (*User, error)
 	FindByUserId(appkey, userId string) (*User, error)
 	FindByUserIds(appkey string, userIds []string) (map[string]*User, error)
+	FindByKeyword(appkey string, userId, keyword string) ([]*User, error)
 	Update(appkey, userId, nickname, userPortrait string) error
 	Count(appkey string) int
 	CountByTime(appkey string, start, end int64) int64

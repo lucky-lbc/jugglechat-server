@@ -55,13 +55,19 @@ func UpdateUserSettings(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, nil)
 }
 
-func SearchByPhone(ctx *gin.Context) {
-	req := &models.UserObj{}
-	if err := ctx.BindJSON(req); err != nil {
+func SearchUsers(ctx *gin.Context) {
+	req := &models.SearchUsersReq{}
+	if err := ctx.BindJSON(req); err != nil || (req.Keyword == "" && req.Phone == "") {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code, users := services.SearchByPhone(ctxs.ToCtx(ctx), req.Phone)
+	var code errs.IMErrorCode
+	var users *models.Users
+	if req.Phone != "" {
+		code, users = services.SearchByPhone(ctxs.ToCtx(ctx), req.Phone)
+	} else {
+		code, users = services.SearchByKeyword(ctxs.ToCtx(ctx), req.Keyword)
+	}
 	if code != errs.IMErrorCode_SUCCESS {
 		responses.ErrorHttpResp(ctx, code)
 		return
@@ -87,4 +93,8 @@ func QryUserQrCode(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, map[string]string{
 		"qr_code": base64.StdEncoding.EncodeToString(buf.Bytes()),
 	})
+}
+
+func SyncConfs(ctx *gin.Context) {
+	responses.SuccessHttpResp(ctx, &models.UserConfs{})
 }

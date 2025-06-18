@@ -38,6 +38,11 @@ type Users struct {
 	Offset string     `json:"offset"`
 }
 
+type SearchUsersReq struct {
+	Keyword string `json:"keyword"`
+	Phone   string `json:"phone"`
+}
+
 type Friends struct {
 	Items  []*UserObj `json:"items"`
 	Offset string     `json:"offset,omitempty"`
@@ -50,4 +55,7 @@ type Friend struct {
 
 type FriendIds struct {
 	FriendIds []string `json:"friend_ids"`
+}
+
+type UserConfs struct {
 }

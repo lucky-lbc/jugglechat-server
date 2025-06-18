@@ -74,6 +74,7 @@ func SearchByPhone(ctx context.Context, phone string) (errs.IMErrorCode, *apimod
 			UserId:   user.UserId,
 			Nickname: user.Nickname,
 			Avatar:   user.UserPortrait,
+			UserType: user.UserType,
 			IsFriend: checkFriend(ctx, requestId, targetUserId),
 		})
 	} else {
@@ -83,11 +84,39 @@ func SearchByPhone(ctx context.Context, phone string) (errs.IMErrorCode, *apimod
 				UserId:   user.UserId,
 				Nickname: user.Nickname,
 				Avatar:   user.UserPortrait,
+				UserType: user.UserType,
 				IsFriend: checkFriend(ctx, requestId, targetUserId),
 			})
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, users
+}
+
+func SearchByKeyword(ctx context.Context, keyword string) (errs.IMErrorCode, *apimodels.Users) {
+	requestId := ctxs.GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	ret := &apimodels.Users{
+		Items: []*apimodels.UserObj{},
+	}
+	storage := storages.NewUserStorage()
+	users, err := storage.FindByKeyword(appkey, requestId, keyword)
+	if err == nil {
+		targetUIds := []string{}
+		for _, user := range users {
+			targetUIds = append(targetUIds, user.UserId)
+			ret.Items = append(ret.Items, &apimodels.UserObj{
+				UserId:   user.UserId,
+				Nickname: user.Nickname,
+				Avatar:   user.UserPortrait,
+				UserType: user.UserType,
+			})
+		}
+		isFriendMap := CheckFriends(ctx, requestId, targetUIds)
+		for _, user := range ret.Items {
+			user.IsFriend = isFriendMap[user.UserId]
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
 }
 
 func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
