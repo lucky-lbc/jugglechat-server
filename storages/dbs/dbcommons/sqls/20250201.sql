@@ -284,4 +284,17 @@ CREATE TABLE IF NOT EXISTS `postcomments` (
   KEY `idx_post` (`app_key`,`post_id`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS `feedbacks` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `app_key` varchar(50) DEFAULT NULL,
+  `user_id` varchar(32) DEFAULT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `content` mediumblob,
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  KEY `idx_appkey` (`app_key`,`user_id`),
+  KEY `idx_time` (`app_key`,`created_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_versaion','20250201');

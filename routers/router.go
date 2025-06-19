@@ -79,6 +79,9 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.GET("/friends/applications", apis.FriendApplications)
 	group.GET("/friends/myapplications", apis.MyFriendApplications)
 	group.GET("/friends/mypendingapplications", apis.MyPendingFriendApplications)
+
+	//feedback
+	group.POST("/feedbacks/add", apis.AddFeedback)
 	return group
 }
 

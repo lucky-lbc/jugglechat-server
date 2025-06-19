@@ -60,3 +60,7 @@ func NewGroupMemberStorage() models.IGroupMemberStorage {
 func NewGroupAdminStorage() models.IGroupAdminStorage {
 	return &dbs.GroupAdminDao{}
 }
+
+func NewFeedbackStorage() models.IFeedbackStorage {
+	return &dbs.FeedbackDao{}
+}
