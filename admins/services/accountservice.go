@@ -4,11 +4,12 @@ import (
 	"time"
 
 	utils "github.com/juggleim/commons/tools"
+	apimodels "github.com/juggleim/jugglechat-server/admins/apis/models"
 	"github.com/juggleim/jugglechat-server/admins/errs"
 	"github.com/juggleim/jugglechat-server/storages/dbs"
 )
 
-func CheckLogin(account, password string) (errs.AdminErrorCode, *Account) {
+func CheckLogin(account, password string) (errs.AdminErrorCode, *apimodels.Account) {
 	dao := dbs.AccountDao{}
 	defaultAccount, err := dao.FindByAccount("admin")
 	if err != nil || defaultAccount == nil {
@@ -29,7 +30,7 @@ func CheckLogin(account, password string) (errs.AdminErrorCode, *Account) {
 		if admin.State != 0 {
 			return errs.AdminErrorCode_AccountForbidden, nil
 		}
-		return errs.AdminErrorCode_Success, &Account{
+		return errs.AdminErrorCode_Success, &apimodels.Account{
 			Account:       admin.Account,
 			State:         admin.State,
 			ParentAccount: admin.ParentAccount,
@@ -95,9 +96,9 @@ func DeleteAccounts(accounts []string) errs.AdminErrorCode {
 	return errs.AdminErrorCode_Success
 }
 
-func QryAccounts(limit int64, offset string) *Accounts {
-	accounts := &Accounts{
-		Items:   []*Account{},
+func QryAccounts(limit int64, offset string) *apimodels.Accounts {
+	accounts := &apimodels.Accounts{
+		Items:   []*apimodels.Account{},
 		HasMore: false,
 		Offset:  "",
 	}
@@ -114,7 +115,7 @@ func QryAccounts(limit int64, offset string) *Accounts {
 		}
 		var id int64 = 0
 		for _, dbAccount := range dbAccounts {
-			accounts.Items = append(accounts.Items, &Account{
+			accounts.Items = append(accounts.Items, &apimodels.Account{
 				Account:       dbAccount.Account,
 				State:         dbAccount.State,
 				CreatedTime:   dbAccount.CreatedTime.UnixMilli(),

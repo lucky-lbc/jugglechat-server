@@ -1,4 +1,4 @@
-package services
+package models
 
 type Accounts struct {
 	Items   []*Account `json:"items"`

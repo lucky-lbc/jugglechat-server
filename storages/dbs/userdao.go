@@ -46,6 +46,7 @@ func (user UserDao) FindByUserId(appkey, userId string) (*models.User, error) {
 		Phone:        item.Phone,
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
+		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
 	}, nil
@@ -65,6 +66,7 @@ func (user UserDao) FindByUserIds(appkey string, userIds []string) (map[string]*
 			UserType:     item.UserType,
 			Phone:        item.Phone,
 			Email:        item.Email,
+			CreatedTime:  item.CreatedTime,
 			UpdatedTime:  item.UpdatedTime,
 			AppKey:       item.AppKey,
 		}
@@ -91,6 +93,7 @@ func (user UserDao) SearchByKeyword(appkey string, userId, keyword string) ([]*m
 			Phone:        item.Phone,
 			Email:        item.Email,
 			LoginAccount: item.LoginAccount,
+			CreatedTime:  item.CreatedTime,
 			UpdatedTime:  item.UpdatedTime,
 			AppKey:       item.AppKey,
 		})
@@ -115,6 +118,7 @@ func (user UserDao) FindByPhone(appkey, phone string) (*models.User, error) {
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
 		LoginPass:    item.LoginPass,
+		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
 	}, nil
@@ -137,6 +141,7 @@ func (user UserDao) FindByEmail(appkey, email string) (*models.User, error) {
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
 		LoginPass:    item.LoginPass,
+		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
 	}, nil
@@ -159,6 +164,7 @@ func (user UserDao) FindByAccount(appkey, account string) (*models.User, error) 
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
 		LoginPass:    item.LoginPass,
+		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,
 	}, nil
@@ -245,8 +251,41 @@ func (user UserDao) CountByTime(appkey string, start, end int64) int64 {
 	return count
 }
 
-func (user UserDao) QryUsers(appkey string, startId, limit int64) ([]*UserDao, error) {
+func (user UserDao) QryUsers(appkey string, startId, limit int64, isPositiveOrder bool) ([]*models.User, error) {
 	var items []*UserDao
-	err := dbcommons.GetDb().Where("app_key=? and id>?", appkey, startId).Order("id asc").Limit(limit).Find(&items).Error
-	return items, err
+	whereStr := "app_key=?"
+	params := []interface{}{appkey}
+	orderBy := "id desc"
+	if isPositiveOrder {
+		orderBy = "id asc"
+		whereStr = whereStr + " and id>?"
+		params = append(params, startId)
+	} else {
+		if startId > 0 {
+			whereStr = whereStr + " and id<?"
+			params = append(params, startId)
+		}
+	}
+	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
+	ret := []*models.User{}
+	if err == nil {
+		for _, item := range items {
+			ret = append(ret, &models.User{
+				ID:           item.ID,
+				UserId:       item.UserId,
+				Nickname:     item.Nickname,
+				UserPortrait: item.UserPortrait,
+				Pinyin:       item.Pinyin,
+				UserType:     item.UserType,
+				Phone:        item.Phone,
+				Email:        item.Email,
+				LoginAccount: item.LoginAccount,
+				LoginPass:    item.LoginPass,
+				CreatedTime:  item.CreatedTime,
+				UpdatedTime:  item.UpdatedTime,
+				AppKey:       item.AppKey,
+			})
+		}
+	}
+	return ret, err
 }

@@ -15,6 +15,7 @@ type User struct {
 	LoginPass    string
 	Status       int
 	UpdatedTime  time.Time
+	CreatedTime  time.Time
 	AppKey       string
 }
 
@@ -31,6 +32,7 @@ type IUserStorage interface {
 	UpdateAccount(appkey, userId, account string) error
 	Count(appkey string) int
 	CountByTime(appkey string, start, end int64) int64
+	QryUsers(appkey string, startId, limit int64, isPositiveOrder bool) ([]*User, error)
 }
 
 type UserExt struct {
