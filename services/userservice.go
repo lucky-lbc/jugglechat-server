@@ -213,7 +213,7 @@ func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErro
 		Items: []*apimodels.Group{},
 	}
 	for _, group := range groups {
-		ret.Offset, _ = utils.EncodeInt(group.ID)
+		ret.Offset, err = utils.EncodeInt(group.ID)
 		if err == nil {
 			ret.Items = append(ret.Items, &apimodels.Group{
 				GroupId:       group.GroupId,
