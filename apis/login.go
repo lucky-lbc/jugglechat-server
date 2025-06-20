@@ -162,16 +162,19 @@ func SmsLogin(ctx *gin.Context) {
 		appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 		userId := utils.ShortMd5(req.Phone)
 		nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
+		userPortrait := ""
 		storage := storages.NewUserStorage()
 		user, err := storage.FindByPhone(appkey, req.Phone)
 		if err == nil && user != nil {
 			userId = user.UserId
 			nickname = user.Nickname
+			userPortrait = user.UserPortrait
 		} else {
 			user, err = storage.FindByUserId(appkey, userId)
 			if err == nil && user != nil {
 				userId = user.UserId
 				nickname = user.Nickname
+				userPortrait = user.UserPortrait
 			} else {
 				if err != gorm.ErrRecordNotFound {
 					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
@@ -211,8 +214,9 @@ func SmsLogin(ctx *gin.Context) {
 			return
 		}
 		resp, code, _, err := sdk.Register(juggleimsdk.User{
-			UserId:   userId,
-			Nickname: nickname,
+			UserId:       userId,
+			Nickname:     nickname,
+			UserPortrait: userPortrait,
 		})
 		if err != nil {
 			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
@@ -226,6 +230,7 @@ func SmsLogin(ctx *gin.Context) {
 		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
+			Avatar:        userPortrait,
 			Authorization: services.GenerateToken(appkey, userId),
 			ImToken:       resp.Token,
 		})
@@ -260,11 +265,13 @@ func EmailLogin(ctx *gin.Context) {
 		appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 		var userId string
 		nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
+		userportrait := ""
 		storage := storages.NewUserStorage()
 		user, err := storage.FindByEmail(appkey, req.Email)
 		if err == nil && user != nil {
 			userId = user.UserId
 			nickname = user.Nickname
+			userportrait = user.UserPortrait
 		} else {
 			if err != gorm.ErrRecordNotFound {
 				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
@@ -303,8 +310,9 @@ func EmailLogin(ctx *gin.Context) {
 			return
 		}
 		resp, code, _, err := sdk.Register(juggleimsdk.User{
-			UserId:   userId,
-			Nickname: nickname,
+			UserId:       userId,
+			Nickname:     nickname,
+			UserPortrait: userportrait,
 		})
 		if err != nil {
 			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
@@ -318,6 +326,7 @@ func EmailLogin(ctx *gin.Context) {
 		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
 			NickName:      nickname,
+			Avatar:        userportrait,
 			Authorization: services.GenerateToken(appkey, userId),
 			ImToken:       resp.Token,
 		})
