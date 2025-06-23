@@ -94,8 +94,8 @@ github.com/jonboulle/clockwork v0.5.0 h1:Hyh9A8u51kptdkR+cqRpT1EebBwTn1oK9YfGYbd
 github.com/jonboulle/clockwork v0.5.0/go.mod h1:3mZlmanh0g2NDKO5TWZVJAfofYk64M7XN3SzBPjZF60=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
-github.com/juggleim/commons v1.0.4 h1:jzk9xFbukbqr6HpM2Mn/StvM0VXFm07IM5WPvoOPqj8=
-github.com/juggleim/commons v1.0.4/go.mod h1:AthLZCP8m4SkQ7rnUmMVOOBEVHqR0UdP/iddrZqaYRU=
+github.com/juggleim/commons v1.0.5 h1:nDUwSCk0QJ058ppQwSufmgxqxao4b5Cd4Hebytmra2Q=
+github.com/juggleim/commons v1.0.5/go.mod h1:Pe4M/6JGcw5azjmkoFJ/yr3XjiQaAV+ib+K7vRo89yU=
 github.com/juggleim/imserver-sdk-go v1.0.6 h1:NL639nM2g4MKgRJSpwsMFLlAF/PBPg7BCrJnikdAeLE=
 github.com/juggleim/imserver-sdk-go v1.0.6/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=

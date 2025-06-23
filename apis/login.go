@@ -7,12 +7,12 @@ import (
 
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
+	"github.com/juggleim/commons/imsdk"
 	"github.com/juggleim/commons/responses"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/events"
 	"github.com/juggleim/jugglechat-server/services"
-	"github.com/juggleim/jugglechat-server/services/imsdk"
 	"github.com/juggleim/jugglechat-server/storages"
 	dbModels "github.com/juggleim/jugglechat-server/storages/models"
 
