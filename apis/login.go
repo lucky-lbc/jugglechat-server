@@ -98,6 +98,11 @@ func Register(ctx *gin.Context) {
 			AppKey:       appkey,
 		})
 	} else if req.Phone != "" {
+		code := services.CheckPhoneSmsCode(ctxs.ToCtx(ctx), req.Phone, req.Code)
+		if code != errs.IMErrorCode_SUCCESS {
+			responses.ErrorHttpResp(ctx, code)
+			return
+		}
 		err = storage.Create(dbModels.User{
 			UserId:    userId,
 			Nickname:  nickname,
