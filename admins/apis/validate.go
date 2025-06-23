@@ -7,11 +7,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/juggleim/commons/ctxs"
+	"github.com/juggleim/commons/errs"
+	"github.com/juggleim/commons/responses"
 	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/admins/apis/responses"
-	"github.com/juggleim/jugglechat-server/admins/errs"
 	"github.com/juggleim/jugglechat-server/admins/services"
-	"github.com/juggleim/jugglechat-server/ctxs"
 )
 
 const (
@@ -31,14 +31,14 @@ func Validate(ctx *gin.Context) {
 	authStr := ctx.Request.Header.Get(Header_Authorization)
 	account, err := validateAuthorization(authStr)
 	if err != nil {
-		responses.ErrorHttpResp(ctx, errs.AdminErrorCode_AuthFail)
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_AuthFail)
 		ctx.Abort()
 		return
 	}
 	//check account
 	code := services.CheckAccountState(account)
 	if code != errs.AdminErrorCode_Success {
-		responses.ErrorHttpResp(ctx, code)
+		responses.AdminErrorHttpResp(ctx, code)
 		ctx.Abort()
 		return
 	}

@@ -4,17 +4,17 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juggleim/commons/ctxs"
+	"github.com/juggleim/commons/errs"
+	"github.com/juggleim/commons/responses"
 	"github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/admins/apis/responses"
-	"github.com/juggleim/jugglechat-server/admins/errs"
 	"github.com/juggleim/jugglechat-server/admins/services"
-	"github.com/juggleim/jugglechat-server/ctxs"
 )
 
 func QryUsers(ctx *gin.Context) {
 	appkey := ctx.Query("app_key")
 	if appkey == "" {
-		responses.ErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
 	offset := ctx.Query("offset")
@@ -37,8 +37,8 @@ func QryUsers(ctx *gin.Context) {
 	}
 	code, users := services.QryUsers(ctxs.ToCtx(ctx), appkey, offset, count, isPositiveOrder)
 	if code != errs.AdminErrorCode_Success {
-		responses.ErrorHttpResp(ctx, code)
+		responses.AdminErrorHttpResp(ctx, code)
 		return
 	}
-	responses.SuccessHttpResp(ctx, users)
+	responses.AdminSuccessHttpResp(ctx, users)
 }

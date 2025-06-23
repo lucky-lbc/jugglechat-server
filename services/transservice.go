@@ -5,12 +5,12 @@ import (
 	"sync"
 
 	"github.com/juggleim/commons/appinfos"
+	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/dbcommons"
+	"github.com/juggleim/commons/errs"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/commons/transengines"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/ctxs"
-	"github.com/juggleim/jugglechat-server/errs"
 )
 
 func Translate(ctx context.Context, req *apimodels.TransReq) (errs.IMErrorCode, *apimodels.TransReq) {

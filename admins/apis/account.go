@@ -4,16 +4,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juggleim/commons/errs"
+	"github.com/juggleim/commons/responses"
 	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/admins/apis/responses"
-	"github.com/juggleim/jugglechat-server/admins/errs"
 	"github.com/juggleim/jugglechat-server/admins/services"
 )
 
 func Login(ctx *gin.Context) {
 	var req AccountReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, &errs.ApiErrorMsg{
+		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
 			Code: errs.AdminErrorCode_ParamError,
 			Msg:  "param illegal",
 		})
@@ -23,20 +23,20 @@ func Login(ctx *gin.Context) {
 	if code == errs.AdminErrorCode_Success {
 		authStr, err := generateAuthorization(req.Account)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, &errs.ApiErrorMsg{
+			ctx.JSON(http.StatusInternalServerError, &errs.AdminApiErrorMsg{
 				Code: errs.AdminErrorCode_Default,
 				Msg:  "auth fail",
 			})
 			return
 		}
-		responses.SuccessHttpResp(ctx, &LoginResp{
+		responses.AdminSuccessHttpResp(ctx, &LoginResp{
 			Account:       req.Account,
 			Authorization: authStr,
 			Env:           "private", //public
 			RoleId:        account.RoleId,
 		})
 	} else {
-		ctx.JSON(http.StatusOK, &errs.ApiErrorMsg{
+		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 			Code: code,
 			Msg:  "login failed",
 		})
@@ -60,14 +60,14 @@ type LoginResp struct {
 func AddAccount(ctx *gin.Context) {
 	var req AccountReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, &errs.ApiErrorMsg{
+		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
 			Code: errs.AdminErrorCode_ParamError,
 			Msg:  "param illegal",
 		})
 		return
 	}
 	code := services.AddAccount(GetLoginedAccount(ctx), req.Account, req.Password, req.RoleId)
-	ctx.JSON(http.StatusOK, &errs.ApiErrorMsg{
+	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 		Code: code,
 	})
 }
@@ -75,14 +75,14 @@ func AddAccount(ctx *gin.Context) {
 func UpdPassword(ctx *gin.Context) {
 	var req AccountReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, &errs.ApiErrorMsg{
+		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
 			Code: errs.AdminErrorCode_ParamError,
 			Msg:  "param illegal",
 		})
 		return
 	}
 	code := services.UpdPassword(req.Account, req.Password, req.NewPassword)
-	ctx.JSON(http.StatusOK, &errs.ApiErrorMsg{
+	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 		Code: code,
 	})
 }
@@ -90,14 +90,14 @@ func UpdPassword(ctx *gin.Context) {
 func DisableAccounts(ctx *gin.Context) {
 	var req AccountsReq
 	if err := ctx.ShouldBindJSON(&req); err != nil || len(req.Accounts) <= 0 {
-		ctx.JSON(http.StatusBadRequest, &errs.ApiErrorMsg{
+		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
 			Code: errs.AdminErrorCode_ParamError,
 			Msg:  "param illegal",
 		})
 		return
 	}
 	code := services.DisableAccounts(req.Accounts, req.IsDisable)
-	ctx.JSON(http.StatusOK, &errs.ApiErrorMsg{
+	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 		Code: code,
 	})
 }
@@ -105,14 +105,14 @@ func DisableAccounts(ctx *gin.Context) {
 func DeleteAccounts(ctx *gin.Context) {
 	var req AccountsReq
 	if err := ctx.ShouldBindJSON(&req); err != nil || len(req.Accounts) <= 0 {
-		ctx.JSON(http.StatusBadRequest, &errs.ApiErrorMsg{
+		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
 			Code: errs.AdminErrorCode_ParamError,
 			Msg:  "param illegal",
 		})
 		return
 	}
 	code := services.DeleteAccounts(req.Accounts)
-	ctx.JSON(http.StatusOK, &errs.ApiErrorMsg{
+	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 		Code: code,
 	})
 }

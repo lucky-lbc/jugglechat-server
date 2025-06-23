@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/admins/apis"
 	"github.com/juggleim/jugglechat-server/configures"
-	"github.com/juggleim/jugglechat-server/ctxs"
 )
 
 var Prefix string = ""
