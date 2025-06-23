@@ -12,6 +12,7 @@ import (
 	adminRouters "github.com/juggleim/jugglechat-server/admins/routers"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
+	"github.com/juggleim/jugglechat-server/storages/dbs/dbmigrations"
 )
 
 func main() {
@@ -28,7 +29,7 @@ func main() {
 		return
 	}
 	//upgrade db
-	dbcommons.Upgrade()
+	dbmigrations.Upgrade()
 
 	httpServer := gin.Default()
 	routers.Route(httpServer, "jim")
