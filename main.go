@@ -7,11 +7,11 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juggleim/commons/dbcommons"
 	adminRouters "github.com/juggleim/jugglechat-server/admins/routers"
 	"github.com/juggleim/jugglechat-server/configures"
 	"github.com/juggleim/jugglechat-server/log"
 	"github.com/juggleim/jugglechat-server/routers"
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	//init log
 	log.InitLogs()
 	//init mysql
-	if err := dbcommons.InitMysql(); err != nil {
+	if err := dbcommons.InitMysql(configures.Config.Mysql.Address, configures.Config.Mysql.DbName, configures.Config.Mysql.User, configures.Config.Mysql.Password, configures.Config.Mysql.Debug); err != nil {
 		log.Error("Init Mysql failed.", err)
 		return
 	}

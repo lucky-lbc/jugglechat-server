@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/juggleim/commons/appinfos"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/configures"
@@ -138,7 +139,7 @@ func UnActiveTelebotProxy(ctx context.Context, rel *TeleBotRel) {
 
 func getBotConnectorHeaders(ctx context.Context) map[string]string {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
-	appinfo, exist := GetAppInfo(appkey)
+	appinfo, exist := appinfos.GetAppInfo(appkey)
 	if exist {
 		nonce := fmt.Sprintf("%d", rand.Int31n(10000))
 		timestamp := fmt.Sprintf("%d", time.Now().UnixMilli())

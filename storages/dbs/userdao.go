@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/juggleim/commons/dbcommons"
 	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
 

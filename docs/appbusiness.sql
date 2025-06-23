@@ -22,6 +22,16 @@ CREATE TABLE IF NOT EXISTS `appexts` (
   UNIQUE KEY `IDX_APPKEY_APPITEMKEY` (`app_key`,`app_item_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS `globalconfs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `conf_key` varchar(50) DEFAULT NULL,
+  `conf_value` varchar(2000) DEFAULT NULL,
+  `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_key` (`conf_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS `fileconfs` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `app_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -224,4 +234,5 @@ CREATE TABLE IF NOT EXISTS `feedbacks` (
   KEY `idx_time` (`app_key`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_versaion','20250201');
+INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatcommondb_version','20250201');
+INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');

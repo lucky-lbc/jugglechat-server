@@ -5,14 +5,6 @@ import (
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
-func NewAppInfoStorage() models.IAppInfoStorage {
-	return &dbs.AppInfoDao{}
-}
-
-func NewAppExtStorage() models.IAppExtStorage {
-	return &dbs.AppExtDao{}
-}
-
 func NewUserStorage() models.IUserStorage {
 	return &dbs.UserDao{}
 }

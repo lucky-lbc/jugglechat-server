@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/juggleim/commons/appinfos"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/services/pbobjs"
 )
@@ -51,7 +52,7 @@ func GenerateToken(appkey, userId string) string {
 		UserId:    userId,
 		TokenTime: time.Now().UnixMilli(),
 	}
-	if appInfo, exist := GetAppInfo(appkey); exist {
+	if appInfo, exist := appinfos.GetAppInfo(appkey); exist {
 		token, _ = t.ToTokenString([]byte(appInfo.AppSecureKey))
 	}
 	return token

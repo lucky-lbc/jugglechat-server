@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/juggleim/commons/appinfos"
+	"github.com/juggleim/commons/dbcommons"
 	"github.com/juggleim/commons/smsengines"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/ctxs"
@@ -84,11 +86,11 @@ func CheckEmailCode(ctx context.Context, email, code string) errs.IMErrorCode {
 }
 
 func GetSmsEngine(appkey string) smsengines.ISmsEngine {
-	appInfo, exist := GetAppInfo(appkey)
+	appInfo, exist := appinfos.GetAppInfo(appkey)
 	if exist && appInfo != nil {
 		if appInfo.SmsEngine == nil {
-			appLock.Lock()
-			defer appLock.Unlock()
+			appinfos.GetAppLock().Lock()
+			defer appinfos.GetAppLock().Unlock()
 			loadSmsEngine(appInfo)
 		}
 		if appInfo.SmsEngine != nil {
@@ -98,9 +100,9 @@ func GetSmsEngine(appkey string) smsengines.ISmsEngine {
 	return smsengines.DefaultSmsEngine
 }
 
-func loadSmsEngine(appInfo *AppInfo) {
-	storage := storages.NewAppExtStorage()
-	ext, err := storage.Find(appInfo.AppKey, "sms_engine_conf")
+func loadSmsEngine(appInfo *appinfos.AppInfo) {
+	extDao := dbcommons.AppExtDao{}
+	ext, err := extDao.Find(appInfo.AppKey, "sms_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		smsConf := &SmsEngineConf{}
 		err := utils.JsonUnMarshal([]byte(ext.AppItemValue), smsConf)

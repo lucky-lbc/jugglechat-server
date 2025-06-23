@@ -4,12 +4,13 @@ import (
 	"context"
 	"sync"
 
+	"github.com/juggleim/commons/appinfos"
+	"github.com/juggleim/commons/dbcommons"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/commons/transengines"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/ctxs"
 	"github.com/juggleim/jugglechat-server/errs"
-	"github.com/juggleim/jugglechat-server/storages"
 )
 
 func Translate(ctx context.Context, req *apimodels.TransReq) (errs.IMErrorCode, *apimodels.TransReq) {
@@ -50,11 +51,11 @@ func Translate(ctx context.Context, req *apimodels.TransReq) (errs.IMErrorCode, 
 }
 
 func GetTransEngine(appkey string) transengines.ITransEngine {
-	appInfo, exist := GetAppInfo(appkey)
+	appInfo, exist := appinfos.GetAppInfo(appkey)
 	if exist && appInfo != nil {
 		if appInfo.TransEngine == nil {
-			appLock.Lock()
-			defer appLock.Unlock()
+			appinfos.GetAppLock().Lock()
+			defer appinfos.GetAppLock().Unlock()
 			loadTransEngine(appInfo)
 		}
 		if appInfo.TransEngine != nil {
@@ -64,9 +65,9 @@ func GetTransEngine(appkey string) transengines.ITransEngine {
 	return transengines.DefaultTransEngine
 }
 
-func loadTransEngine(appInfo *AppInfo) {
-	storage := storages.NewAppExtStorage()
-	ext, err := storage.Find(appInfo.AppKey, "trans_engine_conf")
+func loadTransEngine(appInfo *appinfos.AppInfo) {
+	extDao := dbcommons.AppExtDao{}
+	ext, err := extDao.Find(appInfo.AppKey, "trans_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		transConf := &TransEngineConf{}
 		err = utils.JsonUnMarshal([]byte(ext.AppItemValue), transConf)

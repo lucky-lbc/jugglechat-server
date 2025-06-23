@@ -3,8 +3,8 @@ package imsdk
 import (
 	"sync"
 
+	"github.com/juggleim/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/configures"
-	"github.com/juggleim/jugglechat-server/storages/dbs"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
@@ -27,7 +27,7 @@ func GetImSdk(appkey string) *juggleimsdk.JuggleIMSdk {
 		if val, exist := imsdkMap.Load(appkey); exist {
 			return val.(*juggleimsdk.JuggleIMSdk)
 		} else {
-			dao := dbs.AppInfoDao{}
+			dao := dbcommons.AppInfoDao{}
 			appinfo, _ := dao.FindByAppkey(appkey)
 			if appinfo != nil {
 				sdk := juggleimsdk.NewJuggleIMSdk(appkey, appinfo.AppSecret, configures.Config.ImApiDomain)

@@ -3,7 +3,7 @@ package dbs
 import (
 	"time"
 
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
+	"github.com/juggleim/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
 

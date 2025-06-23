@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/juggleim/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/configures"
 	"github.com/juggleim/jugglechat-server/log"
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	//init log
 	log.InitLogs()
 	//init mysql
-	if err := dbcommons.InitMysql(); err != nil {
+	if err := dbcommons.InitMysql(configures.Config.Mysql.Address, configures.Config.Mysql.DbName, configures.Config.Mysql.User, configures.Config.Mysql.Password, false); err != nil {
 		log.Error("Init Mysql failed.", err)
 		return
 	}

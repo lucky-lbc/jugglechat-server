@@ -3,6 +3,7 @@ package apis
 import (
 	"strings"
 
+	"github.com/juggleim/commons/appinfos"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/apis/responses"
 	"github.com/juggleim/jugglechat-server/ctxs"
@@ -32,7 +33,7 @@ func Validate(ctx *gin.Context) {
 	}
 	ctx.Set(string(ctxs.CtxKey_AppKey), appkey)
 	//check app exist
-	appInfo, exist := services.GetAppInfo(appkey)
+	appInfo, exist := appinfos.GetAppInfo(appkey)
 	if !exist {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 		ctx.Abort()

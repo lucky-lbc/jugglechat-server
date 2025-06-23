@@ -1,7 +1,7 @@
 package dbs
 
 import (
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbcommons"
+	"github.com/juggleim/commons/dbcommons"
 
 	"github.com/jinzhu/gorm"
 )
