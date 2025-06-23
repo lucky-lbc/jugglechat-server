@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/juggleim/commons/appinfos"
+	"github.com/juggleim/commons/configures"
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/configures"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
 

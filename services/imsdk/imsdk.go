@@ -3,8 +3,8 @@ package imsdk
 import (
 	"sync"
 
+	"github.com/juggleim/commons/configures"
 	"github.com/juggleim/commons/dbcommons"
-	"github.com/juggleim/jugglechat-server/configures"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
