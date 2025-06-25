@@ -3,18 +3,54 @@ package services
 import (
 	"context"
 	"fmt"
+	"sync"
 
+	"github.com/juggleim/commons/appinfos"
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/imsdk"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/juggleim/jugglechat-server/events"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/dbs"
 	"github.com/juggleim/jugglechat-server/storages/models"
 
 	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 )
+
+var kefuInitFlags *sync.Map
+
+func init() {
+	kefuInitFlags = &sync.Map{}
+	events.RegisteUserRegisteEvent(Welcome)
+}
+
+func Welcome(user models.User) {
+	appkey := user.AppKey
+	if appkey != "" {
+		sdk := imsdk.GetImSdk(appkey)
+		if sdk != nil {
+			appinfo, exist := appinfos.GetAppInfo(appkey)
+			if exist && appinfo != nil {
+				if _, loaded := kefuInitFlags.LoadOrStore(appkey, true); !loaded {
+					sdk.Register(juggleimsdk.User{
+						UserId:   "kefu",
+						Nickname: "官方客服",
+					})
+				}
+				if exist, val := appinfo.GetExt("welcome_msg"); exist {
+					sdk.SendPrivateMsg(juggleimsdk.Message{
+						SenderId:   "kefu",
+						TargetIds:  []string{user.UserId},
+						MsgType:    "jg:text",
+						MsgContent: fmt.Sprintf(`{"content":"%s"}`, val),
+					})
+				}
+			}
+		}
+	}
+}
 
 func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimodels.UserObj) {
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)

@@ -38,7 +38,7 @@ func SendFriendNotify(ctx context.Context, targetId string, notify *apimodels.Fr
 			MsgType:    apimodels.FriendNotifyMsgType,
 			MsgContent: utils.ToJson(notify),
 			IsStorage:  utils.BoolPtr(true),
-			IsCount:    utils.BoolPtr(false),
+			IsCount:    utils.BoolPtr(true),
 		})
 	}
 }
