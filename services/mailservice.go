@@ -73,7 +73,7 @@ func GetMailEngine(appkey string) emailengines.IEmailEngine {
 			return appInfo.MailEngine
 		}
 	}
-	return nil
+	return emailengines.DefaultEmailEngine
 }
 
 func loadMailEngine(appInfo *appinfos.AppInfo) {
@@ -89,7 +89,7 @@ func loadMailEngine(appInfo *appinfos.AppInfo) {
 			}
 		}
 	}
-	appInfo.MailEngine = nil
+	appInfo.MailEngine = emailengines.DefaultEmailEngine
 }
 
 type MailEngineConf struct {
