@@ -251,11 +251,11 @@ func EmailSend(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	// code := services.SmsSend(ctx.ToRpcCtx(), req.Email)
-	// if code != errs.IMErrorCode_SUCCESS {
-	// 	ctx.ResponseErr(code)
-	// 	return
-	// }
+	code := services.MailSend(ctxs.ToCtx(ctx), req.Email)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
 	responses.SuccessHttpResp(ctx, nil)
 }
 

@@ -155,11 +155,13 @@ CREATE TABLE IF NOT EXISTS `qrcoderecords` (
 CREATE TABLE IF NOT EXISTS `smsrecords` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `phone` varchar(50) DEFAULT NULL,
+  `email` varchar(200) DEFAULT NULL,
   `code` varchar(10) DEFAULT NULL,
   `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
   `app_key` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_phone` (`app_key`,`phone`,`created_time`)
+  KEY `idx_phone` (`app_key`,`phone`,`created_time`),
+  KEY `idx_mail` (`app_key`,`email`,`created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `ai_engines` (
