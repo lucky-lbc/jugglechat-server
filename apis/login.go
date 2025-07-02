@@ -33,6 +33,10 @@ func Login(ctx *gin.Context) {
 		return
 	}
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
+	if appkey != "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+		return
+	}
 	storage := storages.NewUserStorage()
 	var err error
 	var user *dbModels.User
@@ -120,7 +124,7 @@ func Register(ctx *gin.Context) {
 		})
 	}
 	if err != nil {
-		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_USER_EXISTED)
 		return
 	}
 	events.TriggerUserRegiste(dbModels.User{
