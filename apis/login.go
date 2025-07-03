@@ -33,7 +33,7 @@ func Login(ctx *gin.Context) {
 		return
 	}
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
-	if appkey != "" {
+	if appkey == "" {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 		return
 	}
