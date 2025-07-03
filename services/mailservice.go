@@ -2,7 +2,8 @@ package services
 
 import (
 	"context"
-	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/juggleim/commons/appinfos"
@@ -13,7 +14,33 @@ import (
 	"github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
+	"gopkg.in/yaml.v3"
 )
+
+type EmailTemplate struct {
+	TxtBody  string `yaml:"txtBody"`
+	HtmlBody string `yaml:"htmlBody"`
+}
+
+var emailTemp *EmailTemplate
+
+func init() {
+	cfBytes, err := os.ReadFile("conf/mailtemplate.yml")
+	if err == nil && len(cfBytes) > 0 {
+		var temp EmailTemplate
+		err = yaml.Unmarshal(cfBytes, &temp)
+		if err == nil {
+			emailTemp = &temp
+		}
+	}
+}
+
+func GetEmailTemplate() (string, string) {
+	if emailTemp != nil {
+		return emailTemp.TxtBody, emailTemp.HtmlBody
+	}
+	return "Your VerifyCode is {code}", ""
+}
 
 func MailSend(ctx context.Context, mailAddress string) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
@@ -36,7 +63,15 @@ func MailSend(ctx context.Context, mailAddress string) errs.IMErrorCode {
 				return errs.IMErrorCode_APP_SMS_SEND_FAILED
 			}
 		}
-		err = mailEngine.SendMail(mailAddress, "Login Verify", fmt.Sprintf("Your login verification code is: %s", randomCode))
+		body, html := GetEmailTemplate()
+		if html != "" {
+			body = ""
+			html = strings.ReplaceAll(html, "{code}", randomCode)
+		} else {
+			html = ""
+			body = strings.ReplaceAll(body, "{code}", randomCode)
+		}
+		err = mailEngine.SendMail(mailAddress, "Verify Code", body, html)
 		if err != nil {
 			return errs.IMErrorCode_APP_SMS_SEND_FAILED
 		}

@@ -52,7 +52,7 @@ func Login(ctx *gin.Context) {
 		return
 	}
 	if user.LoginPass != utils.SHA1(req.Password) {
-		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_LOGIN_FAILED)
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_LOGIN_ERR_PASS)
 		return
 	}
 	sdk := imsdk.GetImSdk(appkey)
