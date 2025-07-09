@@ -103,6 +103,9 @@ func loadSmsEngine(appInfo *appinfos.AppInfo) {
 			if smsConf.Channel == "baidu" && smsConf.BdSmsEngine != nil && smsConf.BdSmsEngine.ApiKey != "" && smsConf.BdSmsEngine.SecretKey != "" {
 				appInfo.SmsEngine = smsConf.BdSmsEngine
 				return
+			} else if smsConf.Channel == "smsbao" && smsConf.SmsBaoEngine != nil && smsConf.SmsBaoEngine.Username != "" && smsConf.SmsBaoEngine.Password != "" && smsConf.SmsBaoEngine.Template != "" {
+				appInfo.SmsEngine = smsConf.SmsBaoEngine
+				return
 			}
 		}
 	}
@@ -110,6 +113,7 @@ func loadSmsEngine(appInfo *appinfos.AppInfo) {
 }
 
 type SmsEngineConf struct {
-	Channel     string                  `json:"channel,omitempty"`
-	BdSmsEngine *smsengines.BdSmsEngine `json:"baidu,omitempty"`
+	Channel      string                   `json:"channel,omitempty"`
+	BdSmsEngine  *smsengines.BdSmsEngine  `json:"baidu,omitempty"`
+	SmsBaoEngine *smsengines.SmsBaoEngine `json:"smsbao,omitempty"`
 }
