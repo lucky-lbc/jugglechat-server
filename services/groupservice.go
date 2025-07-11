@@ -181,6 +181,9 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMErrorCode, *apimodels.GroupInfo) {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	grpId := utils.GenerateUUIDShort11()
+	if req.GroupId != "" {
+		grpId = req.GroupId
+	}
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	memberIds := []string{requestId}
 	for _, memberId := range req.MemberIds {

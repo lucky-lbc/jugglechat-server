@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/juggleim/commons/appinfos"
@@ -24,6 +25,7 @@ var kefuInitFlags *sync.Map
 func init() {
 	kefuInitFlags = &sync.Map{}
 	events.RegisteUserRegisteEvent(Welcome)
+	events.RegisteUserRegisteEvent(JoinFeedbackGroup)
 }
 
 func Welcome(user models.User) {
@@ -46,6 +48,44 @@ func Welcome(user models.User) {
 						MsgType:    "jg:text",
 						MsgContent: fmt.Sprintf(`{"content":"%s"}`, val),
 					})
+				}
+			}
+		}
+	}
+}
+
+func JoinFeedbackGroup(user models.User) {
+	appkey := user.AppKey
+	if appkey != "" {
+		appInfo, exist := appinfos.GetAppInfo(appkey)
+		if exist && appInfo != nil {
+			exist, val := appInfo.GetExt("open_feedback_group")
+			if exist && val != nil {
+				valStr, ok := val.(string)
+				if ok {
+					b, err := strconv.ParseBool(valStr)
+					if err == nil && b {
+						feedbackGrpId := "feedbackgrp"
+						grpStorage := storages.NewGroupStorage()
+						grpInfo, err := grpStorage.FindById(appkey, feedbackGrpId)
+						ctx := context.Background()
+						ctx = context.WithValue(ctx, ctxs.CtxKey_AppKey, appkey)
+						ctx = context.WithValue(ctx, ctxs.CtxKey_RequesterId, "kefu")
+						if err == nil && grpInfo != nil { //grp existed
+							AddGrpMembers(ctx, &apimodels.GroupMembersReq{
+								GroupId:       feedbackGrpId,
+								GroupName:     grpInfo.GroupName,
+								GroupPortrait: grpInfo.GroupPortrait,
+								MemberIds:     []string{user.UserId},
+							})
+						} else { //grp not existed
+							CreateGroup(ctx, &apimodels.GroupMembersReq{
+								GroupId:   feedbackGrpId,
+								GroupName: "意见反馈群",
+								MemberIds: []string{user.UserId},
+							})
+						}
+					}
 				}
 			}
 		}
