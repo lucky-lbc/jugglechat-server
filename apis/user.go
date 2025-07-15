@@ -38,7 +38,11 @@ func SetLoginAccount(ctx *gin.Context) {
 		return
 	}
 	code := services.SetUserAccount(ctxs.ToCtx(ctx), req)
-	responses.SuccessHttpResp(ctx, code)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
 }
 
 func UpdateUser(ctx *gin.Context) {

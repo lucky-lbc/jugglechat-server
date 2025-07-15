@@ -316,6 +316,7 @@ func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
 		u.Avatar = user.UserPortrait
 		u.UserType = user.UserType
 		u.Pinyin = user.Pinyin
+		u.Account = user.LoginAccount
 	}
 	return u
 }
