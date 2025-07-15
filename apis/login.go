@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"regexp"
 
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
@@ -82,6 +83,16 @@ func Login(ctx *gin.Context) {
 	})
 }
 
+var accountRegex *regexp.Regexp
+
+func init() {
+	accountRegex = regexp.MustCompile(`^[a-zA-Z0-9]{6,20}$`)
+}
+
+func checkAccount(account string) bool {
+	return accountRegex.MatchString(account)
+}
+
 func Register(ctx *gin.Context) {
 	req := &models.RegisterReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Password == "" || (req.Account == "" && req.Phone == "" && req.Email == "") {
@@ -94,6 +105,11 @@ func Register(ctx *gin.Context) {
 	storage := storages.NewUserStorage()
 	var err error
 	if req.Account != "" {
+		//check account
+		if !checkAccount(req.Account) {
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+			return
+		}
 		err = storage.Create(dbModels.User{
 			UserId:       userId,
 			Nickname:     nickname,

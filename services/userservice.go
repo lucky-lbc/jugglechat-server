@@ -103,6 +103,7 @@ func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimode
 		ret.Avatar = user.Avatar
 		ret.UserType = user.UserType
 		ret.Pinyin = user.Pinyin
+		ret.Account = user.Account
 	}
 	if userId == requestId {
 		ret.Settings = GetUserSettings(ctx, userId)
