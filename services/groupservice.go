@@ -119,6 +119,7 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 				Nickname:   member.Nickname,
 				Avatar:     member.UserPortrait,
 				MemberType: member.MemberType,
+				IsMute:     member.IsMute,
 			})
 			ret.MemberOffset, _ = utils.EncodeInt(member.ID)
 		}
@@ -544,6 +545,18 @@ func SetGroupMute(ctx context.Context, req *apimodels.SetGroupMuteReq) errs.IMEr
 	//sync to imserver
 	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
 		sdk.SetGroupMute(req.GroupId, int(req.IsMute))
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func SetGroupMembersMute(ctx context.Context, req *apimodels.SetGroupMemberMuteReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	//TODO check right
+	storage := storages.NewGroupMemberStorage()
+	storage.UpdateMute(appkey, req.GroupId, int(req.IsMute), req.MemberIds, 0)
+	//sync to imserver
+	if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+		sdk.SetGroupMembersMute(req.GroupId, int(req.IsMute), req.MemberIds)
 	}
 	return errs.IMErrorCode_SUCCESS
 }

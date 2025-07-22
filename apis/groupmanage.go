@@ -76,6 +76,20 @@ func SetGroupMute(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, nil)
 }
 
+func SetGroupMembersMute(ctx *gin.Context) {
+	req := &models.SetGroupMemberMuteReq{}
+	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || len(req.MemberIds) <= 0 {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.SetGroupMembersMute(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
 func SetGrpVerifyType(ctx *gin.Context) {
 	req := &models.SetGroupVerifyTypeReq{}
 	if err := ctx.BindJSON(&req); err != nil {

@@ -127,6 +127,7 @@ type GroupMemberInfo struct {
 	Avatar     string        `json:"avatar"`
 	MemberType int           `json:"member_type"`
 	Role       GrpMemberRole `json:"role"`
+	IsMute     int           `json:"is_mute"`
 }
 
 type GroupOwnerChgReq struct {
@@ -137,6 +138,12 @@ type GroupOwnerChgReq struct {
 type SetGroupMuteReq struct {
 	GroupId string `json:"group_id"`
 	IsMute  int32  `json:"is_mute"`
+}
+
+type SetGroupMemberMuteReq struct {
+	GroupId   string   `json:"group_id"`
+	MemberIds []string `json:"member_ids"`
+	IsMute    int32    `json:"is_mute"`
 }
 
 type SetGroupVerifyTypeReq struct {

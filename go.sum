@@ -194,6 +194,8 @@ github.com/juggleim/commons v1.0.12 h1:VGT0GYNNJe86Q0xKwHo3zQZscEAucXLZ5sWIJxjKu
 github.com/juggleim/commons v1.0.12/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
 github.com/juggleim/imserver-sdk-go v1.0.6 h1:NL639nM2g4MKgRJSpwsMFLlAF/PBPg7BCrJnikdAeLE=
 github.com/juggleim/imserver-sdk-go v1.0.6/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
+github.com/juggleim/imserver-sdk-go v1.0.7 h1:ddEVMg9+01KBPRo7r933AIwBZVEUXNmtpusZvD37Ryo=
+github.com/juggleim/imserver-sdk-go v1.0.7/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
 github.com/klauspost/compress v1.18.0/go.mod h1:2Pp+KzxcywXVXMr50+X0Q/Lsb43OQHYWRCY2AiWywWQ=
 github.com/klauspost/cpuid/v2 v2.0.1/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
