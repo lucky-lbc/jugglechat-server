@@ -182,6 +182,30 @@ func (member GroupMemberDao) QueryGroupsByMemberId(appkey, memberId string, star
 	return ret, err
 }
 
+func (member GroupMemberDao) SearchGroupsByMemberId(appkey, memberId string, keyword string, startId, limit int64) ([]*models.GroupMember, error) {
+	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>? and g.group_name like ?", member.TableName(), GroupDao{}.TableName())
+	var items []*GroupMemberWithGroup
+	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId, "%"+keyword+"%").Order("m.id asc").Limit(limit).Find(&items).Error
+	ret := []*models.GroupMember{}
+	for _, item := range items {
+		ret = append(ret, &models.GroupMember{
+			ID:             item.ID,
+			GroupId:        item.GroupId,
+			GroupName:      item.GroupName,
+			GroupPortrait:  item.GroupPortrait,
+			MemberId:       item.MemberId,
+			MemberType:     item.MemberType,
+			CreatedTime:    item.CreatedTime,
+			AppKey:         item.AppKey,
+			IsMute:         item.IsMute,
+			IsAllow:        item.IsAllow,
+			MuteEndAt:      item.MuteEndAt,
+			GrpDisplayName: item.GrpDisplayName,
+		})
+	}
+	return ret, err
+}
+
 func (member GroupMemberDao) BatchDelete(appkey, groupId string, memberIds []string) error {
 	return dbcommons.GetDb().Where("app_key=? and group_id=? and member_id in (?)", appkey, groupId, memberIds).Delete(&GroupMemberDao{}).Error
 }

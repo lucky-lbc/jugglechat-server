@@ -70,7 +70,7 @@ func UpdateUserSettings(ctx *gin.Context) {
 }
 
 func SearchUsers(ctx *gin.Context) {
-	req := &models.SearchUsersReq{}
+	req := &models.SearchReq{}
 	if err := ctx.BindJSON(req); err != nil || (req.Keyword == "" && req.Phone == "") {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return

@@ -40,9 +40,11 @@ type Users struct {
 	Offset string     `json:"offset"`
 }
 
-type SearchUsersReq struct {
+type SearchReq struct {
 	Keyword string `json:"keyword"`
 	Phone   string `json:"phone"`
+	Limit   int64  `json:"limit"`
+	Offset  string `json:"offset"`
 }
 
 type SetUserAccountReq struct {

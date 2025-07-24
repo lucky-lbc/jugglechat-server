@@ -304,6 +304,36 @@ func QueryMyGroups(ctx context.Context, limit int64, offset string) (errs.IMErro
 	return errs.IMErrorCode_SUCCESS, ret
 }
 
+func SearchMyGroups(ctx context.Context, req *apimodels.SearchReq) (errs.IMErrorCode, *apimodels.Groups) {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	memberId := ctxs.GetRequesterIdFromCtx(ctx)
+	dao := dbs.GroupMemberDao{}
+	var startId int64
+	if req.Offset != "" {
+		startId, _ = utils.DecodeInt(req.Offset)
+	}
+	groups, err := dao.SearchGroupsByMemberId(appkey, memberId, req.Keyword, startId, req.Limit)
+	if err != nil {
+		return errs.IMErrorCode_APP_DEFAULT, nil
+	}
+	ret := &apimodels.Groups{
+		Items: []*apimodels.Group{},
+	}
+	for _, group := range groups {
+		ret.Offset, err = utils.EncodeInt(group.ID)
+		if err == nil {
+			ret.Items = append(ret.Items, &apimodels.Group{
+				GroupId:       group.GroupId,
+				GroupName:     group.GroupName,
+				GroupPortrait: group.GroupPortrait,
+			})
+		} else {
+			fmt.Println(err)
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}
+
 func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	u := &apimodels.UserObj{

@@ -65,6 +65,7 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/groups/management/setgrpverifytype", apis.SetGrpVerifyType)
 	group.POST("/groups/management/sethismsgvisible", apis.SetGrpHisMsgVisible)
 	group.GET("/groups/mygroups", apis.QryMyGroups)
+	group.GET("/groups/mygroups/search", apis.SearchMyGroups)
 	// grp application
 	group.GET("/groups/myapplications", apis.QryMyGrpApplications)
 	group.GET("/groups/mypendinginvitations", apis.QryMyPendingGrpInvitations)

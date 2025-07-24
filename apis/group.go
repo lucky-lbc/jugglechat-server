@@ -177,6 +177,34 @@ func QryMyGroups(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, ret)
 }
 
+func SearchMyGroups(ctx *gin.Context) {
+	req := &models.SearchReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Keyword == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	if req.Limit <= 0 {
+		req.Limit = 100
+	}
+	code, grps := services.SearchMyGroups(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	ret := &models.Groups{
+		Offset: grps.Offset,
+		Items:  []*models.Group{},
+	}
+	for _, grp := range grps.Items {
+		ret.Items = append(ret.Items, &models.Group{
+			GroupId:       grp.GroupId,
+			GroupName:     grp.GroupName,
+			GroupPortrait: grp.GroupPortrait,
+		})
+	}
+	responses.SuccessHttpResp(ctx, ret)
+}
+
 func QryGrpMembers(ctx *gin.Context) {
 	groupId := ctx.Query("group_id")
 	offset := ctx.Query("offset")
