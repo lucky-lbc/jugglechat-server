@@ -26,7 +26,7 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	grpStorage := storages.NewGroupStorage()
 	grpInfo, err := grpStorage.FindById(appkey, groupId)
-	if err != nil {
+	if err != nil || grpInfo == nil {
 		return errs.IMErrorCode_APP_DEFAULT, nil
 	}
 	grpMemberStorage := storages.NewGroupMemberStorage()
