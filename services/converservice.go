@@ -20,13 +20,11 @@ const (
 func SetConverConfItem(ctx context.Context, targetId, subChannel string, converType int32, confItems map[string]interface{}) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
-	fmt.Println("userId:", userId)
-	fmt.Println("targetId:", targetId)
 	converId := tools.GetConversationId(userId, targetId, converType)
 	confs := []models.ConverConf{}
 	for key, value := range confItems {
 		if key == string(ConverConfItemKey_MsgLifeTime) {
-			valueStr := fmt.Sprintf("%d", value)
+			valueStr := fmt.Sprintf("%v", value)
 			confs = append(confs, models.ConverConf{
 				ConverId:   converId,
 				ConverType: converType,
@@ -36,6 +34,7 @@ func SetConverConfItem(ctx context.Context, targetId, subChannel string, converT
 				ItemType:   0,
 				AppKey:     appkey,
 			})
+			fmt.Println(valueStr, value)
 		}
 	}
 	storage := storages.NewConverConfStorage()
