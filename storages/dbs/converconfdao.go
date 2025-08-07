@@ -28,6 +28,9 @@ func (conf ConverConfDao) Upsert(item models.ConverConf) error {
 }
 
 func (conf ConverConfDao) BatchUpsert(items []models.ConverConf) error {
+	if len(items) <= 0 {
+		return nil
+	}
 	var buffer bytes.Buffer
 	sql := fmt.Sprintf("INSERT INTO %s (app_key,conver_id,conver_type,sub_channel,item_key,item_value,item_type)VALUES", conf.TableName())
 	buffer.WriteString(sql)
@@ -45,7 +48,7 @@ func (conf ConverConfDao) BatchUpsert(items []models.ConverConf) error {
 
 func (conf ConverConfDao) QryConverConfs(appkey, converId, subChannel string, converType int32) (map[string]*models.ConverConf, error) {
 	var items []*ConverConfDao
-	err := dbcommons.GetDb().Where("app_key=? and conver_id=? and conver_type=? and sub_channel=?", appkey, converId, subChannel, converType).Find(&items).Error
+	err := dbcommons.GetDb().Where("app_key=? and conver_id=? and conver_type=? and sub_channel=?", appkey, converId, converType, subChannel).Find(&items).Error
 	ret := map[string]*models.ConverConf{}
 	for _, item := range items {
 		ret[item.ItemKey] = &models.ConverConf{

@@ -2,11 +2,11 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/tools"
-	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/storages"
 	"github.com/juggleim/jugglechat-server/storages/models"
 )
@@ -17,21 +17,26 @@ const (
 	ConverConfItemKey_MsgLifeTime ConverConfItemKey = "msg_life_time" //ms
 )
 
-func SetConverConfItem(ctx context.Context, targetId, subChannel string, converType int32, items []*apimodels.ConverConfItem) errs.IMErrorCode {
+func SetConverConfItem(ctx context.Context, targetId, subChannel string, converType int32, confItems map[string]interface{}) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	fmt.Println("userId:", userId)
+	fmt.Println("targetId:", targetId)
 	converId := tools.GetConversationId(userId, targetId, converType)
 	confs := []models.ConverConf{}
-	for _, item := range items {
-		confs = append(confs, models.ConverConf{
-			ConverId:   converId,
-			ConverType: converType,
-			SubChannel: subChannel,
-			ItemKey:    item.ItemKey,
-			ItemValue:  item.ItemValue,
-			ItemType:   item.ItemType,
-			AppKey:     appkey,
-		})
+	for key, value := range confItems {
+		if key == string(ConverConfItemKey_MsgLifeTime) {
+			valueStr := fmt.Sprintf("%d", value)
+			confs = append(confs, models.ConverConf{
+				ConverId:   converId,
+				ConverType: converType,
+				SubChannel: subChannel,
+				ItemKey:    key,
+				ItemValue:  valueStr,
+				ItemType:   0,
+				AppKey:     appkey,
+			})
+		}
 	}
 	storage := storages.NewConverConfStorage()
 	err := storage.BatchUpsert(confs)
