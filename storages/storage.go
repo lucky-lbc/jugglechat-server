@@ -56,3 +56,7 @@ func NewGroupAdminStorage() models.IGroupAdminStorage {
 func NewFeedbackStorage() models.IFeedbackStorage {
 	return &dbs.FeedbackDao{}
 }
+
+func NewConverConfStorage() models.IConverConfStorage {
+	return &dbs.ConverConfDao{}
+}
