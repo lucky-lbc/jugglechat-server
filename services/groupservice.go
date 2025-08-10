@@ -263,7 +263,13 @@ func UpdateGroup(ctx context.Context, req *apimodels.GroupInfo) errs.IMErrorCode
 
 func DissolveGroup(ctx context.Context, groupId string) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGroupStorage()
+	//check owner
+	grp, err := storage.FindById(appkey, groupId)
+	if err != nil || grp.CreatorId != userId {
+		return errs.IMErrorCode_APP_GROUP_DEFAULT
+	}
 	storage.Delete(appkey, groupId)
 	memberStorage := storages.NewGroupMemberStorage()
 	memberStorage.DeleteByGroupId(appkey, groupId)
