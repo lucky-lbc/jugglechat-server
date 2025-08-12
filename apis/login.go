@@ -406,14 +406,21 @@ func CheckQrCode(ctx *gin.Context) {
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 	if record.Status == dbModels.QrCodeRecordStatus_OK {
 		userId := record.UserId
+		userStorage := storages.NewUserStorage()
+		user, err := userStorage.FindByUserId(appkey, userId)
+		if err != nil || user == nil {
+			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_USER_NOT_EXIST)
+			return
+		}
 		sdk := imsdk.GetImSdk(appkey)
 		if sdk == nil {
 			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
 			return
 		}
 		resp, code, _, err := sdk.Register(juggleimsdk.User{
-			UserId:   userId,
-			Nickname: "",
+			UserId:       userId,
+			Nickname:     user.Nickname,
+			UserPortrait: user.UserPortrait,
 		})
 		if err != nil {
 			responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
@@ -425,7 +432,8 @@ func CheckQrCode(ctx *gin.Context) {
 		}
 		responses.SuccessHttpResp(ctx, &models.LoginUserResp{
 			UserId:        userId,
-			NickName:      "",
+			NickName:      user.Nickname,
+			Avatar:        user.UserPortrait,
 			Authorization: services.GenerateToken(appkey, userId),
 			ImToken:       resp.Token,
 		})
