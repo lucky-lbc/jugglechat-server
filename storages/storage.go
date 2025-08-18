@@ -60,3 +60,7 @@ func NewFeedbackStorage() models.IFeedbackStorage {
 func NewConverConfStorage() models.IConverConfStorage {
 	return &dbs.ConverConfDao{}
 }
+
+func NewApplicationStorage() models.IApplicationStorage {
+	return &dbs.ApplicationDao{}
+}

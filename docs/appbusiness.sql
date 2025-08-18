@@ -251,5 +251,21 @@ CREATE TABLE IF NOT EXISTS `converconfs` (
   UNIQUE KEY `uniq_key` (`app_key`,`conver_id`,`conver_type`,`sub_channel`,`item_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE `applications` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `app_id` VARCHAR(32) NULL,
+  `app_name` VARCHAR(50) NULL,
+  `app_icon` VARCHAR(500) NULL,
+  `app_desc` VARCHAR(500) NULL,
+  `app_url` VARCHAR(500) NULL,
+  `created_time` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_time` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `app_order` INT NULL DEFAULT 0,
+  `app_key` VARCHAR(20) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `uniq_id` (`app_key`, `app_id`),
+  INDEX `idx_order` (`app_key`, `app_order`, `created_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatcommondb_version','20250201');
 INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');
