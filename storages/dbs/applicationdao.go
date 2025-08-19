@@ -30,6 +30,20 @@ func (app ApplicationDao) Create(item models.Application) error {
 	return dbcommons.GetDb().Exec(fmt.Sprintf("INSERT INTO %s (app_id,app_name,app_icon,app_desc,app_url,app_order,app_key)VALUES(?,?,?,?,?,?,?)", app.TableName()), item.AppId, item.AppName, item.AppIcon, item.AppDesc, item.AppUrl, item.AppOrder, item.AppKey).Error
 }
 
+func (app ApplicationDao) Update(item models.Application) error {
+	upd := map[string]interface{}{}
+	upd["app_name"] = item.AppName
+	upd["app_icon"] = item.AppIcon
+	upd["app_desc"] = item.AppDesc
+	upd["app_url"] = item.AppUrl
+	upd["app_order"] = item.AppOrder
+	return dbcommons.GetDb().Where("app_key=? and app_id=?", item.AppKey, item.AppId).Update(upd).Error
+}
+
+func (app ApplicationDao) BatchDelete(appkey string, appIds []string) error {
+	return dbcommons.GetDb().Where("app_key=? and app_id in (?)", appkey, appIds).Delete(&ApplicationDao{}).Error
+}
+
 func (app ApplicationDao) FindByAppId(appkey, appId string) (*models.Application, error) {
 	var item ApplicationDao
 	err := dbcommons.GetDb().Where("app_key=? and app_id=?", appkey, appId).Take(&item).Error
@@ -59,6 +73,29 @@ func (app ApplicationDao) QryApplications(appkey string, limit int64) ([]*models
 	params := []interface{}{appkey}
 	orderBy := "app_order desc"
 	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
+	ret := []*models.Application{}
+	if err == nil {
+		for _, item := range items {
+			ret = append(ret, &models.Application{
+				ID:          item.ID,
+				AppId:       item.AppId,
+				AppName:     item.AppName,
+				AppIcon:     item.AppIcon,
+				AppDesc:     item.AppDesc,
+				AppUrl:      item.AppUrl,
+				AppOrder:    item.AppOrder,
+				CreatedTime: item.CreatedTime.UnixMilli(),
+				UpdatedTime: item.UpdatedTime.UnixMilli(),
+				AppKey:      item.AppKey,
+			})
+		}
+	}
+	return ret, err
+}
+
+func (app ApplicationDao) QryApplicationsByPage(appkey string, page, size int64) ([]*models.Application, error) {
+	var items []*ApplicationDao
+	err := dbcommons.GetDb().Where("app_key=?", appkey).Order("app_order asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
 	ret := []*models.Application{}
 	if err == nil {
 		for _, item := range items {

@@ -34,6 +34,12 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/users/batchban")
 	group.POST("/users/batchunban")
 
+	//applications
+	group.POST("/applications/add", apis.AddApplication)
+	group.POST("/applications/update", apis.UpdApplication)
+	group.POST("/applications/delete", apis.DelApplications)
+	group.GET("/applications/list", apis.QryApplications)
+
 	imAdminProxy := getImAdminProxy()
 	if imAdminProxy != nil {
 		group.GET("/apps/list", func(ctx *gin.Context) {

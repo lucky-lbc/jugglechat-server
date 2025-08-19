@@ -86,6 +86,9 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.GET("/converconfs/get", apis.GetConverConfs)
 	group.POST("/converconfs/set", apis.SetConverConfs)
 
+	//dashboard applications
+	group.GET("/applications/list", apis.QryApplications)
+
 	//feedback
 	group.POST("/feedbacks/add", apis.AddFeedback)
 	return group
