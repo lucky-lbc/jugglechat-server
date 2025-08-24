@@ -37,7 +37,8 @@ func main() {
 
 	//start admin
 	adminServer := gin.Default()
-	adminRouters.Route(adminServer, "jconsole")
+	group := adminRouters.RouteLogin(adminServer, "jconsole")
+	adminRouters.Route(group)
 	go adminServer.Run(fmt.Sprintf(":%d", configures.Config.AdminPort))
 
 	closeChan := make(chan struct{})

@@ -15,10 +15,10 @@ import (
 
 var Prefix string = ""
 
-func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
-	Prefix = prefix
+func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	eng.Use(CorsHandler(), InjectCtx())
 	group := eng.Group("/" + prefix)
+	group.Use(apis.Validate)
 
 	group.POST("/login", apis.Login)
 	group.POST("/accounts/updpass", apis.UpdPassword)
@@ -26,7 +26,10 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/accounts/delete", apis.DeleteAccounts)
 	group.POST("/accounts/disable", apis.DisableAccounts)
 	group.GET("/accounts/list", apis.QryAccounts)
+	return group
+}
 
+func Route(group *gin.RouterGroup) *gin.RouterGroup {
 	//users
 	group.GET("/users/list", apis.QryUsers)
 	group.POST("/users/add")
@@ -34,18 +37,21 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/users/batchban")
 	group.POST("/users/batchunban")
 
+	//groups
+	group.GET("/groups/list", apis.QryGroups)
+
 	//applications
 	group.POST("/applications/add", apis.AddApplication)
 	group.POST("/applications/update", apis.UpdApplication)
 	group.POST("/applications/delete", apis.DelApplications)
 	group.GET("/applications/list", apis.QryApplications)
 
-	imAdminProxy := getImAdminProxy()
-	if imAdminProxy != nil {
-		group.GET("/apps/list", func(ctx *gin.Context) {
-			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
-		})
-	}
+	// imAdminProxy := getImAdminProxy()
+	// if imAdminProxy != nil {
+	// 	group.GET("/apps/list", func(ctx *gin.Context) {
+	// 		imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+	// 	})
+	// }
 
 	return group
 }

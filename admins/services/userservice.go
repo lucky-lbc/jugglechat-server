@@ -39,3 +39,7 @@ func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositiv
 	}
 	return errs.AdminErrorCode_Success, ret
 }
+
+func BanUsers(ctx context.Context) {
+
+}
