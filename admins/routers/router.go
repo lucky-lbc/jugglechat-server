@@ -44,8 +44,8 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 	group.GET("/apps/users/list", apis.QryUsers)
 	group.POST("/apps/users/add")
 	group.POST("/apps/users/update")
-	group.POST("/apps/users/batchban")
-	group.POST("/apps/users/batchunban")
+	group.POST("/apps/users/ban", apis.BanUsers)
+	group.POST("/apps/users/unban", apis.UnBanUsers)
 
 	//groups
 	group.GET("/apps/groups/list", apis.QryGroups)

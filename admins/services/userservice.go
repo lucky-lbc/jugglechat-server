@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/admins/apis/models"
 	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/juggleim/jugglechat-server/storages/models"
 )
 
 func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositive bool) (errs.AdminErrorCode, *apimodels.Users) {
@@ -40,6 +42,29 @@ func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositiv
 	return errs.AdminErrorCode_Success, ret
 }
 
-func BanUsers(ctx context.Context) {
+func BanUsers(ctx context.Context, req *apimodels.BanUsersReq) errs.AdminErrorCode {
+	storage := storages.NewBanUserStorage()
+	appkey := req.AppKey
+	for _, user := range req.Items {
+		var endTime int64 = user.EndTime
+		if endTime == 0 && user.EndTimeOffset > 0 {
+			endTime = time.Now().UnixMilli() + user.EndTimeOffset
+		}
+		storage.Upsert(models.BanUser{
+			UserId:      user.UserId,
+			CreatedTime: time.Now(),
+			EndTime:     endTime,
+			AppKey:      appkey,
+		})
+	}
+	return errs.AdminErrorCode_Success
+}
 
+func UnBanUsers(ctx context.Context, req *apimodels.BanUsersReq) errs.AdminErrorCode {
+	storage := storages.NewBanUserStorage()
+	appkey := req.AppKey
+	for _, user := range req.Items {
+		storage.DelBanUser(appkey, user.UserId, "")
+	}
+	return errs.AdminErrorCode_Success
 }

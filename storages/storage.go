@@ -64,3 +64,7 @@ func NewConverConfStorage() models.IConverConfStorage {
 func NewApplicationStorage() models.IApplicationStorage {
 	return &dbs.ApplicationDao{}
 }
+
+func NewBanUserStorage() models.IBanUserStorage {
+	return &dbs.BanUserDao{}
+}

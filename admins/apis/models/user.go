@@ -18,3 +18,18 @@ type Users struct {
 	Items  []*User `json:"items"`
 	Offset string  `json:"offset"`
 }
+
+type UserIds struct {
+	UserIds []string `json:"user_ids"`
+}
+
+type BanUsersReq struct {
+	AppKey string     `json:"app_key"`
+	Items  []*BanUser `json:"items"`
+}
+
+type BanUser struct {
+	UserId        string `json:"user_id"`
+	EndTime       int64  `json:"end_time"`
+	EndTimeOffset int64  `json:"end_time_offset"`
+}

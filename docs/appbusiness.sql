@@ -283,5 +283,18 @@ CREATE TABLE `applications` (
   INDEX `idx_order` (`app_key`, `app_order`, `created_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS `banusers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(32) NOT NULL,
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `end_time` bigint DEFAULT '0',
+  `scope_key` varchar(20) NOT NULL DEFAULT 'default',
+  `scope_value` varchar(1000) DEFAULT '',
+  `ext` varchar(100) DEFAULT NULL,
+  `app_key` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_appkey_userid` (`app_key`,`user_id`,`scope_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatcommondb_version','20250201');
 INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');

@@ -53,3 +53,22 @@ type IUserExtStorage interface {
 	QryExtFieldsByItemKeys(appkey, userId string, itemKeys []string) (map[string]*UserExt, error)
 	QryExtsBaseItemKey(appkey, itemKey string, startId, limit int64) ([]*UserExt, error)
 }
+
+type BanUser struct {
+	ID          int64
+	UserId      string
+	CreatedTime time.Time
+	EndTime     int64
+	ScopeKey    string
+	ScopeValue  string
+	Ext         string
+	AppKey      string
+}
+
+type IBanUserStorage interface {
+	Upsert(item BanUser) error
+	FindById(appkey, userId string) ([]*BanUser, error)
+	DelBanUser(appkey, userId, scopeKey string) error
+	CleanBaseTime(appkey, userId string, endTime int64) error
+	QryBanUsers(appkey string, limit, startId int64) ([]*BanUser, error)
+}
