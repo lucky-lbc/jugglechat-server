@@ -37,7 +37,7 @@ func (app ApplicationDao) Update(item models.Application) error {
 	upd["app_desc"] = item.AppDesc
 	upd["app_url"] = item.AppUrl
 	upd["app_order"] = item.AppOrder
-	return dbcommons.GetDb().Where("app_key=? and app_id=?", item.AppKey, item.AppId).Update(upd).Error
+	return dbcommons.GetDb().Model(&ApplicationDao{}).Where("app_key=? and app_id=?", item.AppKey, item.AppId).Update(upd).Error
 }
 
 func (app ApplicationDao) BatchDelete(appkey string, appIds []string) error {

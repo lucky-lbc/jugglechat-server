@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/juggleim/commons/errs"
@@ -54,6 +55,7 @@ func UpdApplication(ctx context.Context, application *apimodels.Application) err
 		AppKey:   application.AppKey,
 	})
 	if err != nil {
+		fmt.Println("err:", err)
 		return errs.AdminErrorCode_ServerErr
 	}
 	return errs.AdminErrorCode_Success
