@@ -40,6 +40,7 @@ func RouteProxy(group *gin.RouterGroup) *gin.RouterGroup {
 }
 
 func Route(group *gin.RouterGroup) *gin.RouterGroup {
+	group.POST("/apps/file_cred", apis.GetFileCred)
 	//users
 	group.GET("/apps/users/list", apis.QryUsers)
 	group.POST("/apps/users/add")
@@ -49,6 +50,11 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 
 	//groups
 	group.GET("/apps/groups/list", apis.QryGroups)
+
+	//convers
+	group.GET("/apps/convers/list", apis.QryConversations)
+	//history msgs
+	group.GET("/apps/historymsgs/list", apis.QryHistoryMsgs)
 
 	//applications
 	group.POST("/apps/applications/add", apis.AddApplication)
