@@ -32,6 +32,9 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.GET("/users/info", apis.QryUserInfo)
 	group.GET("/users/qrcode", apis.QryUserQrCode)
 	group.POST("/users/setaccount", apis.SetLoginAccount)
+	group.POST("/users/blockusers/add", apis.BlockUsers)
+	group.POST("/users/blockusers/del", apis.UnBlockUsers)
+	group.GET("/users/blockusers/list", apis.QryBlockUsers)
 
 	group.POST("/telegrambots/add", apis.TelegramBotAdd)
 	group.POST("/telegrambots/del", apis.TelegramBotDel)

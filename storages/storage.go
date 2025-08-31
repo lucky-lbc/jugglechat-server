@@ -68,3 +68,7 @@ func NewApplicationStorage() models.IApplicationStorage {
 func NewBanUserStorage() models.IBanUserStorage {
 	return &dbs.BanUserDao{}
 }
+
+func NewBlockUserStorage() models.IBlockUserStorage {
+	return &dbs.BlockDao{}
+}

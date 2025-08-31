@@ -72,3 +72,23 @@ type IBanUserStorage interface {
 	CleanBaseTime(appkey, userId string, endTime int64) error
 	QryBanUsers(appkey string, limit, startId int64) ([]*BanUser, error)
 }
+
+type BlockUser struct {
+	ID           int64
+	UserId       string
+	Nickname     string
+	UserPortrait string
+	UserType     int
+	Pinyin       string
+	BlockUserId  string
+	CreatedTime  int64
+	AppKey       string
+}
+
+type IBlockUserStorage interface {
+	Create(item BlockUser) error
+	DelBlockUser(appkey, userId, blockUserId string) error
+	BatchDelBlockUsers(appkey, userId string, blockUserIds []string) error
+	Find(appkey, userId, blockUserId string) (*BlockUser, error)
+	QryBlockUsers(appkey, userId string, limit, startId int64) ([]*BlockUser, error)
+}

@@ -68,3 +68,13 @@ type FriendIds struct {
 
 type UserConfs struct {
 }
+
+// user block
+type BlockUsersReq struct {
+	BlockUserIds []string `json:"block_user_ids"`
+}
+
+type BlockUsers struct {
+	Items  []*UserObj `json:"items"`
+	Offset string     `json:"offset,omitempty"`
+}

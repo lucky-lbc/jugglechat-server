@@ -10,6 +10,7 @@ import (
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/imsdk"
+	"github.com/juggleim/commons/tools"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/events"
@@ -349,4 +350,59 @@ func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
 		u.Account = user.LoginAccount
 	}
 	return u
+}
+
+func BlockUsers(ctx context.Context, req *apimodels.BlockUsersReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	storage := storages.NewBlockUserStorage()
+	for _, blockId := range req.BlockUserIds {
+		storage.Create(models.BlockUser{
+			UserId:      userId,
+			BlockUserId: blockId,
+			AppKey:      appkey,
+		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func UnBlockUsers(ctx context.Context, req *apimodels.BlockUsersReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	storage := storages.NewBlockUserStorage()
+	storage.BatchDelBlockUsers(appkey, userId, req.BlockUserIds)
+	return errs.IMErrorCode_SUCCESS
+}
+
+func QryBlockUsers(ctx context.Context, limit int64, offset string) (errs.IMErrorCode, *apimodels.BlockUsers) {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	storage := storages.NewBlockUserStorage()
+	ret := &apimodels.BlockUsers{
+		Items: []*apimodels.UserObj{},
+	}
+	var startId int64 = 0
+	if offset != "" {
+		intVal, err := tools.DecodeInt(offset)
+		if err == nil && intVal > 0 {
+			startId = intVal
+		}
+	}
+	users, err := storage.QryBlockUsers(appkey, userId, limit, startId)
+	if err == nil {
+		for _, user := range users {
+			o, err := tools.EncodeInt(user.ID)
+			if err == nil && o != "" {
+				ret.Offset = o
+			}
+			ret.Items = append(ret.Items, &apimodels.UserObj{
+				UserId:   user.BlockUserId,
+				Pinyin:   user.Pinyin,
+				Nickname: user.Nickname,
+				Avatar:   user.UserPortrait,
+				UserType: user.UserType,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
 }

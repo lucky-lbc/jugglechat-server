@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"image/png"
+	"strconv"
 
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
@@ -111,4 +112,51 @@ func QryUserQrCode(ctx *gin.Context) {
 
 func SyncConfs(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, &models.UserConfs{})
+}
+
+func BlockUsers(ctx *gin.Context) {
+	req := &models.BlockUsersReq{}
+	if err := ctx.BindJSON(req); err != nil || len(req.BlockUserIds) <= 0 {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.BlockUsers(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
+func UnBlockUsers(ctx *gin.Context) {
+	req := &models.BlockUsersReq{}
+	if err := ctx.BindJSON(req); err != nil || len(req.BlockUserIds) <= 0 {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.UnBlockUsers(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
+func QryBlockUsers(ctx *gin.Context) {
+	offset := ctx.Query("offset")
+	count := 20
+	var err error
+	countStr := ctx.Query("count")
+	if countStr != "" {
+		count, err = strconv.Atoi(countStr)
+		if err != nil {
+			count = 20
+		}
+	}
+	code, blockUsers := services.QryBlockUsers(ctxs.ToCtx(ctx), int64(count), offset)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, blockUsers)
 }
