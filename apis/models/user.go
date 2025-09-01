@@ -25,6 +25,7 @@ type UserObj struct {
 	Account  string        `json:"account"`
 	Status   int32         `json:"status"`
 	IsFriend bool          `json:"is_friend"`
+	IsBlock  bool          `json:"is_block"`
 	Settings *UserSettings `json:"settings"`
 }
 

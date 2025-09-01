@@ -90,5 +90,6 @@ type IBlockUserStorage interface {
 	DelBlockUser(appkey, userId, blockUserId string) error
 	BatchDelBlockUsers(appkey, userId string, blockUserIds []string) error
 	Find(appkey, userId, blockUserId string) (*BlockUser, error)
+	FindBlockUserByIds(appkey, userId string, blockUserIds []string) ([]*BlockUser, error)
 	QryBlockUsers(appkey, userId string, limit, startId int64) ([]*BlockUser, error)
 }

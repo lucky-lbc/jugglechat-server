@@ -110,6 +110,7 @@ func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimode
 		ret.Settings = GetUserSettings(ctx, userId)
 	} else {
 		ret.IsFriend = checkFriend(ctx, requestId, userId)
+		ret.IsBlock = checkBlockUser(ctx, requestId, userId)
 	}
 	return errs.IMErrorCode_SUCCESS, ret
 }
@@ -401,6 +402,7 @@ func QryBlockUsers(ctx context.Context, limit int64, offset string) (errs.IMErro
 				Nickname: user.Nickname,
 				Avatar:   user.UserPortrait,
 				UserType: user.UserType,
+				IsBlock:  true,
 			})
 		}
 	}

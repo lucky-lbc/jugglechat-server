@@ -285,6 +285,14 @@ func checkFriend(ctx context.Context, userId, friendId string) bool {
 	return false
 }
 
+func checkBlockUser(ctx context.Context, userId, targetId string) bool {
+	results := CheckBlockUsers(ctx, userId, []string{targetId})
+	if isBLock, exist := results[targetId]; exist {
+		return isBLock
+	}
+	return false
+}
+
 func QryMyFriendApplications(ctx context.Context, startTime int64, count int32, order int32) (errs.IMErrorCode, *apimodels.QryFriendApplicationsResp) {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
@@ -368,6 +376,24 @@ func CheckFriends(ctx context.Context, userId string, friendIds []string) map[st
 	if err == nil {
 		for _, rel := range rels {
 			ret[rel.FriendId] = true
+		}
+	}
+	return ret
+}
+
+func CheckBlockUsers(ctx context.Context, userId string, targetIds []string) map[string]bool {
+	ret := make(map[string]bool)
+	if len(targetIds) <= 0 {
+		return ret
+	}
+	for _, uId := range targetIds {
+		ret[uId] = false
+	}
+	storage := storages.NewBlockUserStorage()
+	blockUsers, err := storage.FindBlockUserByIds(ctxs.GetAppKeyFromCtx(ctx), userId, targetIds)
+	if err == nil {
+		for _, item := range blockUsers {
+			ret[item.BlockUserId] = true
 		}
 	}
 	return ret

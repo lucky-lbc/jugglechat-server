@@ -57,6 +57,25 @@ func (block BlockDao) Find(appkey, userId, blockUserId string) (*models.BlockUse
 	}, nil
 }
 
+func (block BlockDao) FindBlockUserByIds(appkey, userId string, blockUserIds []string) ([]*models.BlockUser, error) {
+	var items []*BlockDao
+	err := dbcommons.GetDb().Where("app_key=? and user_id=? and block_user_id in (?)", appkey, userId, blockUserIds).Order("id asc").Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	ret := []*models.BlockUser{}
+	for _, item := range items {
+		ret = append(ret, &models.BlockUser{
+			ID:          item.ID,
+			UserId:      item.UserId,
+			BlockUserId: item.BlockUserId,
+			CreatedTime: item.CreatedTime.UnixMilli(),
+			AppKey:      item.AppKey,
+		})
+	}
+	return ret, nil
+}
+
 type BlockUserWithUser struct {
 	BlockDao
 	Nickname     string `gorm:"nickname"`
