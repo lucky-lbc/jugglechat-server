@@ -129,4 +129,5 @@ type IGroupAdminStorage interface {
 	Upsert(item GroupAdmin) error
 	QryAdmins(appkey, groupId string) ([]*GroupAdmin, error)
 	BatchDel(appkey, groupId string, adminIds []string) error
+	CheckAdmin(appkey, groupId, userId string) bool
 }

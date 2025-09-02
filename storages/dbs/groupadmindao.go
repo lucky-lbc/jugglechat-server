@@ -40,6 +40,15 @@ func (admin GroupAdminDao) QryAdmins(appkey, groupId string) ([]*models.GroupAdm
 	return ret, err
 }
 
+func (admin GroupAdminDao) CheckAdmin(appkey, groupId, userId string) bool {
+	var item GroupAdminDao
+	err := dbcommons.GetDb().Where("app_key=? and group_id=? and admin_id=?", appkey, groupId, userId).Take(&item).Error
+	if err == nil && item.AdminId == userId {
+		return true
+	}
+	return false
+}
+
 func (admin GroupAdminDao) BatchDel(appkey, groupId string, adminIds []string) error {
 	return dbcommons.GetDb().Where("app_key=? and group_id=? and admin_id in (?)", appkey, groupId, adminIds).Delete(&GroupAdminDao{}).Error
 }

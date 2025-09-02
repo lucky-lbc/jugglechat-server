@@ -85,6 +85,10 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.GET("/friends/myapplications", apis.MyFriendApplications)
 	group.GET("/friends/mypendingapplications", apis.MyPendingFriendApplications)
 
+	//message operation
+	group.POST("/messages/recall", apis.RecallMsg)
+	group.POST("/messages/del", apis.DelMsgs)
+
 	// conversation confs
 	group.GET("/converconfs/get", apis.GetConverConfs)
 	group.POST("/converconfs/set", apis.SetConverConfs)
