@@ -57,6 +57,7 @@ func DelMsgs(ctx context.Context, req *models.DelHisMsgsReq) errs.IMErrorCode {
 			FromId:      req.FromId,
 			TargetId:    req.TargetId,
 			ChannelType: req.ChannelType,
+			DelScope:    1,
 			Msgs:        msgs,
 		})
 		if err == nil && code == juggleimsdk.ApiCode_Success {
