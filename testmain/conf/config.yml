@@ -11,7 +11,7 @@ mysql:
   name: im_db
   debug: true
 
-imApiDomain: https://api.juggleim.com # http://127.0.0.1:8082
+imApiDomain: http://127.0.0.1:9001
 botConnector:
   domain: <bot-connector url>
   apiKey: <api_key>
