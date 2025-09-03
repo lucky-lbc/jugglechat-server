@@ -39,3 +39,18 @@ func QryGroups(ctx context.Context, appkey string, offset string, limit int64, i
 	}
 	return errs.AdminErrorCode_Success, ret
 }
+
+func QryGroupInfo(appkey, groupId string) *apimodels.Group {
+	storage := storages.NewGroupStorage()
+	grp, err := storage.FindById(appkey, groupId)
+	if err != nil {
+		return &apimodels.Group{
+			GroupId: groupId,
+		}
+	}
+	return &apimodels.Group{
+		GroupId:       grp.GroupId,
+		GroupName:     grp.GroupName,
+		GroupPortrait: grp.GroupPortrait,
+	}
+}

@@ -6,12 +6,12 @@ log:
 
 mysql:
   user: root
-  password: Abc123456
+  password: 123456
   address: localhost:3306
   name: im_db
   debug: true
 
-imApiDomain: https://127.0.0.1:8082
+imApiDomain: https://api.juggleim.com # http://127.0.0.1:8082
 botConnector:
   domain: <bot-connector url>
   apiKey: <api_key>

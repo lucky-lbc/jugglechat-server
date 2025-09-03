@@ -42,6 +42,22 @@ func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositiv
 	return errs.AdminErrorCode_Success, ret
 }
 
+func QryUserInfo(appkey, userId string) *apimodels.User {
+	storage := storages.NewUserStorage()
+	user, err := storage.FindByUserId(appkey, userId)
+	if err != nil {
+		return &apimodels.User{
+			UserId: userId,
+		}
+	}
+	return &apimodels.User{
+		UserId:   user.UserId,
+		Nickname: user.Nickname,
+		UserType: user.UserType,
+		Avatar:   user.UserPortrait,
+	}
+}
+
 func BanUsers(ctx context.Context, req *apimodels.BanUsersReq) errs.AdminErrorCode {
 	storage := storages.NewBanUserStorage()
 	appkey := req.AppKey
