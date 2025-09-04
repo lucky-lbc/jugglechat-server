@@ -58,7 +58,7 @@ func QryHistoryMsgs(ctx *gin.Context) {
 			cType = juggleimsdk.ChannelType_Group
 		}
 		resp, code, _, err := sdk.QryHisMsgs(fromId, targetId, cType, start, int(count), isPositive)
-		if err == nil && code == 200 && resp != nil {
+		if err == nil && code == juggleimsdk.ApiCode_Success && resp != nil {
 			for _, msg := range resp.Msgs {
 				hisMsg := &models.HisMsg{
 					Sender:     services.QryUserInfo(appkey, msg.SenderId),

@@ -6,6 +6,7 @@ import (
 	"github.com/juggleim/commons/imsdk"
 	"github.com/juggleim/commons/responses"
 	"github.com/juggleim/commons/tools"
+	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 	"github.com/juggleim/jugglechat-server/admins/apis/models"
 	"github.com/juggleim/jugglechat-server/admins/services"
 )
@@ -39,7 +40,7 @@ func QryConversations(ctx *gin.Context) {
 	sdk := imsdk.GetImSdk(appkey)
 	if sdk != nil {
 		resp, code, _, err := sdk.QryGlobalConvers(start, int(count))
-		if err == nil && code == 200 && resp != nil {
+		if err == nil && code == juggleimsdk.ApiCode_Success && resp != nil {
 			for _, item := range resp.Items {
 				conver := &models.GlobalConversation{
 					ChannelType: item.ChannelType,
