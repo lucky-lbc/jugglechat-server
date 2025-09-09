@@ -41,6 +41,13 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 		GroupManagement: &apimodels.GroupManagement{
 			GroupMute:     grpInfo.IsMute,
 			MaxAdminCount: 10,
+
+			GroupEditMsgRight:    utils.IntPtr(3),
+			GroupAddMemberRight:  utils.IntPtr(3),
+			GroupMentionAllRight: utils.IntPtr(3),
+			GroupTopMsgRight:     utils.IntPtr(3),
+			GroupSendMsgRight:    utils.IntPtr(3),
+			GroupSetMsgLifeRight: utils.IntPtr(3),
 		},
 	}
 	isMember := false
@@ -64,13 +71,26 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 				ret.GroupManagement.GroupVerifyType = verifyType
 			} else if ext.ItemKey == apimodels.AttItemKey_HideGrpMsg {
 				hidGrpMsg := utils.ToInt(ext.ItemValue)
-				var visible int32 = 0
+				var visible int = 0
 				if hidGrpMsg > 0 {
 					visible = 0
 				} else {
 					visible = 1
 				}
-				ret.GroupManagement.GroupHisMsgVisible = visible
+				ret.GroupManagement.GroupHisMsgVisible = *utils.IntPtr(visible)
+			} else if ext.ItemKey == apimodels.AttItemKey_GrpEditMsgRight {
+				editMsgRight := utils.ToInt(ext.ItemValue)
+				ret.GroupManagement.GroupEditMsgRight = utils.IntPtr(editMsgRight)
+			} else if ext.ItemKey == apimodels.AttItemKey_AddMemberRight {
+				ret.GroupManagement.GroupAddMemberRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_MentionAllRight {
+				ret.GroupManagement.GroupMentionAllRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_TopMsgRight {
+				ret.GroupManagement.GroupTopMsgRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_SendMsgRight {
+				ret.GroupManagement.GroupSendMsgRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_SetMsgLifeRight {
+				ret.GroupManagement.GroupSetMsgLifeRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			}
 		}
 	}
@@ -607,6 +627,74 @@ func SetGroupHisMsgVisible(ctx context.Context, req *apimodels.SetGroupHisMsgVis
 				apimodels.AttItemKey_HideGrpMsg: hideGrpMsg,
 			},
 		})
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func SetGroupManagementConfs(ctx context.Context, req *apimodels.GroupManagement) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	//TODO check right
+	items := []models.GroupExt{}
+	if req.GroupEditMsgRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_GrpEditMsgRight,
+			ItemValue: utils.Int2String(int64(*req.GroupEditMsgRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
+	if req.GroupAddMemberRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_AddMemberRight,
+			ItemValue: utils.Int2String(int64(*req.GroupAddMemberRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
+	if req.GroupMentionAllRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_MentionAllRight,
+			ItemValue: utils.Int2String(int64(*req.GroupMentionAllRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
+	if req.GroupTopMsgRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_TopMsgRight,
+			ItemValue: utils.Int2String(int64(*req.GroupTopMsgRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
+	if req.GroupSendMsgRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_SendMsgRight,
+			ItemValue: utils.Int2String(int64(*req.GroupSendMsgRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
+	if req.GroupSetMsgLifeRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_SetMsgLifeRight,
+			ItemValue: utils.Int2String(int64(*req.GroupSetMsgLifeRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
+	if len(items) > 0 {
+		storage := storages.NewGroupExtStorage()
+		err := storage.BatchUpsert(items)
+		if err != nil {
+			return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+		}
 	}
 	return errs.IMErrorCode_SUCCESS
 }

@@ -80,6 +80,7 @@ type GroupExt struct {
 
 type IGroupExtStorage interface {
 	Upsert(item GroupExt) error
+	BatchUpsert(items []GroupExt) error
 	Find(appkey, groupId string, itemKey string) (*GroupExt, error)
 	QryExtFields(appkey, groupId string) ([]*GroupExt, error)
 }

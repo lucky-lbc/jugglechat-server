@@ -67,6 +67,7 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/groups/management/setgrpmembersmute", apis.SetGroupMembersMute)
 	group.POST("/groups/management/setgrpverifytype", apis.SetGrpVerifyType)
 	group.POST("/groups/management/sethismsgvisible", apis.SetGrpHisMsgVisible)
+	group.POST("/groups/management/set", apis.SetGrpManagementConfs)
 	group.GET("/groups/mygroups", apis.QryMyGroups)
 	group.POST("/groups/mygroups/search", apis.SearchMyGroups)
 	// grp application

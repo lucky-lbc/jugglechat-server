@@ -117,3 +117,17 @@ func SetGrpHisMsgVisible(ctx *gin.Context) {
 	}
 	responses.SuccessHttpResp(ctx, nil)
 }
+
+func SetGrpManagementConfs(ctx *gin.Context) {
+	req := &models.GroupManagement{}
+	if err := ctx.BindJSON(&req); err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.SetGroupManagementConfs(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}

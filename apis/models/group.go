@@ -18,7 +18,14 @@ type GroupManagement struct {
 	MaxAdminCount      int    `json:"max_admin_count"`
 	AdminCount         int    `json:"admin_count"`
 	GroupVerifyType    int    `json:"group_verify_type"`
-	GroupHisMsgVisible int32  `json:"group_his_msg_visible"`
+	GroupHisMsgVisible int    `json:"group_his_msg_visible"`
+
+	GroupEditMsgRight    *int `json:"group_edit_msg_right"`
+	GroupAddMemberRight  *int `json:"group_add_member_right"`
+	GroupMentionAllRight *int `json:"group_mention_all_right"`
+	GroupTopMsgRight     *int `json:"group_top_msg_right"`
+	GroupSendMsgRight    *int `json:"group_send_msg_right"`
+	GroupSetMsgLifeRight *int `json:"group_set_msg_life_right"`
 }
 
 type Groups struct {
@@ -204,4 +211,11 @@ const (
 	AttItemKey_GrpAnnouncement string = "grp_announcement"
 	AttItemKey_GrpVerifyType   string = "grp_verify_type"
 	AttItemKey_GrpDisplayName  string = "grp_display_name"
+
+	AttItemKey_GrpEditMsgRight string = "grp_edit_msg_right"
+	AttItemKey_AddMemberRight  string = "grp_add_member_right"
+	AttItemKey_MentionAllRight string = "grp_mention_all_right"
+	AttItemKey_TopMsgRight     string = "grp_top_msg_right"
+	AttItemKey_SendMsgRight    string = "grp_send_msg_right"
+	AttItemKey_SetMsgLifeRight string = "grp_set_msg_life_right"
 )

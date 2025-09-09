@@ -1,6 +1,7 @@
 package dbs
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -59,4 +60,23 @@ func (ext GroupExtDao) QryExtFields(appkey, groupId string) ([]*models.GroupExt,
 
 func (ext GroupExtDao) Upsert(item models.GroupExt) error {
 	return dbcommons.GetDb().Exec(fmt.Sprintf("INSERT INTO %s (app_key,group_id,item_key,item_value,item_type)VALUES(?,?,?,?,?) ON DUPLICATE KEY UPDATE item_value=?", ext.TableName()), item.AppKey, item.GroupId, item.ItemKey, item.ItemValue, item.ItemType, item.ItemValue).Error
+}
+
+func (ext GroupExtDao) BatchUpsert(items []models.GroupExt) error {
+	if len(items) > 0 {
+		sql := fmt.Sprintf("INSERT INTO %s (app_key,group_id,item_key,item_value,item_type)VALUES", ext.TableName())
+		var buffer bytes.Buffer
+		buffer.WriteString(sql)
+		params := []interface{}{}
+		for i, item := range items {
+			if i == len(items)-1 {
+				buffer.WriteString("(?,?,?,?,?) ON DUPLICATE KEY UPDATE item_value=VALUES(item_value)")
+			} else {
+				buffer.WriteString("(?,?,?,?,?),")
+			}
+			params = append(params, item.AppKey, item.GroupId, item.ItemKey, item.ItemValue, item.ItemType)
+		}
+		return dbcommons.GetDb().Exec(buffer.String(), params...).Error
+	}
+	return nil
 }
