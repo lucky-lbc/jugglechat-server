@@ -42,12 +42,12 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 			GroupMute:     grpInfo.IsMute,
 			MaxAdminCount: 10,
 
-			GroupEditMsgRight:    utils.IntPtr(3),
-			GroupAddMemberRight:  utils.IntPtr(3),
-			GroupMentionAllRight: utils.IntPtr(3),
-			GroupTopMsgRight:     utils.IntPtr(3),
-			GroupSendMsgRight:    utils.IntPtr(3),
-			GroupSetMsgLifeRight: utils.IntPtr(3),
+			GroupEditMsgRight:    utils.IntPtr(7),
+			GroupAddMemberRight:  utils.IntPtr(7),
+			GroupMentionAllRight: utils.IntPtr(7),
+			GroupTopMsgRight:     utils.IntPtr(7),
+			GroupSendMsgRight:    utils.IntPtr(7),
+			GroupSetMsgLifeRight: utils.IntPtr(7),
 		},
 	}
 	isMember := false
