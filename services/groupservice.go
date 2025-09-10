@@ -865,3 +865,37 @@ func QryGrpPendingApplications(ctx context.Context, startTime int64, count int32
 	}
 	return errs.IMErrorCode_SUCCESS, ret
 }
+
+func QryGrpApplications(ctx context.Context, startTime int64, count int32, order int32, groupId string) (errs.IMErrorCode, *apimodels.QryGrpApplicationsResp) {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	storage := storages.NewGrpApplicationStorage()
+	ret := &apimodels.QryGrpApplicationsResp{
+		Items: []*apimodels.GrpApplicationItem{},
+	}
+	applications, err := storage.QueryGrpApplications(appkey, groupId, startTime, int64(count), order > 0)
+	if err == nil {
+		for _, application := range applications {
+			ret.Items = append(ret.Items, &apimodels.GrpApplicationItem{
+				GrpInfo: &apimodels.GrpInfo{
+					GroupId: application.GroupId,
+				},
+				ApplyType: int32(application.ApplyType),
+				Sponsor: &apimodels.UserObj{
+					UserId: application.SponsorId,
+				},
+				Operator: &apimodels.UserObj{
+					UserId: application.OperatorId,
+				},
+				Recipient: &apimodels.UserObj{
+					UserId: application.RecipientId,
+				},
+				Inviter: &apimodels.UserObj{
+					UserId: application.InviterId,
+				},
+				ApplyTime: application.ApplyTime,
+				Status:    int32(application.Status),
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
+}

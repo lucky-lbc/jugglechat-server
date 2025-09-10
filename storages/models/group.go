@@ -43,6 +43,7 @@ type IGrpApplicationStorage interface {
 	QueryMyPendingGrpInvitations(appkey, recipientId string, startTime, count int64, isPositive bool) ([]*GrpApplication, error)
 	QueryGrpInvitations(appkey, groupId string, startTime, count int64, isPositive bool) ([]*GrpApplication, error)
 	QueryGrpPendingApplications(appkey, groupId string, startTime, count int64, isPositive bool) ([]*GrpApplication, error)
+	QueryGrpApplications(appkey, groupId string, startTime, count int64, isPositive bool) ([]*GrpApplication, error)
 }
 
 type Group struct {

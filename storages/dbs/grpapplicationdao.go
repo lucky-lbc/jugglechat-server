@@ -191,3 +191,41 @@ func (apply GrpApplicationDao) QueryGrpPendingApplications(appkey, groupId strin
 	}
 	return ret, nil
 }
+
+func (apply GrpApplicationDao) QueryGrpApplications(appkey, groupId string, startTime, count int64, isPositive bool) ([]*models.GrpApplication, error) {
+	var items []*GrpApplicationDao
+	params := []interface{}{}
+	condition := "app_key=? and group_id=?"
+	params = append(params, appkey)
+	params = append(params, groupId)
+	orderStr := "apply_time desc"
+	if isPositive {
+		orderStr = "apply_time asc"
+		condition = condition + " and apply_time>?"
+	} else {
+		if startTime <= 0 {
+			startTime = time.Now().UnixMilli()
+		}
+		condition = condition + " and apply_time<?"
+	}
+	params = append(params, startTime)
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	ret := []*models.GrpApplication{}
+	for _, app := range items {
+		ret = append(ret, &models.GrpApplication{
+			GroupId:     app.GroupId,
+			ApplyType:   models.GrpApplicationType(app.ApplyType),
+			SponsorId:   app.SponsorId,
+			RecipientId: app.RecipientId,
+			InviterId:   app.InviterId,
+			OperatorId:  app.OperatorId,
+			Status:      models.GrpApplicationStatus(app.Status),
+			ApplyTime:   app.ApplyTime,
+			AppKey:      app.AppKey,
+		})
+	}
+	return ret, nil
+}
