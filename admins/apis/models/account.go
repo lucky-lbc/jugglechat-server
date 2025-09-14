@@ -11,5 +11,6 @@ type Account struct {
 	CreatedTime   int64  `json:"created_time"`
 	UpdatedTime   int64  `json:"updated_time"`
 	ParentAccount string `json:"parent_account"`
-	RoleId        int    `json:"role_id"`
+	// RoleId        int    `json:"role_id"`
+	RoleType int `json:"role_type"`
 }

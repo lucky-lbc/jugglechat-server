@@ -34,9 +34,10 @@ func CheckLogin(account, password string) (errs.AdminErrorCode, *apimodels.Accou
 			Account:       admin.Account,
 			State:         admin.State,
 			ParentAccount: admin.ParentAccount,
-			RoleId:        admin.RoleId,
-			CreatedTime:   admin.CreatedTime.UnixMilli(),
-			UpdatedTime:   admin.UpdatedTime.UnixMilli(),
+			// RoleId:        admin.RoleId,
+			RoleType:    admin.RoleType,
+			CreatedTime: admin.CreatedTime.UnixMilli(),
+			UpdatedTime: admin.UpdatedTime.UnixMilli(),
 		}
 	}
 	return errs.AdminErrorCode_LoginFail, nil
@@ -68,7 +69,7 @@ func UpdPassword(account, password, newPassword string) errs.AdminErrorCode {
 	return errs.AdminErrorCode_Success
 }
 
-func AddAccount(parentAccount, account, password string, roleId int) errs.AdminErrorCode {
+func AddAccount(parentAccount, account, password string, roleType int) errs.AdminErrorCode {
 	dao := dbs.AccountDao{}
 	password = utils.SHA1(password)
 	err := dao.Create(dbs.AccountDao{
@@ -77,7 +78,8 @@ func AddAccount(parentAccount, account, password string, roleId int) errs.AdminE
 		ParentAccount: parentAccount,
 		UpdatedTime:   time.Now(),
 		CreatedTime:   time.Now(),
-		RoleId:        roleId,
+		// RoleId:        roleId,
+		RoleType: roleType,
 	})
 	if err != nil {
 		return errs.AdminErrorCode_AccountExisted
@@ -121,7 +123,8 @@ func QryAccounts(limit int64, offset string) *apimodels.Accounts {
 				CreatedTime:   dbAccount.CreatedTime.UnixMilli(),
 				UpdatedTime:   dbAccount.UpdatedTime.UnixMilli(),
 				ParentAccount: dbAccount.ParentAccount,
-				RoleId:        dbAccount.RoleId,
+				// RoleId:        dbAccount.RoleId,
+				RoleType: dbAccount.RoleType,
 			})
 			if dbAccount.ID > id {
 				id = dbAccount.ID

@@ -8,6 +8,7 @@ import (
 	"github.com/juggleim/commons/responses"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/admins/services"
+	"github.com/juggleim/jugglechat-server/storages/dbs"
 )
 
 func Login(ctx *gin.Context) {
@@ -21,7 +22,7 @@ func Login(ctx *gin.Context) {
 	}
 	code, account := services.CheckLogin(req.Account, req.Password)
 	if code == errs.AdminErrorCode_Success {
-		authStr, err := generateAuthorization(req.Account)
+		authStr, err := generateAuthorization(req.Account, dbs.RoleType(req.RoleId))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, &errs.AdminApiErrorMsg{
 				Code: errs.AdminErrorCode_Default,
@@ -33,7 +34,8 @@ func Login(ctx *gin.Context) {
 			Account:       req.Account,
 			Authorization: authStr,
 			Env:           "private", //public
-			RoleId:        account.RoleId,
+			// RoleId:        account.RoleId,
+			RoleType: account.RoleType,
 		})
 	} else {
 		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
@@ -54,7 +56,8 @@ type LoginResp struct {
 	Account       string `json:"account"`
 	Authorization string `json:"authorization"`
 	Env           string `json:"env"`
-	RoleId        int    `json:"role_id"`
+	// RoleId        int    `json:"role_id"`
+	RoleType int `json:"role_type"`
 }
 
 func AddAccount(ctx *gin.Context) {
@@ -63,6 +66,13 @@ func AddAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
 			Code: errs.AdminErrorCode_ParamError,
 			Msg:  "param illegal",
+		})
+		return
+	}
+	roleType := GetAccountRoleType(ctx)
+	if roleType != dbs.RoleType_SuperAdmin {
+		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
+			Code: errs.AdminErrorCode_NotPermission,
 		})
 		return
 	}
@@ -96,6 +106,13 @@ func DisableAccounts(ctx *gin.Context) {
 		})
 		return
 	}
+	roleType := GetAccountRoleType(ctx)
+	if roleType != dbs.RoleType_SuperAdmin {
+		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
+			Code: errs.AdminErrorCode_NotPermission,
+		})
+		return
+	}
 	code := services.DisableAccounts(req.Accounts, req.IsDisable)
 	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 		Code: code,
@@ -111,6 +128,13 @@ func DeleteAccounts(ctx *gin.Context) {
 		})
 		return
 	}
+	roleType := GetAccountRoleType(ctx)
+	if roleType != dbs.RoleType_SuperAdmin {
+		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
+			Code: errs.AdminErrorCode_NotPermission,
+		})
+		return
+	}
 	code := services.DeleteAccounts(req.Accounts)
 	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 		Code: code,
@@ -123,6 +147,13 @@ type AccountsReq struct {
 }
 
 func QryAccounts(ctx *gin.Context) {
+	roleType := GetAccountRoleType(ctx)
+	if roleType != dbs.RoleType_SuperAdmin {
+		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
+			Code: errs.AdminErrorCode_NotPermission,
+		})
+		return
+	}
 	offsetStr := ctx.Query("offset")
 	limitStr := ctx.Query("limit")
 	var limit int64 = 50
