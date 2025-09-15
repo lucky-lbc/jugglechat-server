@@ -105,6 +105,7 @@ const (
 )
 
 type GroupInviteResp struct {
+	Reason  GrpInviteResultReason            `json:"reason"`
 	Results map[string]GrpInviteResultReason `json:"results"`
 }
 
