@@ -3,6 +3,7 @@ package dbs
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
 	"github.com/juggleim/commons/dbcommons"
 	"github.com/juggleim/jugglechat-server/storages/models"
 
@@ -26,6 +27,29 @@ func (apply GrpApplicationDao) TableName() string {
 	return "grpapplications"
 }
 
+func (apply GrpApplicationDao) FindById(appkey string, id int64) (*models.GrpApplication, error) {
+	var item GrpApplicationDao
+	err := dbcommons.GetDb().Where("id=? and app_key=?", id, appkey).Take(&item).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &models.GrpApplication{
+		ID:          item.ID,
+		GroupId:     item.GroupId,
+		ApplyType:   models.GrpApplicationType(item.ApplyType),
+		SponsorId:   item.SponsorId,
+		RecipientId: item.RecipientId,
+		InviterId:   item.InviterId,
+		OperatorId:  item.OperatorId,
+		ApplyTime:   item.ApplyTime,
+		Status:      models.GrpApplicationStatus(item.Status),
+		AppKey:      item.AppKey,
+	}, nil
+}
+
 func (apply GrpApplicationDao) InviteUpsert(item models.GrpApplication) error {
 	sql := fmt.Sprintf("INSERT INTO %s (app_key,apply_type,group_id,sponsor_id,recipient_id,inviter_id,operator_id,apply_time,status)VALUES(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE apply_time=VALUES(apply_time),status=VALUES(status),inviter_id=VALUES(inviter_id),operator_id=VALUES(operator_id)", apply.TableName())
 	return dbcommons.GetDb().Exec(sql, item.AppKey, models.GrpApplicationType_Invite, item.GroupId, "", item.RecipientId, item.InviterId, item.OperatorId, item.ApplyTime, item.Status).Error
@@ -34,6 +58,10 @@ func (apply GrpApplicationDao) InviteUpsert(item models.GrpApplication) error {
 func (apply GrpApplicationDao) ApplyUpsert(item models.GrpApplication) error {
 	sql := fmt.Sprintf("INSERT INTO %s (app_key,apply_type,group_id,sponsor_id,recipient_id,inviter_id,operator_id,apply_time,status)VALUES(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE apply_time=VALUES(apply_time),status=VALUES(status),inviter_id=VALUES(inviter_id),operator_id=VALUES(operator_id)", apply.TableName())
 	return dbcommons.GetDb().Exec(sql, item.AppKey, models.GrpApplicationType_Apply, item.GroupId, item.SponsorId, "", item.InviterId, item.OperatorId, item.ApplyTime, item.Status).Error
+}
+
+func (apply GrpApplicationDao) UpdateStatus(id int64, status models.GrpApplicationStatus) error {
+	return dbcommons.GetDb().Model(&GrpApplicationDao{}).Where("id=?").Update("status", status).Error
 }
 
 func (apply GrpApplicationDao) QueryMyGrpApplications(appkey, sponsorId string, startTime, count int64, isPositive bool) ([]*models.GrpApplication, error) {

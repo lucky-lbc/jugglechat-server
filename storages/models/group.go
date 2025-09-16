@@ -37,8 +37,10 @@ type GrpApplication struct {
 }
 
 type IGrpApplicationStorage interface {
+	FindById(appkey string, id int64) (*GrpApplication, error)
 	InviteUpsert(item GrpApplication) error
 	ApplyUpsert(item GrpApplication) error
+	UpdateStatus(id int64, status GrpApplicationStatus) error
 	QueryMyGrpApplications(appkey, sponsorId string, startTime, count int64, isPositive bool) ([]*GrpApplication, error)
 	QueryMyPendingGrpInvitations(appkey, recipientId string, startTime, count int64, isPositive bool) ([]*GrpApplication, error)
 	QueryGrpInvitations(appkey, groupId string, startTime, count int64, isPositive bool) ([]*GrpApplication, error)

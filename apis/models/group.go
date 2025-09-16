@@ -109,6 +109,11 @@ type GroupInviteResp struct {
 	Results map[string]GrpInviteResultReason `json:"results"`
 }
 
+type GroupConfirm struct {
+	ApplicationId string `json:"application_id"`
+	IsAgree       bool   `json:"is_agree"`
+}
+
 const (
 	GrpVerifyType_NoNeedGrpVerify int = 0
 	GrpVerifyType_NeedGrpVerify   int = 1
@@ -184,14 +189,15 @@ type QryGrpApplicationsResp struct {
 }
 
 type GrpApplicationItem struct {
-	GrpInfo   *GrpInfo `json:"grp_info"`
-	ApplyType int32    `json:"apply_type"`
-	Sponsor   *UserObj `json:"sponsor"`
-	Recipient *UserObj `json:"recipient"`
-	Inviter   *UserObj `json:"inviter"`
-	Operator  *UserObj `json:"operator"`
-	ApplyTime int64    `json:"apply_time"`
-	Status    int32    `json:"status"`
+	ApplicationId string   `json:"application_id"`
+	GrpInfo       *GrpInfo `json:"grp_info"`
+	ApplyType     int32    `json:"apply_type"`
+	Sponsor       *UserObj `json:"sponsor"`
+	Recipient     *UserObj `json:"recipient"`
+	Inviter       *UserObj `json:"inviter"`
+	Operator      *UserObj `json:"operator"`
+	ApplyTime     int64    `json:"apply_time"`
+	Status        int32    `json:"status"`
 }
 
 type GrpInfo struct {

@@ -8,6 +8,7 @@ import (
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/imsdk"
+	"github.com/juggleim/commons/tools"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -145,6 +146,23 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func GetGroupInfo(ctx context.Context, groupId string) *apimodels.GrpInfo {
+	if groupId == "" {
+		return nil
+	}
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	ret := &apimodels.GrpInfo{
+		GroupId: groupId,
+	}
+	grpStorage := storages.NewGroupStorage()
+	grpInfo, err := grpStorage.FindById(appkey, groupId)
+	if err == nil && grpInfo != nil {
+		ret.GroupName = grpInfo.GroupName
+		ret.GroupPortrait = grpInfo.GroupPortrait
+	}
+	return ret
 }
 
 func GetGroupSettings(ctx context.Context, groupId string) *apimodels.GroupManagement {
@@ -488,6 +506,55 @@ func GrpInviteMembers(ctx context.Context, req *apimodels.GroupInviteReq) (errs.
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, results
+}
+
+func GroupConfirm(ctx context.Context, req *apimodels.GroupConfirm) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	//TODO check admin
+	storage := storages.NewGrpApplicationStorage()
+	id, err := tools.DecodeInt(req.ApplicationId)
+	if err != nil || id <= 0 {
+		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
+	}
+	application, err := storage.FindById(appkey, id)
+	if err != nil || application == nil {
+		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
+	}
+	if application.ApplyType == models.GrpApplicationType_Invite {
+		if req.IsAgree {
+			err := storage.UpdateStatus(id, models.GrpApplicationStatus_AgreeInvite)
+			if err == nil {
+				memberStorage := storages.NewGroupMemberStorage()
+				memberStorage.BatchCreate([]models.GroupMember{
+					{
+						GroupId:  application.GroupId,
+						MemberId: application.RecipientId,
+						AppKey:   appkey,
+					},
+				})
+				//sync to imserver
+				if sdk := imsdk.GetImSdk(appkey); sdk != nil {
+					sdk.GroupAddMembers(juggleimsdk.GroupMembersReq{
+						GroupId:   application.GroupId,
+						MemberIds: []string{application.RecipientId},
+					})
+				}
+				//send notify msg
+				targetUsers := []*apimodels.UserObj{
+					GetUser(ctx, application.RecipientId),
+				}
+				notify := &apimodels.GroupNotify{
+					Operator: GetUser(ctx, application.InviterId),
+					Members:  targetUsers,
+					Type:     apimodels.GroupNotifyType_AddMember,
+				}
+				SendGrpNotify(ctx, application.GroupId, notify)
+			}
+		} else {
+			storage.UpdateStatus(id, models.GrpApplicationStatus_DeclineInvite)
+		}
+	}
+	return errs.IMErrorCode_SUCCESS
 }
 
 func GrpJoinApply(ctx context.Context, req *apimodels.GroupInviteReq) errs.IMErrorCode {
@@ -939,26 +1006,20 @@ func QryGrpApplications(ctx context.Context, startTime int64, count int32, order
 	}
 	applications, err := storage.QueryGrpApplications(appkey, groupId, startTime, int64(count), order > 0)
 	if err == nil {
+		grpInfo := GetGroupInfo(ctx, groupId)
 		for _, application := range applications {
+			idStr, _ := tools.EncodeInt(application.ID)
+
 			ret.Items = append(ret.Items, &apimodels.GrpApplicationItem{
-				GrpInfo: &apimodels.GrpInfo{
-					GroupId: application.GroupId,
-				},
-				ApplyType: int32(application.ApplyType),
-				Sponsor: &apimodels.UserObj{
-					UserId: application.SponsorId,
-				},
-				Operator: &apimodels.UserObj{
-					UserId: application.OperatorId,
-				},
-				Recipient: &apimodels.UserObj{
-					UserId: application.RecipientId,
-				},
-				Inviter: &apimodels.UserObj{
-					UserId: application.InviterId,
-				},
-				ApplyTime: application.ApplyTime,
-				Status:    int32(application.Status),
+				ApplicationId: idStr,
+				GrpInfo:       grpInfo,
+				ApplyType:     int32(application.ApplyType),
+				Sponsor:       GetUser(ctx, application.SponsorId),
+				Operator:      GetUser(ctx, application.OperatorId),
+				Recipient:     GetUser(ctx, application.RecipientId),
+				Inviter:       GetUser(ctx, application.InviterId),
+				ApplyTime:     application.ApplyTime,
+				Status:        int32(application.Status),
 			})
 		}
 	}

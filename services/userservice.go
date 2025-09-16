@@ -337,6 +337,9 @@ func SearchMyGroups(ctx context.Context, req *apimodels.SearchReq) (errs.IMError
 }
 
 func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
+	if userId == "" {
+		return nil
+	}
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	u := &apimodels.UserObj{
 		UserId: userId,

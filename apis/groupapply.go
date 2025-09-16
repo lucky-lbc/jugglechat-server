@@ -39,6 +39,20 @@ func GroupInvite(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, resp)
 }
 
+func GroupComfirm(ctx *gin.Context) {
+	req := models.GroupConfirm{}
+	if err := ctx.BindJSON(&req); err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.GroupConfirm(ctxs.ToCtx(ctx), &req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
 func QryMyGrpApplications(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	start, err := utils.String2Int64(startTimeStr)
