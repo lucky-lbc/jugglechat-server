@@ -8,7 +8,6 @@ import (
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/imsdk"
-	"github.com/juggleim/commons/tools"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/storages"
@@ -512,7 +511,7 @@ func GroupConfirm(ctx context.Context, req *apimodels.GroupConfirm) errs.IMError
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	//TODO check admin
 	storage := storages.NewGrpApplicationStorage()
-	id, err := tools.DecodeInt(req.ApplicationId)
+	id, err := utils.DecodeInt(req.ApplicationId)
 	if err != nil || id <= 0 {
 		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
 	}
@@ -1008,7 +1007,7 @@ func QryGrpApplications(ctx context.Context, startTime int64, count int32, order
 	if err == nil {
 		grpInfo := GetGroupInfo(ctx, groupId)
 		for _, application := range applications {
-			idStr, _ := tools.EncodeInt(application.ID)
+			idStr, _ := utils.EncodeInt(application.ID)
 
 			ret.Items = append(ret.Items, &apimodels.GrpApplicationItem{
 				ApplicationId: idStr,

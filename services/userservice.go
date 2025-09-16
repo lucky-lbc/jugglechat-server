@@ -10,7 +10,6 @@ import (
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/imsdk"
-	"github.com/juggleim/commons/tools"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/events"
@@ -387,7 +386,7 @@ func QryBlockUsers(ctx context.Context, limit int64, offset string) (errs.IMErro
 	}
 	var startId int64 = 0
 	if offset != "" {
-		intVal, err := tools.DecodeInt(offset)
+		intVal, err := utils.DecodeInt(offset)
 		if err == nil && intVal > 0 {
 			startId = intVal
 		}
@@ -395,7 +394,7 @@ func QryBlockUsers(ctx context.Context, limit int64, offset string) (errs.IMErro
 	users, err := storage.QryBlockUsers(appkey, userId, limit, startId)
 	if err == nil {
 		for _, user := range users {
-			o, err := tools.EncodeInt(user.ID)
+			o, err := utils.EncodeInt(user.ID)
 			if err == nil && o != "" {
 				ret.Offset = o
 			}
