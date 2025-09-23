@@ -25,7 +25,6 @@ func QryConversations(ctx *gin.Context) {
 			start = count
 		}
 	}
-
 	var count int64 = 20
 	countStr := ctx.Query("count")
 	if countStr != "" {
@@ -34,12 +33,26 @@ func QryConversations(ctx *gin.Context) {
 			count = countVal
 		}
 	}
+	var targetId *string
+	targetIdStr := ctx.Query("target_id")
+	if targetIdStr != "" {
+		targetId = &targetIdStr
+	}
+	channelTypeStr := ctx.Query("channel_type")
+	var channelType *int32
+	if channelTypeStr != "" {
+		countVal, err := tools.String2Int64(channelTypeStr)
+		if err == nil && countVal > 0 {
+			c := int32(countVal)
+			channelType = &c
+		}
+	}
 	ret := &models.GlobalConversations{
 		Items: []*models.GlobalConversation{},
 	}
 	sdk := imsdk.GetImSdk(appkey)
 	if sdk != nil {
-		resp, code, _, err := sdk.QryGlobalConvers(start, int(count))
+		resp, code, _, err := sdk.QryGlobalConvers(start, int(count), targetId, channelType)
 		if err == nil && code == juggleimsdk.ApiCode_Success && resp != nil {
 			for _, item := range resp.Items {
 				conver := &models.GlobalConversation{
