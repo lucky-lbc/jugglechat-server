@@ -196,6 +196,8 @@ github.com/juggleim/commons v1.0.14 h1:HKc64BdSgi4N3x+rR803hac2LaAiPY+1D0v5P6qeg
 github.com/juggleim/commons v1.0.14/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
 github.com/juggleim/commons v1.0.15 h1:1USvy3MONpxpEdd7FXtkKP/V1Q6/JgnB8VU5KmhN2fU=
 github.com/juggleim/commons v1.0.15/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
+github.com/juggleim/commons v1.0.16 h1:HX2c9UgPRNCTu5RGUlYN8aV3l9PLPXxD5CwsdMHrP/U=
+github.com/juggleim/commons v1.0.16/go.mod h1:1bp7TnNj4j6Bju2No+jPRUQKjOeC6Boopi5uDoJ0+Lo=
 github.com/juggleim/imserver-sdk-go v1.0.7 h1:ddEVMg9+01KBPRo7r933AIwBZVEUXNmtpusZvD37Ryo=
 github.com/juggleim/imserver-sdk-go v1.0.7/go.mod h1:xdxsGeW0b4GOYJvKJwnaU04Z+jGaUSrBvzeSbNvNOFk=
 github.com/juggleim/imserver-sdk-go v1.0.8 h1:yJTbScsH4WV2eUY35IqmwaqA0OW2q3sIWiHxlMudqsc=

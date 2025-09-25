@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/juggleim/commons/dbcommons"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/storages/models"
@@ -34,6 +35,9 @@ func (user UserDao) FindByUserId(appkey, userId string) (*models.User, error) {
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and user_id=?", appkey, userId).Take(&item).Error
 	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &models.User{
@@ -105,6 +109,9 @@ func (user UserDao) FindByPhone(appkey, phone string) (*models.User, error) {
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and phone=?", appkey, phone).Take(&item).Error
 	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &models.User{
@@ -128,6 +135,9 @@ func (user UserDao) FindByEmail(appkey, email string) (*models.User, error) {
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and email=?", appkey, email).Take(&item).Error
 	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &models.User{
@@ -151,6 +161,9 @@ func (user UserDao) FindByAccount(appkey, account string) (*models.User, error) 
 	var item UserDao
 	err := dbcommons.GetDb().Where("app_key=? and login_account=?", appkey, account).Take(&item).Error
 	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &models.User{
@@ -231,6 +244,18 @@ func (user UserDao) Update(appkey, userId, nickname, userPortrait string) error 
 
 func (user UserDao) UpdateAccount(appkey, userId, account string) error {
 	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("login_account", account).Error
+}
+
+func (user UserDao) UpdatePass(appkey, userId, pass string) error {
+	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("login_pass", pass).Error
+}
+
+func (user UserDao) UpdatePhone(appkey, userId, phone string) error {
+	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("phone", phone).Error
+}
+
+func (user UserDao) UpdateEmail(appkey, userId, email string) error {
+	return dbcommons.GetDb().Model(&UserDao{}).Where("app_key=? and user_id=?", appkey, userId).Update("email", email).Error
 }
 
 func (user UserDao) Count(appkey string) int {

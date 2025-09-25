@@ -53,6 +53,12 @@ type SetUserAccountReq struct {
 	Password string `json:"password"`
 }
 
+type UpdUserPassReq struct {
+	UserId      string `json:"user_id"`
+	Password    string `json:"password"`
+	NewPassword string `json:"new_password"`
+}
+
 type Friends struct {
 	Items  []*UserObj `json:"items"`
 	Offset string     `json:"offset,omitempty"`
@@ -78,4 +84,14 @@ type BlockUsersReq struct {
 type BlockUsers struct {
 	Items  []*UserObj `json:"items"`
 	Offset string     `json:"offset,omitempty"`
+}
+
+type BindEmailReq struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
+
+type BindPhoneReq struct {
+	Phone string `json:"phone"`
+	Code  string `json:"code"`
 }

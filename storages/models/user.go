@@ -30,6 +30,9 @@ type IUserStorage interface {
 	SearchByKeyword(appkey string, userId, keyword string) ([]*User, error)
 	Update(appkey, userId, nickname, userPortrait string) error
 	UpdateAccount(appkey, userId, account string) error
+	UpdatePass(appkey, userId, pass string) error
+	UpdatePhone(appkey, userId, phone string) error
+	UpdateEmail(appkey, userId, email string) error
 	Count(appkey string) int
 	CountByTime(appkey string, start, end int64) int64
 	QryUsers(appkey string, startId, limit int64, isPositiveOrder bool) ([]*User, error)

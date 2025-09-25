@@ -4,12 +4,16 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/juggleim/commons/appinfos"
 	"github.com/juggleim/commons/ctxs"
+	"github.com/juggleim/commons/emailengines"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/imsdk"
+	"github.com/juggleim/commons/smsengines"
 	utils "github.com/juggleim/commons/tools"
 	apimodels "github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/events"
@@ -224,6 +228,23 @@ func UpdateUser(ctx context.Context, req *apimodels.UserObj) errs.IMErrorCode {
 	return errs.IMErrorCode_SUCCESS
 }
 
+func UpdatePass(ctx context.Context, req *apimodels.UpdUserPassReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	storage := storages.NewUserStorage()
+	user, err := storage.FindByUserId(appkey, req.UserId)
+	if err != nil || user == nil {
+		return errs.IMErrorCode_APP_USER_NOT_EXIST
+	}
+	if user.LoginPass != utils.SHA1(req.Password) {
+		return errs.IMErrorCode_APP_LOGIN_ERR_PASS
+	}
+	err = storage.UpdatePass(appkey, req.UserId, req.NewPassword)
+	if err != nil {
+		return errs.IMErrorCode_APP_DEFAULT
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
 func UpdateUserSettings(ctx context.Context, req *apimodels.UserSettings) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)
@@ -409,4 +430,132 @@ func QryBlockUsers(ctx context.Context, limit int64, offset string) (errs.IMErro
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func BindEmailSendEmail(ctx context.Context, req *apimodels.BindEmailReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	storage := storages.NewUserStorage()
+	user, err := storage.FindByEmail(appkey, req.Email)
+	if err != nil {
+		return errs.IMErrorCode_APP_DEFAULT
+	}
+	if user != nil {
+		return errs.IMErrorCode_APP_EMAIL_EXIST
+	}
+	mailEngin := GetMailEngine(appkey)
+	if mailEngin == nil || mailEngin == emailengines.DefaultEmailEngine {
+		return errs.IMErrorCode_APP_SMS_SEND_FAILED
+	}
+	// 检查是否还有有效的
+	recordStorage := storages.NewSmsRecordStorage()
+	record, err := recordStorage.FindByEmail(appkey, req.Email, time.Now().Add(-3*time.Minute))
+	randomCode := RandomSms()
+	if err == nil {
+		randomCode = record.Code
+	} else {
+		_, err = recordStorage.Create(models.SmsRecord{
+			AppKey:      appkey,
+			Email:       req.Email,
+			Code:        randomCode,
+			CreatedTime: time.Now(),
+		})
+		if err != nil {
+			return errs.IMErrorCode_APP_SMS_SEND_FAILED
+		}
+	}
+	body, html := GetEmailTemplate()
+	if html != "" {
+		body = ""
+		html = strings.ReplaceAll(html, "{code}", randomCode)
+	} else {
+		html = ""
+		body = strings.ReplaceAll(body, "{code}", randomCode)
+	}
+	err = mailEngin.SendMail(req.Email, "Verify Code", body, html)
+	if err != nil {
+		return errs.IMErrorCode_APP_SMS_SEND_FAILED
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func BindEmail(ctx context.Context, req *apimodels.BindEmailReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	storage := storages.NewSmsRecordStorage()
+	record, err := storage.FindByEmailCode(appkey, req.Email, req.Code)
+	if err != nil {
+		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+	}
+	interval := time.Since(record.CreatedTime)
+	if interval > 5*time.Minute {
+		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+	}
+	//update email
+	userStorage := storages.NewUserStorage()
+	err = userStorage.UpdateEmail(appkey, userId, req.Email)
+	if err != nil {
+		return errs.IMErrorCode_APP_DEFAULT
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func BindPhoneSendSms(ctx context.Context, req *apimodels.BindPhoneReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	storage := storages.NewUserStorage()
+	user, err := storage.FindByPhone(appkey, req.Phone)
+	if err != nil {
+		return errs.IMErrorCode_APP_DEFAULT
+	}
+	if user != nil {
+		return errs.IMErrorCode_APP_PHONE_EXISTED
+	}
+	smsEngin := GetSmsEngine(appkey)
+	if smsEngin == nil || smsEngin == smsengines.DefaultSmsEngine {
+		return errs.IMErrorCode_APP_SMS_SEND_FAILED
+	}
+	// 检查是否还有有效的
+	recordStorage := storages.NewSmsRecordStorage()
+	record, err := recordStorage.FindByPhone(appkey, req.Phone, time.Now().Add(-3*time.Minute))
+	randomCode := RandomSms()
+	if err == nil {
+		randomCode = record.Code
+	} else {
+		_, err = recordStorage.Create(models.SmsRecord{
+			AppKey:      appkey,
+			Phone:       req.Phone,
+			Code:        randomCode,
+			CreatedTime: time.Now(),
+		})
+		if err != nil {
+			return errs.IMErrorCode_APP_SMS_SEND_FAILED
+		}
+	}
+	err = smsEngin.SmsSend(req.Phone, map[string]interface{}{
+		"code": randomCode,
+	})
+	if err != nil {
+		return errs.IMErrorCode_APP_SMS_SEND_FAILED
+	}
+	return errs.IMErrorCode_SUCCESS
+}
+
+func BindPhone(ctx context.Context, req *apimodels.BindPhoneReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	storage := storages.NewSmsRecordStorage()
+	record, err := storage.FindByPhoneCode(appkey, req.Phone, req.Code)
+	if err != nil {
+		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+	}
+	interval := time.Since(record.CreatedTime)
+	if interval > 5*time.Minute {
+		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+	}
+	//update phone
+	userStorage := storages.NewUserStorage()
+	err = userStorage.UpdatePhone(appkey, userId, req.Phone)
+	if err != nil {
+		return errs.IMErrorCode_APP_DEFAULT
+	}
+	return errs.IMErrorCode_SUCCESS
 }

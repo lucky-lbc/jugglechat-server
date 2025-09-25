@@ -52,7 +52,25 @@ func UpdateUser(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	services.UpdateUser(ctxs.ToCtx(ctx), req)
+	code := services.UpdateUser(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
+func UpdatePass(ctx *gin.Context) {
+	req := &models.UpdUserPassReq{}
+	if err := ctx.BindJSON(req); err != nil || req.UserId == "" || req.Password == "" || req.NewPassword == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.UpdatePass(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
 	responses.SuccessHttpResp(ctx, nil)
 }
 
@@ -159,4 +177,60 @@ func QryBlockUsers(ctx *gin.Context) {
 		return
 	}
 	responses.SuccessHttpResp(ctx, blockUsers)
+}
+
+func BindEmailSendEmail(ctx *gin.Context) {
+	req := &models.BindEmailReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Email == "" || req.Code == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.BindEmailSendEmail(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
+func BindEmail(ctx *gin.Context) {
+	req := &models.BindEmailReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Email == "" || req.Code == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.BindEmail(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
+func BindPhoneSendSms(ctx *gin.Context) {
+	req := &models.BindPhoneReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Phone == "" || req.Code == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.BindPhoneSendSms(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
+func BindPhone(ctx *gin.Context) {
+	req := &models.BindPhoneReq{}
+	if err := ctx.BindJSON(req); err != nil || req.Phone == "" || req.Code == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.BindPhone(ctxs.ToCtx(ctx), req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
 }

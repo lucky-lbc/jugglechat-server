@@ -27,7 +27,12 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.GET("/syncconfs", apis.SyncConfs)
 
 	group.POST("/users/update", apis.UpdateUser)
+	group.POST("/users/updpass", apis.UpdatePass)
 	group.POST("/users/updsettings", apis.UpdateUserSettings)
+	group.POST("/users/bindemail/send", apis.BindEmailSendEmail)
+	group.POST("/users/bindemail", apis.BindEmail)
+	group.POST("/users/bindphone/send", apis.BindPhoneSendSms)
+	group.POST("/users/bindphone", apis.BindPhone)
 	group.POST("/users/search", apis.SearchUsers)
 	group.GET("/users/info", apis.QryUserInfo)
 	group.GET("/users/qrcode", apis.QryUserQrCode)
