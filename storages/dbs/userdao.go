@@ -50,6 +50,7 @@ func (user UserDao) FindByUserId(appkey, userId string) (*models.User, error) {
 		Phone:        item.Phone,
 		Email:        item.Email,
 		LoginAccount: item.LoginAccount,
+		LoginPass:    item.LoginPass,
 		CreatedTime:  item.CreatedTime,
 		UpdatedTime:  item.UpdatedTime,
 		AppKey:       item.AppKey,

@@ -238,7 +238,7 @@ func UpdatePass(ctx context.Context, req *apimodels.UpdUserPassReq) errs.IMError
 	if user.LoginPass != utils.SHA1(req.Password) {
 		return errs.IMErrorCode_APP_LOGIN_ERR_PASS
 	}
-	err = storage.UpdatePass(appkey, req.UserId, req.NewPassword)
+	err = storage.UpdatePass(appkey, req.UserId, utils.SHA1(req.NewPassword))
 	if err != nil {
 		return errs.IMErrorCode_APP_DEFAULT
 	}
