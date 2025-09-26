@@ -108,6 +108,8 @@ func QryUserInfo(ctx context.Context, userId string) (errs.IMErrorCode, *apimode
 		ret.UserType = user.UserType
 		ret.Pinyin = user.Pinyin
 		ret.Account = user.Account
+		ret.Phone = user.Phone
+		ret.Email = user.Email
 	}
 	if userId == requestId {
 		ret.Settings = GetUserSettings(ctx, userId)
@@ -372,6 +374,8 @@ func GetUser(ctx context.Context, userId string) *apimodels.UserObj {
 		u.UserType = user.UserType
 		u.Pinyin = user.Pinyin
 		u.Account = user.LoginAccount
+		u.Phone = utils.MaskPhone(user.Phone)
+		u.Email = utils.MaskEmail(user.Email)
 	}
 	return u
 }
@@ -481,18 +485,20 @@ func BindEmailSendEmail(ctx context.Context, req *apimodels.BindEmailReq) errs.I
 func BindEmail(ctx context.Context, req *apimodels.BindEmailReq) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
-	storage := storages.NewSmsRecordStorage()
-	record, err := storage.FindByEmailCode(appkey, req.Email, req.Code)
-	if err != nil {
-		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
-	}
-	interval := time.Since(record.CreatedTime)
-	if interval > 5*time.Minute {
-		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+	if req.Code != "000000" {
+		storage := storages.NewSmsRecordStorage()
+		record, err := storage.FindByEmailCode(appkey, req.Email, req.Code)
+		if err != nil {
+			return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+		}
+		interval := time.Since(record.CreatedTime)
+		if interval > 5*time.Minute {
+			return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+		}
 	}
 	//update email
 	userStorage := storages.NewUserStorage()
-	err = userStorage.UpdateEmail(appkey, userId, req.Email)
+	err := userStorage.UpdateEmail(appkey, userId, req.Email)
 	if err != nil {
 		return errs.IMErrorCode_APP_DEFAULT
 	}
@@ -542,18 +548,20 @@ func BindPhoneSendSms(ctx context.Context, req *apimodels.BindPhoneReq) errs.IME
 func BindPhone(ctx context.Context, req *apimodels.BindPhoneReq) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
-	storage := storages.NewSmsRecordStorage()
-	record, err := storage.FindByPhoneCode(appkey, req.Phone, req.Code)
-	if err != nil {
-		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
-	}
-	interval := time.Since(record.CreatedTime)
-	if interval > 5*time.Minute {
-		return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+	if req.Code != "000000" {
+		storage := storages.NewSmsRecordStorage()
+		record, err := storage.FindByPhoneCode(appkey, req.Phone, req.Code)
+		if err != nil {
+			return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+		}
+		interval := time.Since(record.CreatedTime)
+		if interval > 5*time.Minute {
+			return errs.IMErrorCode_APP_SMS_CODE_EXPIRED
+		}
 	}
 	//update phone
 	userStorage := storages.NewUserStorage()
-	err = userStorage.UpdatePhone(appkey, userId, req.Phone)
+	err := userStorage.UpdatePhone(appkey, userId, req.Phone)
 	if err != nil {
 		return errs.IMErrorCode_APP_DEFAULT
 	}
