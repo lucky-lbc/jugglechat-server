@@ -40,6 +40,7 @@ func main() {
 	group := adminRouters.RouteLogin(adminServer, "admingateway")
 	adminRouters.RouteProxy(group)
 	adminRouters.Route(group)
+	adminRouters.LoadJuggleChatAdminWeb(adminServer)
 	go adminServer.Run(fmt.Sprintf(":%d", configures.Config.AdminPort))
 
 	closeChan := make(chan struct{})
