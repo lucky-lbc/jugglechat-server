@@ -41,6 +41,10 @@ type Users struct {
 	Offset string     `json:"offset"`
 }
 
+type UserIds struct {
+	UserIds []string `json:"user_ids"`
+}
+
 type SearchReq struct {
 	Keyword string `json:"keyword"`
 	Phone   string `json:"phone"`

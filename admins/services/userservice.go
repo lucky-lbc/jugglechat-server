@@ -45,7 +45,7 @@ func QryUsers(ctx context.Context, appkey, offset string, limit int64, isPositiv
 func QryUserInfo(appkey, userId string) *apimodels.User {
 	storage := storages.NewUserStorage()
 	user, err := storage.FindByUserId(appkey, userId)
-	if err != nil {
+	if err != nil || user == nil {
 		return &apimodels.User{
 			UserId: userId,
 		}

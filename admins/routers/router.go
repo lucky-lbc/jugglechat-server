@@ -25,6 +25,8 @@ func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/accounts/add", apis.AddAccount)
 	group.POST("/accounts/delete", apis.DeleteAccounts)
 	group.POST("/accounts/disable", apis.DisableAccounts)
+	group.POST("/accounts/bindapps")
+	group.POST("/accounts/unbindapps")
 	group.GET("/accounts/list", apis.QryAccounts)
 	return group
 }

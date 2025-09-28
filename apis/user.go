@@ -8,8 +8,10 @@ import (
 
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
+	"github.com/juggleim/commons/imsdk"
 	"github.com/juggleim/commons/responses"
 	utils "github.com/juggleim/commons/tools"
+	juggleimsdk "github.com/juggleim/imserver-sdk-go"
 	"github.com/juggleim/jugglechat-server/apis/models"
 	"github.com/juggleim/jugglechat-server/services"
 
@@ -233,4 +235,32 @@ func BindPhone(ctx *gin.Context) {
 		return
 	}
 	responses.SuccessHttpResp(ctx, nil)
+}
+
+func QryUsersOnlineStauts(ctx *gin.Context) {
+	req := &models.UserIds{}
+	if err := ctx.BindJSON(req); err != nil || len(req.UserIds) <= 0 {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
+	if appkey == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+		return
+	}
+	sdk := imsdk.GetImSdk(appkey)
+	if sdk == nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_EXISTED)
+		return
+	}
+	resp, code, _, err := sdk.QryUserOnlineStatus(req.UserIds)
+	if err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
+		return
+	}
+	if code != juggleimsdk.ApiCode(errs.IMErrorCode_SUCCESS) {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode(code))
+		return
+	}
+	responses.SuccessHttpResp(ctx, resp)
 }

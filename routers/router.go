@@ -33,6 +33,7 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/users/bindemail", apis.BindEmail)
 	group.POST("/users/bindphone/send", apis.BindPhoneSendSms)
 	group.POST("/users/bindphone", apis.BindPhone)
+	group.POST("/users/onlinestatus", apis.QryUsersOnlineStauts)
 	group.POST("/users/search", apis.SearchUsers)
 	group.GET("/users/info", apis.QryUserInfo)
 	group.GET("/users/qrcode", apis.QryUserQrCode)

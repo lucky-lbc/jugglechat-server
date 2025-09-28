@@ -2,7 +2,7 @@ module github.com/juggleim/jugglechat-server
 
 go 1.23.2
 
-require github.com/juggleim/imserver-sdk-go v1.0.9
+require github.com/juggleim/imserver-sdk-go v1.0.10
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -93,3 +93,5 @@ require (
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+// replace github.com/juggleim/commons v1.0.17 => /Users/gxg/Documents/gitee/commons
