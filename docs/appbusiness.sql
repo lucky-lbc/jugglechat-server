@@ -1,3 +1,17 @@
+CREATE TABLE IF NOT EXISTS `accounts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `account` varchar(45) DEFAULT NULL,
+  `password` varchar(45) DEFAULT NULL,
+  `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `state` tinyint DEFAULT '0',
+  `role_type` tinyint DEFAULT 0,
+  `parent_account` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_account` (`account`),
+  KEY `idx_parent` (`parent_account`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS `accountapprels` (
   `id` int NOT NULL AUTO_INCREMENT,
   `app_key` varchar(20) DEFAULT '',
@@ -306,4 +320,4 @@ CREATE TABLE IF NOT EXISTS `banusers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatcommondb_version','20250201');
-INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250201');
+INSERT IGNORE INTO `globalconfs` (`conf_key`,`conf_value`)VALUES('jchatdb_version','20250918');

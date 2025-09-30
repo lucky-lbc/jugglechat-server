@@ -12,7 +12,6 @@ import (
 	"github.com/juggleim/commons/responses"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/admins/services"
-	"github.com/juggleim/jugglechat-server/storages/dbs"
 )
 
 const (
@@ -30,7 +29,7 @@ func Validate(ctx *gin.Context) {
 		return
 	}
 	authStr := ctx.Request.Header.Get(Header_Authorization)
-	account, roleType, err := validateAuthorization(authStr)
+	account, err := validateAuthorization(authStr)
 	if err != nil {
 		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_AuthFail)
 		ctx.Abort()
@@ -44,7 +43,6 @@ func Validate(ctx *gin.Context) {
 		return
 	}
 	ctx.Set(string(ctxs.CtxKey_Account), account)
-	ctx.Set(string(ctxs.CtxKey_RoleType), roleType)
 }
 
 func GetLoginedAccount(ctx *gin.Context) string {
@@ -54,30 +52,21 @@ func GetLoginedAccount(ctx *gin.Context) string {
 	return ""
 }
 
-func GetAccountRoleType(ctx *gin.Context) dbs.RoleType {
-	if rt, ok := ctx.Value(ctxs.CtxKey_RoleType).(dbs.RoleType); ok {
-		return rt
-	}
-	return dbs.RoleType_NormalAdmin
-}
-
 var jwtkey = []byte("jug9le1m")
 
 type Claims struct {
-	Account  string
-	RoleType int
+	Account string
 	jwt.RegisteredClaims
 }
 
 func TestAu() {
-	fmt.Println(generateAuthorization("admin1", dbs.RoleType_SuperAdmin))
+	fmt.Println(generateAuthorization("admin1"))
 }
 
-func generateAuthorization(account string, role dbs.RoleType) (string, error) {
+func generateAuthorization(account string) (string, error) {
 	expireTime := time.Now().Add(time.Hour)
 	claims := &Claims{
-		Account:  account,
-		RoleType: int(role),
+		Account: account,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: &jwt.NumericDate{
 				Time: expireTime,
@@ -97,12 +86,12 @@ func generateAuthorization(account string, role dbs.RoleType) (string, error) {
 	return tokenString, nil
 }
 
-func validateAuthorization(authorization string) (string, dbs.RoleType, error) {
+func validateAuthorization(authorization string) (string, error) {
 	token, claims, err := parseToken(authorization)
 	if err != nil || !token.Valid {
-		return "", dbs.RoleType_NormalAdmin, fmt.Errorf("auth fail")
+		return "", fmt.Errorf("auth fail")
 	}
-	return claims.Account, dbs.RoleType(claims.RoleType), nil
+	return claims.Account, nil
 }
 
 func parseToken(tokenString string) (*jwt.Token, *Claims, error) {

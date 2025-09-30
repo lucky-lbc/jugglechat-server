@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/commons/errs"
 	"github.com/juggleim/commons/responses"
 	utils "github.com/juggleim/commons/tools"
 	"github.com/juggleim/jugglechat-server/admins/services"
-	"github.com/juggleim/jugglechat-server/storages/dbs"
 )
 
 func Login(ctx *gin.Context) {
@@ -22,7 +22,7 @@ func Login(ctx *gin.Context) {
 	}
 	code, account := services.CheckLogin(req.Account, req.Password)
 	if code == errs.AdminErrorCode_Success {
-		authStr, err := generateAuthorization(req.Account, dbs.RoleType(req.RoleId))
+		authStr, err := generateAuthorization(req.Account)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, &errs.AdminApiErrorMsg{
 				Code: errs.AdminErrorCode_Default,
@@ -63,82 +63,92 @@ type LoginResp struct {
 func AddAccount(ctx *gin.Context) {
 	var req AccountReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_ParamError,
-			Msg:  "param illegal",
-		})
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
-	roleType := GetAccountRoleType(ctx)
-	if roleType != dbs.RoleType_SuperAdmin {
-		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_NotPermission,
-		})
+	code := services.AddAccount(ctxs.ToCtx(ctx), req.Account, req.Password, req.RoleId)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
 		return
 	}
-	code := services.AddAccount(GetLoginedAccount(ctx), req.Account, req.Password, req.RoleId)
-	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
-		Code: code,
-	})
+	responses.AdminSuccessHttpResp(ctx, nil)
 }
 
 func UpdPassword(ctx *gin.Context) {
 	var req AccountReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_ParamError,
-			Msg:  "param illegal",
-		})
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
 	code := services.UpdPassword(req.Account, req.Password, req.NewPassword)
-	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
-		Code: code,
-	})
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
+		return
+	}
+	responses.AdminSuccessHttpResp(ctx, nil)
 }
 
 func DisableAccounts(ctx *gin.Context) {
 	var req AccountsReq
 	if err := ctx.ShouldBindJSON(&req); err != nil || len(req.Accounts) <= 0 {
-		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_ParamError,
-			Msg:  "param illegal",
-		})
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
-	roleType := GetAccountRoleType(ctx)
-	if roleType != dbs.RoleType_SuperAdmin {
-		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_NotPermission,
-		})
+	code := services.DisableAccounts(ctxs.ToCtx(ctx), req.Accounts, req.IsDisable)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
 		return
 	}
-	code := services.DisableAccounts(req.Accounts, req.IsDisable)
-	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
-		Code: code,
-	})
+	responses.AdminSuccessHttpResp(ctx, nil)
 }
 
 func DeleteAccounts(ctx *gin.Context) {
 	var req AccountsReq
 	if err := ctx.ShouldBindJSON(&req); err != nil || len(req.Accounts) <= 0 {
-		ctx.JSON(http.StatusBadRequest, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_ParamError,
-			Msg:  "param illegal",
-		})
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
-	roleType := GetAccountRoleType(ctx)
-	if roleType != dbs.RoleType_SuperAdmin {
-		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_NotPermission,
-		})
+	code := services.DeleteAccounts(ctxs.ToCtx(ctx), req.Accounts)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
 		return
 	}
-	code := services.DeleteAccounts(req.Accounts)
+	responses.AdminSuccessHttpResp(ctx, nil)
+}
+
+type BindAppsReq struct {
+	Account string   `json:"account"`
+	AppKeys []string `json:"app_keys"`
+}
+
+func BindApps(ctx *gin.Context) {
+	var req BindAppsReq
+	if err := ctx.ShouldBindJSON(&req); err != nil || req.Account == "" || len(req.AppKeys) <= 0 {
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
+		return
+	}
+	code := services.BindApps(ctxs.ToCtx(ctx), req.Account, req.AppKeys)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
+		return
+	}
 	ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
 		Code: code,
 	})
+}
+
+func UnBindApps(ctx *gin.Context) {
+	var req BindAppsReq
+	if err := ctx.ShouldBindJSON(&req); err != nil || req.Account == "" || len(req.AppKeys) <= 0 {
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
+		return
+	}
+	code := services.UnBindApps(ctxs.ToCtx(ctx), req.Account, req.AppKeys)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
+		return
+	}
+	responses.AdminSuccessHttpResp(ctx, nil)
 }
 
 type AccountsReq struct {
@@ -147,13 +157,6 @@ type AccountsReq struct {
 }
 
 func QryAccounts(ctx *gin.Context) {
-	roleType := GetAccountRoleType(ctx)
-	if roleType != dbs.RoleType_SuperAdmin {
-		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
-			Code: errs.AdminErrorCode_NotPermission,
-		})
-		return
-	}
 	offsetStr := ctx.Query("offset")
 	limitStr := ctx.Query("limit")
 	var limit int64 = 50
@@ -163,6 +166,10 @@ func QryAccounts(ctx *gin.Context) {
 			limit = intVal
 		}
 	}
-	accounts := services.QryAccounts(limit, offsetStr)
-	responses.SuccessHttpResp(ctx, accounts)
+	code, accounts := services.QryAccounts(ctxs.ToCtx(ctx), limit, offsetStr)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
+		return
+	}
+	responses.AdminSuccessHttpResp(ctx, accounts)
 }

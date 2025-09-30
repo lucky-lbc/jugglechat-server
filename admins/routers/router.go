@@ -1,19 +1,15 @@
 package routers
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juggleim/commons/configures"
 	"github.com/juggleim/commons/ctxs"
 	"github.com/juggleim/jugglechat-server/admins/apis"
 )
-
-var Prefix string = ""
 
 func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	eng.Use(CorsHandler(), InjectCtx())
@@ -25,8 +21,8 @@ func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/accounts/add", apis.AddAccount)
 	group.POST("/accounts/delete", apis.DeleteAccounts)
 	group.POST("/accounts/disable", apis.DisableAccounts)
-	group.POST("/accounts/bindapps")
-	group.POST("/accounts/unbindapps")
+	group.POST("/accounts/bindapps", apis.BindApps)
+	group.POST("/accounts/unbindapps", apis.UnBindApps)
 	group.GET("/accounts/list", apis.QryAccounts)
 	return group
 }
@@ -34,7 +30,160 @@ func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {
 func RouteProxy(group *gin.RouterGroup) *gin.RouterGroup {
 	imAdminProxy := getImAdminProxy()
 	if imAdminProxy != nil {
+		group.POST("/apps/active", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/create", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
 		group.GET("/apps/list", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/info", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/configs/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/configs/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/eventsubconfig/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/eventsubconfig/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		//translate
+		group.POST("/apps/translate/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/translate/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		//sms
+		group.POST("/apps/sms/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/sms/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		//rtc
+		group.POST("/apps/rtcconf/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/rtcconf/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/zegoconf/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/zegoconf/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/agoraconf/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/agoraconf/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/livekitconf/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/livekitconf/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+
+		group.POST("/apps/iospushcer/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/iospushcer/upload", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/iospushcer/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/fcmpushconf/upload", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/fcmpushconf/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/androidpushconf/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/androidpushconf/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+
+		group.POST("/apps/fileconf/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/fileconf/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/fileconf/switch/get", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/fileconf/switch/set", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		//logs
+		group.POST("/apps/clientlogs/notify", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/clientlogs/list", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/clientlogs/download", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/serverlogs/userconnect", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/serverlogs/connect", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/serverlogs/business", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+
+		//statistic
+		group.GET("/apps/statistic/msg", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/statistic/useractivity", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/statistic/userreg", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/statistic/connectcount", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/statistic/maxconnectcount", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/statistic/chrmconnectcount", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/statistic/maxchrmconnectcount", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.GET("/apps/statistic/maxchrmconnectcount_v2", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+
+		group.GET("/apps/sensitivewords/list", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/sensitivewords/import", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/sensitivewords/add", func(ctx *gin.Context) {
+			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
+		})
+		group.POST("/apps/sensitivewords/delete", func(ctx *gin.Context) {
 			imAdminProxy.ServeHTTP(ctx.Writer, ctx.Request)
 		})
 	}
@@ -102,40 +251,12 @@ func getImAdminProxy() *httputil.ReverseProxy {
 				r.Host = adminUrl.Host
 
 				r.Header.Set("X-Forwared-For", r.RemoteAddr)
-
-				//rewrite path
-				originalPath := r.URL.Path
-				originalRawPath := r.URL.RawPath
-				newPath, newRawPath := rewritePath(originalPath, originalRawPath)
-				r.URL.Path = newPath
-				if newRawPath != "" {
-					r.URL.RawPath = newRawPath
-				}
 			}
 			proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-				fmt.Println("xxxx:", err)
 				http.Error(w, "Internal error", http.StatusServiceUnavailable)
 			}
 			return proxy
 		}
 	}
 	return nil
-}
-
-func rewritePath(path, rawPath string) (string, string) {
-	newPath := strings.TrimPrefix(path, "/"+Prefix)
-	if newPath == "" {
-		newPath = "/"
-	}
-	newPath = "/admingateway" + newPath
-
-	var newRawPath string
-	if rawPath != "" {
-		newRawPath = strings.TrimPrefix(rawPath, "/"+Prefix)
-		if newRawPath == "" {
-			newRawPath = "/"
-		}
-		newRawPath = "/admingateway" + newRawPath
-	}
-	return newPath, newRawPath
 }
