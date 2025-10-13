@@ -1,6 +1,9 @@
 package models
 
 type RegisterReq struct {
+	UserId   string `json:"userId"`
+	NickName string `json:"nickName"`
+	Avatar   string `json:"avatar"`
 	Account  string `json:"account"`
 	Phone    string `json:"phone"`
 	Email    string `json:"email"`

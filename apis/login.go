@@ -100,8 +100,12 @@ func Register(ctx *gin.Context) {
 		return
 	}
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
-	userId := utils.GenerateUUIDShort11()
-	nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
+	//userId := utils.GenerateUUIDShort11()
+	//nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
+	userId := req.UserId
+	nickname := req.NickName
+	avatar := req.Avatar
+
 	storage := storages.NewUserStorage()
 	var err error
 	if req.Account != "" {
@@ -113,9 +117,12 @@ func Register(ctx *gin.Context) {
 		err = storage.Create(dbModels.User{
 			UserId:       userId,
 			Nickname:     nickname,
+			UserPortrait: avatar,
 			LoginAccount: req.Account,
 			LoginPass:    utils.SHA1(req.Password),
 			AppKey:       appkey,
+			CreatedTime:  time.Now(),
+			UpdatedTime:  time.Now(),
 		})
 	} else if req.Phone != "" {
 		code := services.CheckPhoneSmsCode(ctxs.ToCtx(ctx), req.Phone, req.Code)

@@ -95,3 +95,4 @@ require (
 )
 
 // replace github.com/juggleim/commons v1.0.17 => /Users/gxg/Documents/gitee/commons
+replace github.com/juggleim/commons v1.0.17 => D:\code\im\go-project\github\juggle\parapack\commons
