@@ -218,7 +218,9 @@ func (user UserDao) Create(item models.User) error {
 	sqlBuilder.WriteString(strings.Join(marks, ","))
 	sqlBuilder.WriteString(")")
 	err := dbcommons.GetDb().Exec(sqlBuilder.String(), params...).Error
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return err
 }
 
