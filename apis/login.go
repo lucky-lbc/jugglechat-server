@@ -100,9 +100,11 @@ func Register(ctx *gin.Context) {
 		return
 	}
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
-	//userId := utils.GenerateUUIDShort11()
+	userId := utils.GenerateUUIDShort11()
 	//nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))
-	userId := req.UserId
+	if req.UserId != "" {
+		userId = req.UserId
+	}
 	nickname := req.NickName
 	avatar := req.Avatar
 
