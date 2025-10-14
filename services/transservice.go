@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/juggleim/commons/appinfos"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/dbcommons"
-	"github.com/juggleim/commons/errs"
-	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/commons/transengines"
-	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/commons/appinfos"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/dbcommons"
+	"github.com/lucky-lbc/commons/errs"
+	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/commons/transengines"
+	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
 )
 
 func Translate(ctx context.Context, req *apimodels.TransReq) (errs.IMErrorCode, *apimodels.TransReq) {

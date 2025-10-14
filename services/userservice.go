@@ -8,20 +8,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/juggleim/commons/appinfos"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/emailengines"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/imsdk"
-	"github.com/juggleim/commons/smsengines"
-	utils "github.com/juggleim/commons/tools"
-	apimodels "github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/events"
-	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/storages/dbs"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/commons/appinfos"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/emailengines"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/imsdk"
+	"github.com/lucky-lbc/commons/smsengines"
+	utils "github.com/lucky-lbc/commons/tools"
+	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/events"
+	"github.com/lucky-lbc/jugglechat-server/storages"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 
-	juggleimsdk "github.com/juggleim/imserver-sdk-go"
+	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 )
 
 var kefuInitFlags *sync.Map

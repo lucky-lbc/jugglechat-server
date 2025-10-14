@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/imsdk"
-	utils "github.com/juggleim/commons/tools"
-	apimodels "github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/imsdk"
+	utils "github.com/lucky-lbc/commons/tools"
+	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/storages"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 
-	juggleimsdk "github.com/juggleim/imserver-sdk-go"
+	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 )
 
 func TestGroup(ctx context.Context) errs.IMErrorCode {

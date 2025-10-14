@@ -3,12 +3,12 @@ package services
 import (
 	"context"
 
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/imsdk"
-	juggleimsdk "github.com/juggleim/imserver-sdk-go"
-	"github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/imsdk"
+	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
+	"github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/storages"
 )
 
 func RecallMsg(ctx context.Context, req *models.RecallMsgReq) errs.IMErrorCode {

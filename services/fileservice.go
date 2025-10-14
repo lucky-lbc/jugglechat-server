@@ -6,13 +6,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/juggleim/commons/caches"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/fileengines"
-	utils "github.com/juggleim/commons/tools"
-	apimodels "github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/storages/dbs"
+	"github.com/lucky-lbc/commons/caches"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/fileengines"
+	utils "github.com/lucky-lbc/commons/tools"
+	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs"
 )
 
 func GetFileCred(ctx context.Context, req *apimodels.QryFileCredReq) (errs.IMErrorCode, *apimodels.QryFileCredResp) {

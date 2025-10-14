@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/juggleim/commons/dbcommons"
-	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/commons/dbcommons"
+	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 
 type UserDao struct {

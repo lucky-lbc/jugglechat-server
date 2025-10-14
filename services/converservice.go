@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/storages"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 
 type ConverConfItemKey string

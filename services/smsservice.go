@@ -5,14 +5,14 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/juggleim/commons/appinfos"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/dbcommons"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/smsengines"
-	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/commons/appinfos"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/dbcommons"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/smsengines"
+	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/storages"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 
 var random *rand.Rand

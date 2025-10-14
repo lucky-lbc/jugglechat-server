@@ -3,8 +3,8 @@ package dbs
 import (
 	"time"
 
-	"github.com/juggleim/commons/dbcommons"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/commons/dbcommons"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 
 type SmsRecordDao struct {

@@ -3,7 +3,7 @@ package dbs
 import (
 	"fmt"
 
-	"github.com/juggleim/commons/dbcommons"
+	"github.com/lucky-lbc/commons/dbcommons"
 )
 
 type AccountAppRelDao struct {

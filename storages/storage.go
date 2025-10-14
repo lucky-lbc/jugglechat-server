@@ -1,8 +1,8 @@
 package storages
 
 import (
-	"github.com/juggleim/jugglechat-server/storages/dbs"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 
 func NewUserStorage() models.IUserStorage {

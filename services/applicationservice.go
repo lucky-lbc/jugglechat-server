@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	apimodels "github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/storages"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/errs"
+	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/storages"
 )
 
 func QryApplications(ctx context.Context, page, size int64, isPositiveOrder bool) (errs.IMErrorCode, *apimodels.Applications) {

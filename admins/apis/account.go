@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/responses"
-	utils "github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/admins/services"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/responses"
+	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/admins/services"
 )
 
 func Login(ctx *gin.Context) {

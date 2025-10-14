@@ -3,7 +3,7 @@ package dbs
 import (
 	"time"
 
-	"github.com/juggleim/commons/dbcommons"
+	"github.com/lucky-lbc/commons/dbcommons"
 )
 
 type RoleType int

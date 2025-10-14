@@ -2,7 +2,7 @@ module github.com/lucky-lbc/jugglechat-server
 
 go 1.23.2
 
-require github.com/juggleim/imserver-sdk-go v1.0.10
+require github.com/lucky-lbc/imserver-sdk-go v1.0.11-0.20251014023645-014c040ffe7e
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -35,7 +35,6 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/minio/crc64nvme v1.0.1 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
@@ -67,13 +66,12 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/juggleim/commons v1.0.17
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
+	github.com/lucky-lbc/commons v1.0.18-0.20251014030706-d041aa81153a
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/minio/minio-go/v7 v7.0.93 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -95,4 +93,4 @@ require (
 )
 
 // replace github.com/juggleim/commons v1.0.17 => /Users/gxg/Documents/gitee/commons
-replace github.com/juggleim/commons v1.0.17 => D:\code\im\go-project\github\juggle\parapack\commons
+replace github.com/lucky-lbc/commons v1.0.18-0.20251014030706-d041aa81153a => D:\code\im\go-project\github\juggle\parapack\commons

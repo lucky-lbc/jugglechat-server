@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/tools"
-	apimodels "github.com/juggleim/jugglechat-server/admins/apis/models"
-	"github.com/juggleim/jugglechat-server/storages"
-	"github.com/juggleim/jugglechat-server/storages/models"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/tools"
+	apimodels "github.com/lucky-lbc/jugglechat-server/admins/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/storages"
+	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 
 func AddApplication(ctx context.Context, application *apimodels.Application) (errs.AdminErrorCode, *apimodels.Application) {

@@ -7,12 +7,12 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/commons/configures"
-	"github.com/juggleim/commons/dbcommons"
-	adminRouters "github.com/juggleim/jugglechat-server/admins/routers"
-	"github.com/juggleim/jugglechat-server/log"
-	"github.com/juggleim/jugglechat-server/routers"
-	"github.com/juggleim/jugglechat-server/storages/dbs/dbmigrations"
+	"github.com/lucky-lbc/commons/configures"
+	"github.com/lucky-lbc/commons/dbcommons"
+	adminRouters "github.com/lucky-lbc/jugglechat-server/admins/routers"
+	"github.com/lucky-lbc/jugglechat-server/log"
+	"github.com/lucky-lbc/jugglechat-server/routers"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs/dbmigrations"
 )
 
 func main() {

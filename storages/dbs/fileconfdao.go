@@ -1,7 +1,7 @@
 package dbs
 
 import (
-	"github.com/juggleim/commons/dbcommons"
+	"github.com/lucky-lbc/commons/dbcommons"
 
 	"github.com/jinzhu/gorm"
 )

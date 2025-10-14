@@ -6,9 +6,9 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/commons/configures"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/jugglechat-server/admins/apis"
+	"github.com/lucky-lbc/commons/configures"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/admins/apis"
 )
 
 func RouteLogin(eng *gin.Engine, prefix string) *gin.RouterGroup {

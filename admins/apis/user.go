@@ -4,12 +4,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/errs"
-	"github.com/juggleim/commons/responses"
-	"github.com/juggleim/commons/tools"
-	"github.com/juggleim/jugglechat-server/admins/apis/models"
-	"github.com/juggleim/jugglechat-server/admins/services"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/errs"
+	"github.com/lucky-lbc/commons/responses"
+	"github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/admins/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/admins/services"
 )
 
 func QryUsers(ctx *gin.Context) {

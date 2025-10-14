@@ -1,6 +1,6 @@
 package events
 
-import "github.com/juggleim/jugglechat-server/storages/models"
+import "github.com/lucky-lbc/jugglechat-server/storages/models"
 
 type UserRegisteEvent func(user models.User)
 

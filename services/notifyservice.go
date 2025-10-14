@@ -3,12 +3,12 @@ package services
 import (
 	"context"
 
-	"github.com/juggleim/commons/ctxs"
-	"github.com/juggleim/commons/imsdk"
-	utils "github.com/juggleim/commons/tools"
-	apimodels "github.com/juggleim/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/commons/ctxs"
+	"github.com/lucky-lbc/commons/imsdk"
+	utils "github.com/lucky-lbc/commons/tools"
+	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
 
-	juggleimsdk "github.com/juggleim/imserver-sdk-go"
+	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 )
 
 func SendGrpNotify(ctx context.Context, grpId string, notify *apimodels.GroupNotify) {
