@@ -1,4 +1,4 @@
-module github.com/juggleim/jugglechat-server
+module github.com/lucky-lbc/jugglechat-server
 
 go 1.23.2
 
