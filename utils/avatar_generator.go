@@ -1,7 +1,6 @@
 package utils
 
 import (
-	_ "bytes"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -14,172 +13,277 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-// 根据多个头像URL生成群组头像
+// 生成群组头像（微信九宫格布局）
 func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
 	log.Printf("GenerateGroupAvatar: 接收到 %d 个头像URL", len(avatarURLs))
 
-	// 设置输出图像的尺寸
+	// 重新配置参数 - 增大头像尺寸并重新计算所有布局
 	const (
-		size       = 300
-		avatarSize = 100
+		canvasSize  = 300 // 画布尺寸
+		avatarSize  = 100 // 增大每个头像尺寸 (从86增加到100)
+		gridSpacing = 4   // 格子间距
+		borderSize  = 8   // 整体边距
 	)
 
-	// 创建白色背景的输出图像
-	//log.Println("GenerateGroupAvatar: 创建300x300白色背景")
-	result := imaging.New(size, size, color.White)
+	// 创建白色背景
+	result := imaging.New(canvasSize, canvasSize, color.White)
 
-	// 计算头像位置（根据头像数量动态调整）
-	var positions [][]int
-	n := len(avatarURLs)
-	switch n {
-	case 1:
-		positions = [][]int{{(size - avatarSize) / 2, (size - avatarSize) / 2}}
-	case 2:
-		positions = [][]int{
-			{(size - avatarSize*2) / 3, (size - avatarSize) / 2},
-			{(size-avatarSize*2)/3*2 + avatarSize, (size - avatarSize) / 2},
-		}
-	case 3:
-		positions = [][]int{
-			{(size - avatarSize) / 2, 0},
-			{0, size - avatarSize},
-			{size - avatarSize, size - avatarSize},
-		}
-	case 4:
-		positions = [][]int{
-			{0, 0}, {avatarSize, 0},
-			{0, avatarSize}, {avatarSize, avatarSize},
-		}
-	case 5: // 上 2 下 3
-		positions = [][]int{
-			{(size - avatarSize*2) / 3, 0},
-			{(size-avatarSize*2)/3*2 + avatarSize, 0},
-			{0, size - avatarSize},
-			{size/2 - avatarSize/2, size - avatarSize},
-			{size - avatarSize, size - avatarSize},
-		}
-	case 6: // 上下两排 每排 3 个 整体居中 上下留空
-		marginTop := (size - avatarSize*2) / 3
-		marginLR := (size - avatarSize*3) / 4
-		positions = [][]int{
-			{marginLR, marginTop},
-			{marginLR + avatarSize, marginTop},
-			{marginLR + avatarSize*2, marginTop},
-			{marginLR, marginTop + avatarSize},
-			{marginLR + avatarSize, marginTop + avatarSize},
-			{marginLR + avatarSize*2, marginTop + avatarSize},
-		}
-	case 7: // 第一排 1 个居中
-		positions = [][]int{
-			{(size - avatarSize) / 2, 0},
-			{(size - avatarSize*3) / 4, avatarSize},
-			{(size-avatarSize*3)/4 + avatarSize, avatarSize},
-			{(size-avatarSize*3)/4 + avatarSize*2, avatarSize},
-			{(size - avatarSize*3) / 4, avatarSize * 2},
-			{(size-avatarSize*3)/4 + avatarSize, avatarSize * 2},
-			{(size-avatarSize*3)/4 + avatarSize*2, avatarSize * 2},
-		}
-	case 8: // 第一排 2 个居中
-		top2Left := (size - avatarSize*2) / 3
-		positions = [][]int{
-			{top2Left, 0},
-			{top2Left + avatarSize, 0},
-			{(size - avatarSize*3) / 4, avatarSize},
-			{(size-avatarSize*3)/4 + avatarSize, avatarSize},
-			{(size-avatarSize*3)/4 + avatarSize*2, avatarSize},
-			{(size - avatarSize*3) / 4, avatarSize * 2},
-			{(size-avatarSize*3)/4 + avatarSize, avatarSize * 2},
-			{(size-avatarSize*3)/4 + avatarSize*2, avatarSize * 2},
-		}
-	default: // 9 人 3×3
-		positions = [][]int{
-			{0, 0}, {avatarSize, 0}, {avatarSize * 2, 0},
-			{0, avatarSize}, {avatarSize, avatarSize}, {avatarSize * 2, avatarSize},
-			{0, avatarSize * 2}, {avatarSize, avatarSize * 2}, {avatarSize * 2, avatarSize * 2},
-		}
-	}
-	// 限制最大处理的头像数量
+	// 计算九宫格布局
+	positions := calculateLayout(len(avatarURLs), canvasSize, avatarSize, gridSpacing, borderSize)
+
+	// 限制最大处理数量
 	maxAvatars := len(avatarURLs)
 	if maxAvatars > 9 {
 		maxAvatars = 9
 	}
 	log.Printf("GenerateGroupAvatar: 将处理 %d 个头像", maxAvatars)
 
-	// 创建HTTP客户端，设置超时
+	// 创建HTTP客户端
 	client := &http.Client{Timeout: 10 * time.Second}
 
 	// 下载并处理每个头像
 	successCount := 0
 	for i := 0; i < maxAvatars && i < len(positions); i++ {
-		url := avatarURLs[i]
-		if url == "" {
-			log.Printf("GenerateGroupAvatar: 跳过空URL")
-			continue
-		}
-
-		log.Printf("GenerateGroupAvatar: 处理头像URL: %s", url)
-
-		// 下载头像
-		req, err := http.NewRequest("GET", url, nil)
+		avatar, err := downloadAndProcessAvatar(avatarURLs[i], avatarSize, client)
 		if err != nil {
-			log.Printf("GenerateGroupAvatar: 创建请求失败: %v，跳过此头像", err)
+			log.Printf("GenerateGroupAvatar: 处理头像 %d 失败: %v，跳过", i+1, err)
 			continue
 		}
 
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("GenerateGroupAvatar: 下载头像失败: %v，跳过此头像", err)
-			continue
-		}
-
-		// 检查响应状态
-		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
-			log.Printf("GenerateGroupAvatar: 下载头像返回非200状态码: %d，跳过此头像", resp.StatusCode)
-			continue
-		}
-
-		// 解码头像
-		srcImg, _, err := image.Decode(resp.Body)
-		resp.Body.Close() // 及时关闭响应体
-
-		if err != nil {
-			log.Printf("GenerateGroupAvatar: 解码图像失败: %v，跳过此头像", err)
-			continue
-		}
-
-		// 调整头像大小
-		log.Printf("GenerateGroupAvatar: 调整头像 %d 大小为100x100", i+1)
-		avatar := imaging.Resize(srcImg, avatarSize, avatarSize, imaging.Lanczos)
-
-		// 绘制到结果图像上
+		// 绘制到画布
 		x, y := positions[i][0], positions[i][1]
-		log.Printf("GenerateGroupAvatar: 将头像 %d 绘制到位置 (%d,%d)", i+1, x, y)
 		result = imaging.Paste(result, avatar, image.Pt(x, y))
 		successCount++
 	}
 
+	if successCount == 0 {
+		log.Printf("GenerateGroupAvatar: 没有成功处理任何头像")
+		return nil
+	}
+
+	// 保存结果
+	return saveImage(result, outputPath)
+}
+
+// 计算九宫格布局位置 - 完全重新计算以适应更大的头像尺寸
+func calculateLayout(avatarCount, canvasSize, avatarSize, spacing, border int) [][]int {
+	positions := [][]int{}
+
+	// 可用区域（减去边距）
+	//availableSize := canvasSize - 2*border
+
+	// 根据头像数量计算布局
+	switch avatarCount {
+	case 1:
+		// 单头像完全居中
+		x := (canvasSize - avatarSize) / 2
+		y := x
+		positions = [][]int{{x, y}}
+
+	case 2:
+		// 水平排列，上下居中
+		totalWidth := avatarSize*2 + spacing
+		startX := (canvasSize - totalWidth) / 2
+		y := (canvasSize - avatarSize) / 2
+		positions = [][]int{
+			{startX, y},
+			{startX + avatarSize + spacing, y},
+		}
+
+	case 3:
+		// 上1下2布局
+		// 计算总高度
+		totalHeight := avatarSize*2 + spacing
+		startY := (canvasSize - totalHeight) / 2
+
+		// 上面单个头像：水平居中
+		topX := (canvasSize - avatarSize) / 2
+
+		// 下面两个头像：水平居中排列
+		bottomTotalWidth := avatarSize*2 + spacing
+		bottomStartX := (canvasSize - bottomTotalWidth) / 2
+
+		positions = [][]int{
+			{topX, startY}, // 上面1个
+			{bottomStartX, startY + avatarSize + spacing},                        // 下面左
+			{bottomStartX + avatarSize + spacing, startY + avatarSize + spacing}, // 下面右
+		}
+
+	case 4:
+		// 2x2网格，整体居中
+		totalSize := avatarSize*2 + spacing
+		startXY := (canvasSize - totalSize) / 2
+		positions = [][]int{
+			{startXY, startXY},
+			{startXY + avatarSize + spacing, startXY},
+			{startXY, startXY + avatarSize + spacing},
+			{startXY + avatarSize + spacing, startXY + avatarSize + spacing},
+		}
+
+	case 5:
+		// 上2下3，整体居中
+		// 计算总高度和宽度
+		totalHeight := avatarSize*2 + spacing
+		startY := (canvasSize - totalHeight) / 2
+
+		// 上排2个居中
+		topTotalWidth := avatarSize*2 + spacing
+		topStartX := (canvasSize - topTotalWidth) / 2
+
+		// 下排3个居中
+		bottomTotalWidth := avatarSize*3 + spacing*2
+		bottomStartX := (canvasSize - bottomTotalWidth) / 2
+
+		positions = [][]int{
+			// 上排2个
+			{topStartX, startY},
+			{topStartX + avatarSize + spacing, startY},
+			// 下排3个
+			{bottomStartX, startY + avatarSize + spacing},
+			{bottomStartX + avatarSize + spacing, startY + avatarSize + spacing},
+			{bottomStartX + (avatarSize+spacing)*2, startY + avatarSize + spacing},
+		}
+
+	case 6:
+		// 上3下3，整体居中
+		totalWidth := avatarSize*3 + spacing*2
+		startX := (canvasSize - totalWidth) / 2
+		totalHeight := avatarSize*2 + spacing
+		startY := (canvasSize - totalHeight) / 2
+
+		positions = [][]int{
+			{startX, startY},
+			{startX + avatarSize + spacing, startY},
+			{startX + (avatarSize+spacing)*2, startY},
+			{startX, startY + avatarSize + spacing},
+			{startX + avatarSize + spacing, startY + avatarSize + spacing},
+			{startX + (avatarSize+spacing)*2, startY + avatarSize + spacing},
+		}
+
+	case 7:
+		// 上1中3下3，整体居中
+		totalWidth := avatarSize*3 + spacing*2
+		startX := (canvasSize - totalWidth) / 2
+		totalHeight := avatarSize*3 + spacing*2
+		startY := (canvasSize - totalHeight) / 2
+
+		positions = [][]int{
+			// 上排1个（居中）
+			{startX + avatarSize + spacing, startY},
+			// 中排3个
+			{startX, startY + avatarSize + spacing},
+			{startX + avatarSize + spacing, startY + avatarSize + spacing},
+			{startX + (avatarSize+spacing)*2, startY + avatarSize + spacing},
+			// 下排3个
+			{startX, startY + (avatarSize+spacing)*2},
+			{startX + avatarSize + spacing, startY + (avatarSize+spacing)*2},
+			{startX + (avatarSize+spacing)*2, startY + (avatarSize+spacing)*2},
+		}
+
+	case 8:
+		// 上3中2下3，整体居中
+		totalWidth := avatarSize*3 + spacing*2
+		startX := (canvasSize - totalWidth) / 2
+		totalHeight := avatarSize*3 + spacing*2
+		startY := (canvasSize - totalHeight) / 2
+
+		// 中排2个居中
+		middleTotalWidth := avatarSize*2 + spacing
+		middleStartX := (canvasSize - middleTotalWidth) / 2
+
+		positions = [][]int{
+			// 上排3个
+			{startX, startY},
+			{startX + avatarSize + spacing, startY},
+			{startX + (avatarSize+spacing)*2, startY},
+			// 中排2个
+			{middleStartX, startY + avatarSize + spacing},
+			{middleStartX + avatarSize + spacing, startY + avatarSize + spacing},
+			// 下排3个
+			{startX, startY + (avatarSize+spacing)*2},
+			{startX + avatarSize + spacing, startY + (avatarSize+spacing)*2},
+			{startX + (avatarSize+spacing)*2, startY + (avatarSize+spacing)*2},
+		}
+
+	case 9:
+		// 标准3x3九宫格，整体居中
+		totalSize := avatarSize*3 + spacing*2
+		startXY := (canvasSize - totalSize) / 2
+
+		for row := 0; row < 3; row++ {
+			for col := 0; col < 3; col++ {
+				x := startXY + col*(avatarSize+spacing)
+				y := startXY + row*(avatarSize+spacing)
+				positions = append(positions, []int{x, y})
+			}
+		}
+
+	default: // 超过9个，按9个处理
+		// 标准3x3九宫格，整体居中
+		totalSize := avatarSize*3 + spacing*2
+		startXY := (canvasSize - totalSize) / 2
+
+		for row := 0; row < 3; row++ {
+			for col := 0; col < 3; col++ {
+				if len(positions) >= 9 {
+					break
+				}
+				x := startXY + col*(avatarSize+spacing)
+				y := startXY + row*(avatarSize+spacing)
+				positions = append(positions, []int{x, y})
+			}
+		}
+	}
+
+	return positions
+}
+
+// 下载并处理单个头像
+func downloadAndProcessAvatar(url string, size int, client *http.Client) (image.Image, error) {
+	if url == "" {
+		return nil, nil
+	}
+
+	// 下载头像
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, nil
+	}
+
+	// 解码头像
+	srcImg, _, err := image.Decode(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 调整大小并返回
+	return imaging.Resize(srcImg, size, size, imaging.Lanczos), nil
+}
+
+// 保存图像
+func saveImage(img image.Image, outputPath string) error {
 	// 确保输出目录存在
 	dir := filepath.Dir(outputPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		log.Printf("GenerateGroupAvatar: 创建目录失败: %v", err)
 		return err
 	}
 
 	outFile, err := os.Create(outputPath)
 	if err != nil {
-		log.Printf("GenerateGroupAvatar: 创建输出文件失败: %v", err)
 		return err
 	}
 	defer outFile.Close()
 
 	// 以JPEG格式保存
-	err = jpeg.Encode(outFile, result, &jpeg.Options{Quality: 90})
-	if err != nil {
-		log.Printf("GenerateGroupAvatar: 编码JPEG失败: %v", err)
-		return err
-	}
-
-	log.Println("GenerateGroupAvatar: 群组头像生成成功")
-	return nil
+	return jpeg.Encode(outFile, img, &jpeg.Options{Quality: 90})
 }
