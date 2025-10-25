@@ -321,11 +321,8 @@ func SetGrpAvatar(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
-	code := services.SetGroupAvatar(ctxs.ToCtx(ctx), grpId)
-	if code != errs.IMErrorCode_SUCCESS {
-		responses.ErrorHttpResp(ctx, code)
-		return
-	}
+	go services.SetGroupAvatar(ctxs.ToCtx(ctx), grpId)
+
 	responses.SuccessHttpResp(ctx, nil)
 }
 

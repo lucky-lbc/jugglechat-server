@@ -8,10 +8,18 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/disintegration/imaging"
 )
+
+// 头像结果结构体
+type avatarResult struct {
+	index int
+	image image.Image
+	err   error
+}
 
 // 生成群组头像（微信九宫格布局）
 func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
@@ -19,14 +27,15 @@ func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
 
 	// 重新配置参数 - 增大头像尺寸并重新计算所有布局
 	const (
-		canvasSize  = 300 // 画布尺寸
-		avatarSize  = 100 // 增大每个头像尺寸 (从86增加到100)
-		gridSpacing = 4   // 格子间距
-		borderSize  = 8   // 整体边距
+		canvasSize     = 300 // 画布尺寸
+		avatarSize     = 100 // 增大每个头像尺寸 (从86增加到100)
+		gridSpacing    = 4   // 格子间距
+		borderSize     = 8   // 整体边距
+		maxConcurrency = 5   // 最大并发数
 	)
 
 	// 创建白色背景
-	result := imaging.New(canvasSize, canvasSize, color.White)
+	canvas := imaging.New(canvasSize, canvasSize, color.White)
 
 	// 计算九宫格布局
 	positions := calculateLayout(len(avatarURLs), canvasSize, avatarSize, gridSpacing, borderSize)
@@ -41,19 +50,51 @@ func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
 	// 创建HTTP客户端
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	// 下载并处理每个头像
-	successCount := 0
+	// 并发下载并处理头像
+	semaphore := make(chan struct{}, maxConcurrency) // 控制并发数
+	resultsChan := make(chan avatarResult, maxAvatars)
+	var wg sync.WaitGroup
+
+	// 启动并发下载
 	for i := 0; i < maxAvatars && i < len(positions); i++ {
-		avatar, err := downloadAndProcessAvatar(avatarURLs[i], avatarSize, client)
-		if err != nil {
-			log.Printf("GenerateGroupAvatar: 处理头像 %d 失败: %v，跳过", i+1, err)
+		wg.Add(1)
+		i := i // 捕获循环变量
+		go func() {
+			defer wg.Done()
+
+			// 控制并发数
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+
+			avatar, err := downloadAndProcessAvatar(avatarURLs[i], avatarSize, client)
+			resultsChan <- avatarResult{
+				index: i,
+				image: avatar,
+				err:   err,
+			}
+		}()
+	}
+
+	// 等待所有下载完成并关闭结果通道
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+	}()
+
+	// 收集结果并绘制到画布
+	successCount := 0
+	for avatarRes := range resultsChan {
+		if avatarRes.err != nil {
+			log.Printf("GenerateGroupAvatar: 处理头像 %d 失败: %v，跳过", avatarRes.index+1, avatarRes.err)
 			continue
 		}
 
 		// 绘制到画布
-		x, y := positions[i][0], positions[i][1]
-		result = imaging.Paste(result, avatar, image.Pt(x, y))
-		successCount++
+		if avatarRes.image != nil && avatarRes.index < len(positions) {
+			x, y := positions[avatarRes.index][0], positions[avatarRes.index][1]
+			canvas = imaging.Paste(canvas, avatarRes.image, image.Pt(x, y))
+			successCount++
+		}
 	}
 
 	if successCount == 0 {
@@ -62,7 +103,7 @@ func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
 	}
 
 	// 保存结果
-	return saveImage(result, outputPath)
+	return saveImage(canvas, outputPath)
 }
 
 // 计算九宫格布局位置 - 完全重新计算以适应更大的头像尺寸
