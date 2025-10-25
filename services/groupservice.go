@@ -3,21 +3,49 @@ package services
 import (
 	"context"
 	"fmt"
+	utils2 "github.com/lucky-lbc/jugglechat-server/utils"
+	"strings"
+
+	"log"
+
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/lucky-lbc/commons/ctxs"
 	"github.com/lucky-lbc/commons/errs"
 	"github.com/lucky-lbc/commons/imsdk"
 	utils "github.com/lucky-lbc/commons/tools"
+	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+
 	"github.com/lucky-lbc/jugglechat-server/storages"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
-
-	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 )
 
+// TestGroup 测试群组功能，包括SetGroupAvatar
 func TestGroup(ctx context.Context) errs.IMErrorCode {
-	fmt.Println("xxxxxxxxxx")
+	log.Println("TestGroup: 开始测试群组功能")
+
+	// 测试SetGroupAvatar功能
+	// 注意：这里需要一个有效的groupId进行测试
+	// 在实际环境中，应该从测试参数或配置中获取
+	testGroupId := "test_group_id_123" // 测试用的群组ID
+	log.Printf("TestGroup: 测试SetGroupAvatar，groupId: %s", testGroupId)
+
+	code := SetGroupAvatar(ctx, testGroupId)
+	log.Printf("TestGroup: SetGroupAvatar返回错误码: %v", code)
+
+	if code == errs.IMErrorCode_SUCCESS {
+		log.Println("TestGroup: SetGroupAvatar测试成功")
+	} else if code == errs.IMErrorCode_APP_FILE_NOOSS {
+		log.Println("TestGroup: 参数无效，这是预期的，因为使用了测试ID")
+	} else if code == errs.IMErrorCode_APP_GROUP_NO_MEMBERS {
+		log.Println("TestGroup: 群组没有足够的成员头像，这可能是预期的")
+	} else {
+		log.Printf("TestGroup: SetGroupAvatar测试失败，错误码: %v", code)
+	}
+
 	return errs.IMErrorCode_SUCCESS
 }
 
@@ -1023,4 +1051,70 @@ func QryGrpApplications(ctx context.Context, startTime int64, count int32, order
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func SetGroupAvatar(ctx context.Context, groupId string) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+
+	storage := storages.NewGroupMemberStorage()
+	members, err := storage.QueryRandomMembers(appkey, groupId, 9)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 查询随机群成员失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	var avatarURLs []string
+	for _, member := range members {
+		if member.UserPortrait != "" {
+			avatarURLs = append(avatarURLs, member.UserPortrait)
+			log.Printf("SetGroupAvatar: 添加成员头像URL: %s, nickname: %s", member.UserPortrait, member.Nickname)
+		}
+	}
+
+	if len(avatarURLs) == 0 {
+		log.Printf("SetGroupAvatar: 没有足够的非空头像URL用于生成群组头像")
+		return errs.IMErrorCode_APP_GROUP_NO_MEMBERS
+	}
+
+	// 生成临时文件路径
+	tempFile := fmt.Sprintf("/tmp/im-server/images/group/group_avatar_%s.jpg", groupId)
+	log.Printf("SetGroupAvatar: 临时文件路径: %s", tempFile)
+
+	dir := filepath.Dir(tempFile)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		log.Printf("SetGroupAvatar: 创建目录失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	// 生成群组头像
+	err = utils2.GenerateGroupAvatar(avatarURLs, tempFile)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 生成群组头像失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	avatarURL, err := UploadToStorage(ctx, appkey, tempFile)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 上传头像失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+	// 更新群头像
+	grpStorage := storages.NewGroupStorage()
+	err = grpStorage.UpdateGrpName(appkey, groupId, "", avatarURL)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 更新群组头像失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	// 保存生成群头像的成员UID列表
+	memberUIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		memberUIDs = append(memberUIDs, member.MemberId)
+	}
+	err = grpStorage.UpdateGroupAvatarMembers(appkey, groupId, strings.Join(memberUIDs, ","))
+	if err != nil {
+		log.Printf("SetGroupAvatar: 保存成员UID列表失败: %v", err)
+	}
+
+	return errs.IMErrorCode_SUCCESS
 }

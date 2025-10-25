@@ -310,6 +310,25 @@ func SetGrpDisplayName(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, nil)
 }
 
+func SetGrpAvatar(ctx *gin.Context) {
+	req := &models.SetGroupAvatar{}
+	if err := ctx.BindJSON(&req); err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	grpId := req.GroupId
+	if grpId == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.SetGroupAvatar(ctxs.ToCtx(ctx), grpId)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
 func QryGrpQrCode(ctx *gin.Context) {
 	grpId := ctx.Query("group_id")
 	if grpId == "" {

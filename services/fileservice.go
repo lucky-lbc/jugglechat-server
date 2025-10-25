@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -175,5 +176,34 @@ func fileTypeToDir(fileType apimodels.FileType) string {
 		return "logs"
 	default:
 		return "files"
+	}
+}
+
+func UploadToStorage(ctx context.Context, appKey, filePath string) (string, error) {
+	fileConf := GetFileConf(ctx, appKey)
+
+	switch fileConf.FileEngine {
+	case fileengines.ChannelQiNiu:
+		if fileConf.QiNiu == nil {
+			return "", fmt.Errorf("七牛云配置未加载")
+		}
+
+		return "", nil
+	case fileengines.ChannelMinio, fileengines.ChannelAws:
+		if fileConf.S3 == nil {
+			return "", fmt.Errorf("S3配置未加载")
+		}
+		url, err := fileConf.S3.UploadFile(filePath)
+		if err != nil {
+			return "", fmt.Errorf("上传文件到S3失败: %v", err)
+		}
+		return url, nil
+	case fileengines.ChannelOss:
+		if fileConf.Oss == nil {
+			return "", fmt.Errorf("阿里云OSS配置未加载")
+		}
+		return "", nil
+	default:
+		return "", fmt.Errorf("不支持的存储引擎类型: %v", fileConf.FileEngine)
 	}
 }

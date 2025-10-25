@@ -49,15 +49,16 @@ type IGrpApplicationStorage interface {
 }
 
 type Group struct {
-	ID            int64
-	GroupId       string
-	GroupName     string
-	GroupPortrait string
-	CreatorId     string
-	CreatedTime   time.Time
-	UpdatedTime   time.Time
-	AppKey        string
-	IsMute        int
+	ID              int64
+	GroupId         string
+	GroupName       string
+	GroupPortrait   string
+	CreatorId       string
+	CreatedTime     time.Time
+	UpdatedTime     time.Time
+	AppKey          string
+	IsMute          int
+	AvatarMemberIDs string // 逗号分隔
 }
 
 type IGroupStorage interface {
@@ -68,6 +69,7 @@ type IGroupStorage interface {
 	UpdateGroupMuteStatus(appkey, groupId string, isMute int32) error
 	UpdateGrpName(appkey, groupId, groupName, groupPortrait string) error
 	UpdateCreatorId(appkey, groupId, creatorId string) error
+	UpdateGroupAvatarMembers(appkey, groupId, memberIDs string) error
 	QryGroups(appkey string, startId, limit int64, isPositive bool) ([]*Group, error)
 }
 
@@ -119,6 +121,7 @@ type IGroupMemberStorage interface {
 	UpdateAllow(appkey, groupId string, isAllow int, memberIds []string) error
 	CountByGroup(appkey, groupId string) int
 	UpdateGrpDisplayName(appkey, groupId, memberId string, displayName string) error
+	QueryRandomMembers(appkey, groupId string, limit int64) ([]*GroupMember, error)
 }
 
 type GroupAdmin struct {

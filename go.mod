@@ -2,7 +2,10 @@ module github.com/lucky-lbc/jugglechat-server
 
 go 1.23.2
 
-require github.com/lucky-lbc/imserver-sdk-go v1.0.11-0.20251014023645-014c040ffe7e
+require (
+	github.com/disintegration/imaging v1.6.2
+	github.com/lucky-lbc/imserver-sdk-go v1.0.11-0.20251014023645-014c040ffe7e
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -41,6 +44,7 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/tinylib/msgp v1.3.0 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
+	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

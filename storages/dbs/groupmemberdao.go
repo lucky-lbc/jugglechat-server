@@ -239,5 +239,35 @@ func (member GroupMemberDao) CountByGroup(appkey, groupId string) int {
 }
 
 func (member GroupMemberDao) UpdateGrpDisplayName(appkey, groupId, memberId string, displayName string) error {
-	return dbcommons.GetDb().Model(&member).Where("app_key=? and group_id=? and member_id=?", appkey, groupId, memberId).Update("grp_display_name", displayName).Error
+	err := dbcommons.GetDb().Model(&GroupMemberDao{}).Where("app_key=? and group_id=? and member_id=?", appkey, groupId, memberId).Update("grp_display_name", displayName).Error
+	return err
+}
+
+func (member GroupMemberDao) QueryRandomMembers(appkey, groupId string, limit int64) ([]*models.GroupMember, error) {
+	// 使用联合查询获取用户信息，包括nickname和user_portrait
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? order by RAND() limit ?", member.TableName(), UserDao{}.TableName())
+	var items []*GroupMemberWithUser
+	err := dbcommons.GetDb().Raw(sql, appkey, groupId, limit).Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+
+	ret := []*models.GroupMember{}
+	for _, item := range items {
+		ret = append(ret, &models.GroupMember{
+			ID:             item.ID,
+			GroupId:        item.GroupId,
+			MemberId:       item.MemberId,
+			MemberType:     item.MemberType,
+			CreatedTime:    item.CreatedTime,
+			AppKey:         item.AppKey,
+			IsMute:         item.IsMute,
+			IsAllow:        item.IsAllow,
+			MuteEndAt:      item.MuteEndAt,
+			GrpDisplayName: item.GrpDisplayName,
+			Nickname:       item.Nickname,
+			UserPortrait:   item.UserPortrait,
+		})
+	}
+	return ret, nil
 }

@@ -188,6 +188,10 @@ type QryGrpApplicationsResp struct {
 	Items []*GrpApplicationItem `json:"items"`
 }
 
+type SetGroupAvatar struct {
+	GroupId string `json:"group_id"`
+}
+
 type GrpApplicationItem struct {
 	ApplicationId string   `json:"application_id"`
 	GrpInfo       *GrpInfo `json:"grp_info"`
