@@ -75,7 +75,7 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
-	github.com/lucky-lbc/commons v1.0.18-0.20251014030706-d041aa81153a
+	github.com/lucky-lbc/commons v1.0.18-0.20251025072021-dd0fa10941ab
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/minio/minio-go/v7 v7.0.93 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -97,4 +97,4 @@ require (
 )
 
 // replace github.com/juggleim/commons v1.0.17 => /Users/gxg/Documents/gitee/commons
-replace github.com/lucky-lbc/commons v1.0.18-0.20251014030706-d041aa81153a => D:\code\im\go-project\github\juggle\parapack\commons
+replace github.com/lucky-lbc/commons v1.0.18-0.20251025072021-dd0fa10941ab => D:\code\im\go-project\github\juggle\parapack\commons

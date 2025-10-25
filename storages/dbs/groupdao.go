@@ -11,16 +11,15 @@ import (
 )
 
 type GroupDao struct {
-	ID              int64     `gorm:"primary_key"`
-	GroupId         string    `gorm:"group_id"`
-	GroupName       string    `gorm:"group_name"`
-	GroupPortrait   string    `gorm:"group_portrait"`
-	CreatorId       string    `gorm:"creator_id"`
-	AvatarMemberIds string    `gorm:"avatar_member_ids"`
-	CreatedTime     time.Time `gorm:"created_time"`
-	UpdatedTime     time.Time `gorm:"updated_time"`
-	AppKey          string    `gorm:"app_key"`
-	IsMute          int       `gorm:"is_mute"`
+	ID            int64     `gorm:"primary_key"`
+	GroupId       string    `gorm:"group_id"`
+	GroupName     string    `gorm:"group_name"`
+	GroupPortrait string    `gorm:"group_portrait"`
+	CreatorId     string    `gorm:"creator_id"`
+	CreatedTime   time.Time `gorm:"created_time"`
+	UpdatedTime   time.Time `gorm:"updated_time"`
+	AppKey        string    `gorm:"app_key"`
+	IsMute        int       `gorm:"is_mute"`
 }
 
 func (group GroupDao) TableName() string {
@@ -93,15 +92,6 @@ func (group GroupDao) UpdateGrpName(appkey, groupId, groupName, groupPortrait st
 		upd["updated_time"] = time.Now()
 	} else {
 		return nil
-	}
-	err := dbcommons.GetDb().Model(&GroupDao{}).Where("app_key=? and group_id=?", appkey, groupId).Update(upd).Error
-	return err
-}
-
-func (group GroupDao) UpdateGroupAvatarMembers(appkey, groupId, memberIDs string) error {
-	upd := map[string]interface{}{
-		"avatar_member_ids": memberIDs,
-		"updated_time":      time.Now(),
 	}
 	err := dbcommons.GetDb().Model(&GroupDao{}).Where("app_key=? and group_id=?", appkey, groupId).Update(upd).Error
 	return err

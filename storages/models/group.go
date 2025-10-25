@@ -69,7 +69,6 @@ type IGroupStorage interface {
 	UpdateGroupMuteStatus(appkey, groupId string, isMute int32) error
 	UpdateGrpName(appkey, groupId, groupName, groupPortrait string) error
 	UpdateCreatorId(appkey, groupId, creatorId string) error
-	UpdateGroupAvatarMembers(appkey, groupId, memberIDs string) error
 	QryGroups(appkey string, startId, limit int64, isPositive bool) ([]*Group, error)
 }
 

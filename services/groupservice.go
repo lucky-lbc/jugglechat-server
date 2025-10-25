@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	utils2 "github.com/lucky-lbc/jugglechat-server/utils"
-	"strings"
-
 	"log"
 
 	"os"
@@ -1107,14 +1105,14 @@ func SetGroupAvatar(ctx context.Context, groupId string) errs.IMErrorCode {
 	}
 
 	// 保存生成群头像的成员UID列表
-	memberUIDs := make([]string, 0, len(members))
-	for _, member := range members {
-		memberUIDs = append(memberUIDs, member.MemberId)
-	}
-	err = grpStorage.UpdateGroupAvatarMembers(appkey, groupId, strings.Join(memberUIDs, ","))
-	if err != nil {
-		log.Printf("SetGroupAvatar: 保存成员UID列表失败: %v", err)
-	}
+	//memberUIDs := make([]string, 0, len(members))
+	//for _, member := range members {
+	//	memberUIDs = append(memberUIDs, member.MemberId)
+	//}
+	//err = grpStorage.UpdateGroupAvatarMembers(appkey, groupId, strings.Join(memberUIDs, ","))
+	//if err != nil {
+	//	log.Printf("SetGroupAvatar: 保存成员UID列表失败: %v", err)
+	//}
 
 	return errs.IMErrorCode_SUCCESS
 }
