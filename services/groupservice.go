@@ -1055,7 +1055,7 @@ func SetGroupAvatar(ctx context.Context, groupId string) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 
 	storage := storages.NewGroupMemberStorage()
-	members, err := storage.QueryRandomMembers(appkey, groupId, 9)
+	members, err := storage.QueryRandomMembers(appkey, groupId, 3)
 	if err != nil {
 		log.Printf("SetGroupAvatar: 查询随机群成员失败: %v", err)
 		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
@@ -1066,6 +1066,8 @@ func SetGroupAvatar(ctx context.Context, groupId string) errs.IMErrorCode {
 		if member.UserPortrait != "" {
 			avatarURLs = append(avatarURLs, member.UserPortrait)
 			log.Printf("SetGroupAvatar: 添加成员头像URL: %s, nickname: %s", member.UserPortrait, member.Nickname)
+		} else {
+			avatarURLs = append(avatarURLs, "https://pp-appicon.s3.amazonaws.com/avatar/default/default.png")
 		}
 	}
 

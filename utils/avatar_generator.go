@@ -25,17 +25,35 @@ type avatarResult struct {
 func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
 	log.Printf("GenerateGroupAvatar: 接收到 %d 个头像URL", len(avatarURLs))
 
-	// 重新配置参数 - 增大头像尺寸并重新计算所有布局
+	// 重新配置参数
 	const (
 		canvasSize     = 300 // 画布尺寸
-		avatarSize     = 100 // 增大每个头像尺寸 (从86增加到100)
 		gridSpacing    = 4   // 格子间距
 		borderSize     = 8   // 整体边距
 		maxConcurrency = 5   // 最大并发数
 	)
 
+	// 根据头像数量确定头像尺寸
+	var avatarSize int
+	switch len(avatarURLs) {
+	case 1:
+		avatarSize = 200 // 单头像大尺寸
+	case 2:
+		avatarSize = 140 // 两个头像中等尺寸
+	case 3:
+		// 3个头像需要计算合适的尺寸来铺满一行
+		// 可用宽度 = 画布宽度 - 2*边距 - 间距
+		availableWidth := canvasSize - 2*borderSize - gridSpacing
+		avatarSize = availableWidth / 2 // 两个头像平分可用宽度
+	case 4:
+		availableWidth := canvasSize - 2*borderSize - gridSpacing
+		avatarSize = availableWidth / 2 // 两个头像平分可用宽度
+	default:
+		avatarSize = 100 // 其他数量使用标准尺寸
+	}
+
 	// 创建白色背景
-	canvas := imaging.New(canvasSize, canvasSize, color.White)
+	canvas := imaging.New(canvasSize, canvasSize, color.RGBA{R: 240, G: 240, B: 240, A: 255})
 
 	// 计算九宫格布局
 	positions := calculateLayout(len(avatarURLs), canvasSize, avatarSize, gridSpacing, borderSize)
@@ -45,7 +63,7 @@ func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
 	if maxAvatars > 9 {
 		maxAvatars = 9
 	}
-	log.Printf("GenerateGroupAvatar: 将处理 %d 个头像", maxAvatars)
+	log.Printf("GenerateGroupAvatar: 将处理 %d 个头像 (尺寸: %dpx)", maxAvatars, avatarSize)
 
 	// 创建HTTP客户端
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -106,12 +124,9 @@ func GenerateGroupAvatar(avatarURLs []string, outputPath string) error {
 	return saveImage(canvas, outputPath)
 }
 
-// 计算九宫格布局位置 - 完全重新计算以适应更大的头像尺寸
+// 计算九宫格布局位置
 func calculateLayout(avatarCount, canvasSize, avatarSize, spacing, border int) [][]int {
 	positions := [][]int{}
-
-	// 可用区域（减去边距）
-	//availableSize := canvasSize - 2*border
 
 	// 根据头像数量计算布局
 	switch avatarCount {
@@ -132,54 +147,47 @@ func calculateLayout(avatarCount, canvasSize, avatarSize, spacing, border int) [
 		}
 
 	case 3:
-		// 上1下2布局
-		// 计算总高度
+		// 第一行：单个头像居中
+		// 计算总高度：两行头像 + 行间距
 		totalHeight := avatarSize*2 + spacing
 		startY := (canvasSize - totalHeight) / 2
 
-		// 上面单个头像：水平居中
+		// 第一行头像位置（居中）
 		topX := (canvasSize - avatarSize) / 2
+		positions = [][]int{{topX, startY}}
 
-		// 下面两个头像：水平居中排列
+		// 第二行：两个头像整体居中，保持间距
+		bottomY := startY + avatarSize + spacing
+
+		// 计算第二行的总宽度（两个头像+间距）
 		bottomTotalWidth := avatarSize*2 + spacing
 		bottomStartX := (canvasSize - bottomTotalWidth) / 2
 
-		positions = [][]int{
-			{topX, startY}, // 上面1个
-			{bottomStartX, startY + avatarSize + spacing},                        // 下面左
-			{bottomStartX + avatarSize + spacing, startY + avatarSize + spacing}, // 下面右
-		}
+		positions = append(positions, []int{bottomStartX, bottomY})
+		positions = append(positions, []int{bottomStartX + avatarSize + spacing, bottomY})
 
 	case 4:
-		// 2x2网格，整体居中
-		totalSize := avatarSize*2 + spacing
-		startXY := (canvasSize - totalSize) / 2
+		startXY := border
 		positions = [][]int{
 			{startXY, startXY},
 			{startXY + avatarSize + spacing, startXY},
 			{startXY, startXY + avatarSize + spacing},
 			{startXY + avatarSize + spacing, startXY + avatarSize + spacing},
 		}
-
 	case 5:
 		// 上2下3，整体居中
-		// 计算总高度和宽度
 		totalHeight := avatarSize*2 + spacing
 		startY := (canvasSize - totalHeight) / 2
 
-		// 上排2个居中
 		topTotalWidth := avatarSize*2 + spacing
 		topStartX := (canvasSize - topTotalWidth) / 2
 
-		// 下排3个居中
 		bottomTotalWidth := avatarSize*3 + spacing*2
 		bottomStartX := (canvasSize - bottomTotalWidth) / 2
 
 		positions = [][]int{
-			// 上排2个
 			{topStartX, startY},
 			{topStartX + avatarSize + spacing, startY},
-			// 下排3个
 			{bottomStartX, startY + avatarSize + spacing},
 			{bottomStartX + avatarSize + spacing, startY + avatarSize + spacing},
 			{bottomStartX + (avatarSize+spacing)*2, startY + avatarSize + spacing},
@@ -209,41 +217,45 @@ func calculateLayout(avatarCount, canvasSize, avatarSize, spacing, border int) [
 		startY := (canvasSize - totalHeight) / 2
 
 		positions = [][]int{
-			// 上排1个（居中）
 			{startX + avatarSize + spacing, startY},
-			// 中排3个
 			{startX, startY + avatarSize + spacing},
 			{startX + avatarSize + spacing, startY + avatarSize + spacing},
 			{startX + (avatarSize+spacing)*2, startY + avatarSize + spacing},
-			// 下排3个
 			{startX, startY + (avatarSize+spacing)*2},
 			{startX + avatarSize + spacing, startY + (avatarSize+spacing)*2},
 			{startX + (avatarSize+spacing)*2, startY + (avatarSize+spacing)*2},
 		}
 
 	case 8:
-		// 上3中2下3，整体居中
-		totalWidth := avatarSize*3 + spacing*2
-		startX := (canvasSize - totalWidth) / 2
+		// 上2中3下3，整体居中
+		// 上2居中、中3居中、下3居中
 		totalHeight := avatarSize*3 + spacing*2
 		startY := (canvasSize - totalHeight) / 2
 
-		// 中排2个居中
-		middleTotalWidth := avatarSize*2 + spacing
+		// 第一行：2个头像居中
+		topTotalWidth := avatarSize*2 + spacing
+		topStartX := (canvasSize - topTotalWidth) / 2
+
+		// 第二行：3个头像居中
+		middleTotalWidth := avatarSize*3 + spacing*2
 		middleStartX := (canvasSize - middleTotalWidth) / 2
 
+		// 第三行：3个头像居中
+		bottomTotalWidth := avatarSize*3 + spacing*2
+		bottomStartX := (canvasSize - bottomTotalWidth) / 2
+
 		positions = [][]int{
-			// 上排3个
-			{startX, startY},
-			{startX + avatarSize + spacing, startY},
-			{startX + (avatarSize+spacing)*2, startY},
-			// 中排2个
+			// 第一行（2个）
+			{topStartX, startY},
+			{topStartX + avatarSize + spacing, startY},
+			// 第二行（3个）
 			{middleStartX, startY + avatarSize + spacing},
 			{middleStartX + avatarSize + spacing, startY + avatarSize + spacing},
-			// 下排3个
-			{startX, startY + (avatarSize+spacing)*2},
-			{startX + avatarSize + spacing, startY + (avatarSize+spacing)*2},
-			{startX + (avatarSize+spacing)*2, startY + (avatarSize+spacing)*2},
+			{middleStartX + (avatarSize+spacing)*2, startY + avatarSize + spacing},
+			// 第三行（3个）
+			{bottomStartX, startY + (avatarSize+spacing)*2},
+			{bottomStartX + avatarSize + spacing, startY + (avatarSize+spacing)*2},
+			{bottomStartX + (avatarSize+spacing)*2, startY + (avatarSize+spacing)*2},
 		}
 
 	case 9:
@@ -260,7 +272,6 @@ func calculateLayout(avatarCount, canvasSize, avatarSize, spacing, border int) [
 		}
 
 	default: // 超过9个，按9个处理
-		// 标准3x3九宫格，整体居中
 		totalSize := avatarSize*3 + spacing*2
 		startXY := (canvasSize - totalSize) / 2
 
@@ -313,7 +324,7 @@ func downloadAndProcessAvatar(url string, size int, client *http.Client) (image.
 
 // 保存图像
 func saveImage(img image.Image, outputPath string) error {
-	// 确保输出目录存在
+
 	dir := filepath.Dir(outputPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err

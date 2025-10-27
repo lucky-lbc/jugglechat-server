@@ -7,11 +7,12 @@ log:
 
 mysql:
   user: root
-  password: 123456
-  address: 127.0.0.1:3306
+  password: p09xZPWyk63M
+  address: 18.141.188.207:3306
   name: im_db
 
-imApiDomain: https://api.juggle.im
+# imsdk im长连接网关地址
+imApiDomain: http://127.0.0.1:9003
 imAdminDomain: http://127.0.0.1:8090
 
 botConnector:
