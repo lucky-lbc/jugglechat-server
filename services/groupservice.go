@@ -1055,7 +1055,7 @@ func SetGroupAvatar(ctx context.Context, groupId string) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 
 	storage := storages.NewGroupMemberStorage()
-	members, err := storage.QueryRandomMembers(appkey, groupId, 3)
+	members, err := storage.QueryRandomMembers(appkey, groupId, 9)
 	if err != nil {
 		log.Printf("SetGroupAvatar: 查询随机群成员失败: %v", err)
 		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
