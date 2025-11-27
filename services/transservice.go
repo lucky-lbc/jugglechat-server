@@ -2,15 +2,15 @@ package services
 
 import (
 	"context"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs"
 	"sync"
 
-	"github.com/lucky-lbc/commons/appinfos"
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/dbcommons"
-	"github.com/lucky-lbc/commons/errs"
-	utils "github.com/lucky-lbc/commons/tools"
-	"github.com/lucky-lbc/commons/transengines"
 	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/commons/appinfos"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/commons/transengines"
 )
 
 func Translate(ctx context.Context, req *apimodels.TransReq) (errs.IMErrorCode, *apimodels.TransReq) {
@@ -66,7 +66,7 @@ func GetTransEngine(appkey string) transengines.ITransEngine {
 }
 
 func loadTransEngine(appInfo *appinfos.AppInfo) {
-	extDao := dbcommons.AppExtDao{}
+	extDao := dbs.AppExtDao{}
 	ext, err := extDao.Find(appInfo.AppKey, "trans_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		transConf := &TransEngineConf{}

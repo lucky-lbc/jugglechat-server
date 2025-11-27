@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/lucky-lbc/commons/dbcommons"
+	"github.com/lucky-lbc/jugglechat-server/commons/dbcommons"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 

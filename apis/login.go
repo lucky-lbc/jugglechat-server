@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/imsdk"
-	"github.com/lucky-lbc/commons/responses"
-	utils "github.com/lucky-lbc/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/imsdk"
+	"github.com/lucky-lbc/jugglechat-server/commons/responses"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/events"
 	"github.com/lucky-lbc/jugglechat-server/services"
 	"github.com/lucky-lbc/jugglechat-server/storages"
@@ -23,7 +23,6 @@ import (
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 )
 
@@ -210,10 +209,6 @@ func SmsLogin(ctx *gin.Context) {
 				nickname = user.Nickname
 				userPortrait = user.UserPortrait
 			} else {
-				if err != gorm.ErrRecordNotFound {
-					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-					return
-				}
 				userId = utils.GenerateUUIDShort11()
 				err = storage.Create(dbModels.User{
 					UserId:   userId,
@@ -307,10 +302,6 @@ func EmailLogin(ctx *gin.Context) {
 			nickname = user.Nickname
 			userportrait = user.UserPortrait
 		} else {
-			if err != gorm.ErrRecordNotFound {
-				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
-				return
-			}
 			userId = utils.GenerateUUIDShort11()
 			err = storage.Create(dbModels.User{
 				UserId:   userId,

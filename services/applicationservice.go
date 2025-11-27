@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/errs"
 	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
 	"github.com/lucky-lbc/jugglechat-server/storages"
 )
 

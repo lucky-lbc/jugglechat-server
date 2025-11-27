@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/lucky-lbc/commons/appinfos"
-	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/commons/appinfos"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/services/pbobjs"
 )
 

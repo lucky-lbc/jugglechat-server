@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	utils "github.com/lucky-lbc/commons/tools"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/services/pbobjs"
 )
 

@@ -1,49 +1,27 @@
 package services
 
 import (
+	utils2 "github.com/lucky-lbc/jugglechat-server/utils"
+
 	"context"
 	"fmt"
-	utils2 "github.com/lucky-lbc/jugglechat-server/utils"
-	"log"
-
-	"os"
-	"path/filepath"
-	"time"
-
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/imsdk"
-	utils "github.com/lucky-lbc/commons/tools"
 	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/imsdk"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 
 	"github.com/lucky-lbc/jugglechat-server/storages"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
 )
 
-// TestGroup 测试群组功能，包括SetGroupAvatar
 func TestGroup(ctx context.Context) errs.IMErrorCode {
-	log.Println("TestGroup: 开始测试群组功能")
-
-	// 测试SetGroupAvatar功能
-	// 注意：这里需要一个有效的groupId进行测试
-	// 在实际环境中，应该从测试参数或配置中获取
-	testGroupId := "test_group_id_123" // 测试用的群组ID
-	log.Printf("TestGroup: 测试SetGroupAvatar，groupId: %s", testGroupId)
-
-	code := SetGroupAvatar(ctx, testGroupId)
-	log.Printf("TestGroup: SetGroupAvatar返回错误码: %v", code)
-
-	if code == errs.IMErrorCode_SUCCESS {
-		log.Println("TestGroup: SetGroupAvatar测试成功")
-	} else if code == errs.IMErrorCode_APP_FILE_NOOSS {
-		log.Println("TestGroup: 参数无效，这是预期的，因为使用了测试ID")
-	} else if code == errs.IMErrorCode_APP_GROUP_NO_MEMBERS {
-		log.Println("TestGroup: 群组没有足够的成员头像，这可能是预期的")
-	} else {
-		log.Printf("TestGroup: SetGroupAvatar测试失败，错误码: %v", code)
-	}
-
+	fmt.Println("xxxxxxxxxx")
 	return errs.IMErrorCode_SUCCESS
 }
 

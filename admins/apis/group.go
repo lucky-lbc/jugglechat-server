@@ -4,11 +4,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/responses"
-	"github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/admins/apis/models"
 	"github.com/lucky-lbc/jugglechat-server/admins/services"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/responses"
+	"github.com/lucky-lbc/jugglechat-server/commons/tools"
 )
 
 func QryGroups(ctx *gin.Context) {
@@ -17,6 +18,8 @@ func QryGroups(ctx *gin.Context) {
 		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
+	groupId := ctx.Query("group_id")
+	name := ctx.Query("name")
 	offset := ctx.Query("offset")
 	var count int64 = 20
 	var err error
@@ -35,10 +38,24 @@ func QryGroups(ctx *gin.Context) {
 			isPositiveOrder = true
 		}
 	}
-	code, grps := services.QryGroups(ctxs.ToCtx(ctx), appkey, offset, count, isPositiveOrder)
+	code, grps := services.QryGroups(ctxs.ToCtx(ctx), appkey, groupId, name, offset, count, isPositiveOrder)
 	if code != errs.AdminErrorCode_Success {
 		responses.AdminErrorHttpResp(ctx, code)
 		return
 	}
 	responses.AdminSuccessHttpResp(ctx, grps)
+}
+
+func DissolveGroup(ctx *gin.Context) {
+	var req models.GroupIds
+	if err := ctx.ShouldBindJSON(&req); err != nil || req.AppKey == "" {
+		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
+		return
+	}
+	code := services.DissolveGroups(ctxs.ToCtx(ctx), &req)
+	if code != errs.AdminErrorCode_Success {
+		responses.AdminErrorHttpResp(ctx, code)
+		return
+	}
+	responses.AdminSuccessHttpResp(ctx, nil)
 }

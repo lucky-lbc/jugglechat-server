@@ -3,11 +3,11 @@ package apis
 import (
 	"strings"
 
-	"github.com/lucky-lbc/commons/appinfos"
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/responses"
-	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/commons/appinfos"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/responses"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/services"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +40,10 @@ func Validate(ctx *gin.Context) {
 		return
 	}
 	urlPath := ctx.Request.URL.Path
-	if urlPath != "/jim/login" && urlPath != "/jim/register" && urlPath != "/jim/sms/send" && urlPath != "/jim/sms_login" && urlPath != "/jim/sms/login" && urlPath != "/jim/email/send" && urlPath != "/jim/email/login" && urlPath != "/jim/login/qrcode" && urlPath != "/jim/login/qrcode/check" {
+	if urlPath != "/jim/login" && urlPath != "/jim/register" &&
+		urlPath != "/jim/sms/send" &&
+		urlPath != "/jim/sms_login" && urlPath != "/jim/sms/login" && urlPath != "/jim/email/send" && urlPath != "/jim/email/login" &&
+		urlPath != "/jim/login/qrcode" && urlPath != "/jim/login/qrcode/check" && urlPath != "/jim/groups/avatar/refresh" {
 		//current userId
 		tokenStr := ctx.Request.Header.Get(Header_Authorization)
 		if tokenStr == "" {

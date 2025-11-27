@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/lucky-lbc/commons/dbcommons"
-	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/commons/dbcommons"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 )
 
 //go:embed sqls/*

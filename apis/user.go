@@ -6,13 +6,13 @@ import (
 	"image/png"
 	"strconv"
 
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/imsdk"
-	"github.com/lucky-lbc/commons/responses"
-	utils "github.com/lucky-lbc/commons/tools"
 	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 	"github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/imsdk"
+	"github.com/lucky-lbc/jugglechat-server/commons/responses"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/services"
 
 	"github.com/boombuler/barcode"

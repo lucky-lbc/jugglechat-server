@@ -4,11 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/responses"
-	utils "github.com/lucky-lbc/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/admins/services"
+	"github.com/lucky-lbc/jugglechat-server/commons/configures"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/responses"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 )
 
 func Login(ctx *gin.Context) {
@@ -35,7 +36,8 @@ func Login(ctx *gin.Context) {
 			Authorization: authStr,
 			Env:           "private", //public
 			// RoleId:        account.RoleId,
-			RoleType: account.RoleType,
+			RoleType:     account.RoleType,
+			IsCommercial: configures.Config.Commercial,
 		})
 	} else {
 		ctx.JSON(http.StatusOK, &errs.AdminApiErrorMsg{
@@ -49,7 +51,7 @@ type AccountReq struct {
 	Account     string `json:"account"`
 	Password    string `json:"password"`
 	NewPassword string `json:"new_password"`
-	RoleId      int    `json:"role_id"`
+	RoleType    int    `json:"role_type"`
 }
 
 type LoginResp struct {
@@ -57,7 +59,8 @@ type LoginResp struct {
 	Authorization string `json:"authorization"`
 	Env           string `json:"env"`
 	// RoleId        int    `json:"role_id"`
-	RoleType int `json:"role_type"`
+	RoleType     int  `json:"role_type"`
+	IsCommercial bool `json:"is_commercial"`
 }
 
 func AddAccount(ctx *gin.Context) {
@@ -66,7 +69,7 @@ func AddAccount(ctx *gin.Context) {
 		responses.AdminErrorHttpResp(ctx, errs.AdminErrorCode_ParamError)
 		return
 	}
-	code := services.AddAccount(ctxs.ToCtx(ctx), req.Account, req.Password, req.RoleId)
+	code := services.AddAccount(ctxs.ToCtx(ctx), req.Account, req.Password, req.RoleType)
 	if code != errs.AdminErrorCode_Success {
 		responses.AdminErrorHttpResp(ctx, code)
 		return

@@ -7,9 +7,10 @@ log:
 
 mysql:
   user: root
-  password: p09xZPWyk63M
-  address: 18.141.188.207:3306
+  password: 123456
+  address: 192.168.154.146:3306
   name: im_db
+  debug: true
 
 # imsdk im长连接网关地址
 imApiDomain: http://127.0.0.1:9003
@@ -17,3 +18,5 @@ imAdminDomain: http://127.0.0.1:8090
 
 botConnector:
   domain: <bot-connector url>
+
+commercial: false

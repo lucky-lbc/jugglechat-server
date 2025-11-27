@@ -1,0 +1,146 @@
+package fileengines
+
+import (
+	"fmt"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/lucky-lbc/jugglechat-server/commons/tools"
+)
+
+type S3Config struct {
+	AccessKey string `json:"access_key,omitempty"`
+	SecretKey string `json:"secret_key,omitempty"`
+	Endpoint  string `json:"endpoint,omitempty"`
+	Region    string `json:"region,omitempty"`
+	Bucket    string `json:"bucket,omitempty"`
+}
+
+type S3Storage struct {
+	accessKey        string
+	secretKey        string
+	endpoint         string
+	region           string
+	bucket           string
+	disableSSL       bool
+	s3forcePathStyle bool
+}
+
+type Option func(*S3Storage)
+
+func WithAccessKey(accessKey string) Option {
+	return func(o *S3Storage) {
+		o.accessKey = accessKey
+	}
+}
+func WithSecretKey(secretKey string) Option {
+	return func(o *S3Storage) {
+		o.secretKey = secretKey
+	}
+}
+func WithEndpoint(endpoint string) Option {
+	return func(o *S3Storage) {
+		o.endpoint = endpoint
+	}
+}
+func WithRegion(region string) Option {
+	return func(o *S3Storage) {
+		o.region = region
+	}
+}
+func WithBucket(bucket string) Option {
+	return func(o *S3Storage) {
+		o.bucket = bucket
+	}
+}
+func WithConf(conf S3Config) Option {
+	return func(o *S3Storage) {
+		o.accessKey = conf.AccessKey
+		o.secretKey = conf.SecretKey
+		o.endpoint = conf.Endpoint
+		o.region = conf.Region
+		o.bucket = conf.Bucket
+	}
+}
+
+func NewS3Storage(options ...Option) *S3Storage {
+	s := &S3Storage{}
+	for _, option := range options {
+		option(s)
+	}
+
+	return s
+}
+
+func (s *S3Storage) putPreSignURL(fileType string, dir string) (url string, err error) {
+	sess, err := session.NewSession(&aws.Config{
+		Credentials:      credentials.NewStaticCredentials(s.accessKey, s.secretKey, ""),
+		Endpoint:         aws.String(s.endpoint),
+		Region:           aws.String(s.region),
+		DisableSSL:       aws.Bool(s.disableSSL),
+		S3ForcePathStyle: aws.Bool(s.s3forcePathStyle), //virtual-host style方式
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating S3 session: %v", err)
+		return "", err
+	}
+	svc := s3.New(sess)
+
+	objectName := tools.GenerateUUIDShort22() + "." + fileType
+	objectName = filepath.Join(dir, objectName)
+	req, _ := svc.PutObjectRequest(&s3.PutObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(objectName),
+		ACL:    aws.String("public-read"),
+	})
+	url, err = req.Presign(15 * time.Minute)
+
+	return
+}
+
+func (s *S3Storage) UploadFile(localPath string) (url string, err error) {
+	file, err := os.Open(localPath)
+	if err != nil {
+		return "", fmt.Errorf("open file: %w", err)
+	}
+	defer file.Close()
+
+	sess, err := session.NewSession(&aws.Config{
+		Credentials:      credentials.NewStaticCredentials(s.accessKey, s.secretKey, ""),
+		Endpoint:         aws.String(s.endpoint),
+		Region:           aws.String(s.region),
+		DisableSSL:       aws.Bool(s.disableSSL),
+		S3ForcePathStyle: aws.Bool(s.s3forcePathStyle), //virtual-host style方式
+	})
+	if err != nil {
+		return "", fmt.Errorf("create session: %w", err)
+	}
+
+	uploader := s3manager.NewUploader(sess)
+
+	key := "/images/" + filepath.Base(localPath) // 可按需调整子目录
+	result, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket:      aws.String(s.bucket),
+		Key:         aws.String(key),
+		Body:        file,
+		ContentType: aws.String("application/octet-stream"), // 如知道真实 MIME 可再改
+		ACL:         aws.String("public-read"),              // 公开读，私有桶可去掉
+	})
+	if err != nil {
+		return "", fmt.Errorf("s3 upload: %w", err)
+	}
+
+	_ = os.Remove(localPath)
+
+	return result.Location, nil
+}
+
+func (s *S3Storage) PreSignedURL(fileType string, dir string) (url string, err error) {
+	return s.putPreSignURL(fileType, dir)
+}

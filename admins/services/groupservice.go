@@ -2,14 +2,15 @@ package services
 
 import (
 	"context"
+	"github.com/lucky-lbc/jugglechat-server/commons/imsdk"
 
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/tools"
 	apimodels "github.com/lucky-lbc/jugglechat-server/admins/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/storages"
 )
 
-func QryGroups(ctx context.Context, appkey string, offset string, limit int64, isPositive bool) (errs.AdminErrorCode, *apimodels.Groups) {
+func QryGroups(ctx context.Context, appkey, groupId, name string, offset string, limit int64, isPositive bool) (errs.AdminErrorCode, *apimodels.Groups) {
 	var startId int64 = 0
 	var err error
 	if offset != "" {
@@ -22,19 +23,35 @@ func QryGroups(ctx context.Context, appkey string, offset string, limit int64, i
 		Items: []*apimodels.Group{},
 	}
 	storage := storages.NewGroupStorage()
-	grps, err := storage.QryGroups(appkey, startId, limit, isPositive)
-	if err == nil {
-		for _, grp := range grps {
-			ret.Offset, _ = tools.EncodeInt(grp.ID)
-			ret.Items = append(ret.Items, &apimodels.Group{
+	memberStorage := storages.NewGroupMemberStorage()
+	if groupId != "" {
+		grp, err := storage.FindById(appkey, groupId)
+		if err == nil && grp != nil {
+			apiGrp := &apimodels.Group{
 				GroupId:       grp.GroupId,
 				GroupName:     grp.GroupName,
 				GroupPortrait: grp.GroupPortrait,
-				Owner: &apimodels.User{
-					UserId: grp.CreatorId,
-				},
-				CreatedTime: grp.CreatedTime.UnixMilli(),
-			})
+				Owner:         QryUserInfo(appkey, grp.CreatorId),
+				CreatedTime:   grp.CreatedTime.UnixMilli(),
+			}
+			apiGrp.MemberCount = memberStorage.CountByGroup(appkey, groupId)
+			ret.Items = append(ret.Items, apiGrp)
+		}
+	} else {
+		grps, err := storage.QryGroups(appkey, name, startId, limit, isPositive)
+		if err == nil {
+			for _, grp := range grps {
+				ret.Offset, _ = tools.EncodeInt(grp.ID)
+				apiGrp := &apimodels.Group{
+					GroupId:       grp.GroupId,
+					GroupName:     grp.GroupName,
+					GroupPortrait: grp.GroupPortrait,
+					Owner:         QryUserInfo(appkey, grp.CreatorId),
+					CreatedTime:   grp.CreatedTime.UnixMilli(),
+				}
+				apiGrp.MemberCount = memberStorage.CountByGroup(appkey, grp.GroupId)
+				ret.Items = append(ret.Items, apiGrp)
+			}
 		}
 	}
 	return errs.AdminErrorCode_Success, ret
@@ -53,4 +70,19 @@ func QryGroupInfo(appkey, groupId string) *apimodels.Group {
 		GroupName:     grp.GroupName,
 		GroupPortrait: grp.GroupPortrait,
 	}
+}
+
+func DissolveGroups(ctx context.Context, req *apimodels.GroupIds) errs.AdminErrorCode {
+	appkey := req.AppKey
+	sdk := imsdk.GetImSdk(appkey)
+	storage := storages.NewGroupStorage()
+	memberStorage := storages.NewGroupMemberStorage()
+	for _, groupId := range req.GroupIds {
+		storage.Delete(appkey, groupId)
+		memberStorage.DeleteByGroupId(appkey, groupId)
+		if sdk != nil {
+			sdk.DissolveGroup(groupId)
+		}
+	}
+	return errs.AdminErrorCode_Success
 }

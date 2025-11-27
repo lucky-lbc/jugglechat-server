@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lucky-lbc/commons/appinfos"
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/dbcommons"
-	"github.com/lucky-lbc/commons/emailengines"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/commons/appinfos"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/emailengines"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/storages"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
 	"gopkg.in/yaml.v3"
 )
@@ -112,7 +112,7 @@ func GetMailEngine(appkey string) emailengines.IEmailEngine {
 }
 
 func loadMailEngine(appInfo *appinfos.AppInfo) {
-	extDao := dbcommons.AppExtDao{}
+	extDao := dbs.AppExtDao{}
 	ext, err := extDao.Find(appInfo.AppKey, "mail_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		mailConf := &MailEngineConf{}
@@ -121,6 +121,9 @@ func loadMailEngine(appInfo *appinfos.AppInfo) {
 			if mailConf.Channel == "ali" && mailConf.AliMailEngine != nil && mailConf.AliMailEngine.AccessKeyId != "" && mailConf.AliMailEngine.AccessKeySecret != "" {
 				appInfo.MailEngine = mailConf.AliMailEngine
 				return
+			} else if mailConf.Channel == "engagelab" && mailConf.EngagelabEmailEngine != nil && mailConf.EngagelabEmailEngine.Url != "" && mailConf.EngagelabEmailEngine.ApiKey != "" && mailConf.EngagelabEmailEngine.ApiUser != "" {
+				appInfo.MailEngine = mailConf.EngagelabEmailEngine
+				return
 			}
 		}
 	}
@@ -128,6 +131,7 @@ func loadMailEngine(appInfo *appinfos.AppInfo) {
 }
 
 type MailEngineConf struct {
-	Channel       string                       `json:"channel,omitempty"`
-	AliMailEngine *emailengines.AliEmailEngine `json:"ali,omitempty"`
+	Channel              string                             `json:"channel,omitempty"`
+	AliMailEngine        *emailengines.AliEmailEngine       `json:"ali,omitempty"`
+	EngagelabEmailEngine *emailengines.EngagelabEmailEngine `json:"engagelab"`
 }

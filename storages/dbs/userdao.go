@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/lucky-lbc/commons/dbcommons"
-	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/commons/dbcommons"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
 
@@ -218,9 +218,6 @@ func (user UserDao) Create(item models.User) error {
 	sqlBuilder.WriteString(strings.Join(marks, ","))
 	sqlBuilder.WriteString(")")
 	err := dbcommons.GetDb().Exec(sqlBuilder.String(), params...).Error
-	if err != nil {
-		fmt.Println(err)
-	}
 	return err
 }
 
@@ -280,7 +277,7 @@ func (user UserDao) CountByTime(appkey string, start, end int64) int64 {
 	return count
 }
 
-func (user UserDao) QryUsers(appkey string, startId, limit int64, isPositiveOrder bool) ([]*models.User, error) {
+func (user UserDao) QryUsers(appkey, name string, startId, limit int64, isPositiveOrder bool) ([]*models.User, error) {
 	var items []*UserDao
 	whereStr := "app_key=?"
 	params := []interface{}{appkey}
@@ -294,6 +291,10 @@ func (user UserDao) QryUsers(appkey string, startId, limit int64, isPositiveOrde
 			whereStr = whereStr + " and id<?"
 			params = append(params, startId)
 		}
+	}
+	if name != "" {
+		whereStr = whereStr + " and nickname like ?"
+		params = append(params, "%"+name+"%")
 	}
 	err := dbcommons.GetDb().Where(whereStr, params...).Order(orderBy).Limit(limit).Find(&items).Error
 	ret := []*models.User{}

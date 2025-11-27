@@ -2,15 +2,15 @@ package services
 
 import (
 	"context"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs"
 	"math/rand"
 	"time"
 
-	"github.com/lucky-lbc/commons/appinfos"
-	"github.com/lucky-lbc/commons/ctxs"
-	"github.com/lucky-lbc/commons/dbcommons"
-	"github.com/lucky-lbc/commons/errs"
-	"github.com/lucky-lbc/commons/smsengines"
-	utils "github.com/lucky-lbc/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/commons/appinfos"
+	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/smsengines"
+	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/storages"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
 )
@@ -94,7 +94,7 @@ func GetSmsEngine(appkey string) smsengines.ISmsEngine {
 }
 
 func loadSmsEngine(appInfo *appinfos.AppInfo) {
-	extDao := dbcommons.AppExtDao{}
+	extDao := dbs.AppExtDao{}
 	ext, err := extDao.Find(appInfo.AppKey, "sms_engine_conf")
 	if err == nil && ext.AppItemValue != "" {
 		smsConf := &SmsEngineConf{}
