@@ -22,6 +22,7 @@ type UserDao struct {
 	Email        string    `gorm:"email"`
 	LoginAccount string    `gorm:"login_account"`
 	LoginPass    string    `gorm:"login_pass"`
+	Status       int       `gorm:"status"`
 	CreatedTime  time.Time `gorm:"created_time"`
 	UpdatedTime  time.Time `gorm:"updated_time"`
 	AppKey       string    `gorm:"app_key"`
@@ -79,10 +80,15 @@ func (user UserDao) FindByUserIds(appkey string, userIds []string) (map[string]*
 	return ret, err
 }
 
-func (user UserDao) SearchByKeyword(appkey string, userId, keyword string) ([]*models.User, error) {
+func (user UserDao) SearchByKeyword(appkey string, userId, keyword string, isAmbiguous bool) ([]*models.User, error) {
 	var items []*UserDao
-	keyword = "%" + keyword + "%"
-	err := dbcommons.GetDb().Where("app_key=? and user_id!=? and (user_id like ? or phone like ? or email like ? or nickname like ? or login_account like ?)", appkey, userId, keyword, keyword, keyword, keyword, keyword).Find(&items).Error
+	var err error
+	if isAmbiguous {
+		keyword = "%" + keyword + "%"
+		err = dbcommons.GetDb().Where("app_key=? and user_id!=? and (user_id like ? or phone like ? or email like ? or nickname like ? or login_account like ?)", appkey, userId, keyword, keyword, keyword, keyword, keyword).Find(&items).Error
+	} else {
+		err = dbcommons.GetDb().Where("app_key=? and user_id!=? and (user_id=? or phone=? or email=? or nickname=? or login_account=?)", appkey, userId, keyword, keyword, keyword, keyword, keyword).Find(&items).Error
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +104,7 @@ func (user UserDao) SearchByKeyword(appkey string, userId, keyword string) ([]*m
 			Phone:        item.Phone,
 			Email:        item.Email,
 			LoginAccount: item.LoginAccount,
+			Status:       item.Status,
 			CreatedTime:  item.CreatedTime,
 			UpdatedTime:  item.UpdatedTime,
 			AppKey:       item.AppKey,

@@ -83,6 +83,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mozillazg/go-pinyin v0.20.0
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
+	github.com/samber/lo v1.52.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/qiniu/go-sdk/v7 v7.25.4
 	github.com/sirupsen/logrus v1.9.3
