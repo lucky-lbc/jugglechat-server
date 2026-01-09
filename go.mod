@@ -8,7 +8,7 @@ require (
 	github.com/alibabacloud-go/tea v1.2.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.6
 	github.com/aliyun/credentials-go v1.4.6
-	github.com/lucky-lbc/imserver-sdk-go v1.0.11-0.20251014023645-014c040ffe7e
+	github.com/lucky-lbc/imserver-sdk-go v1.0.11
 )
 
 require (
