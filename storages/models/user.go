@@ -6,6 +6,7 @@ type User struct {
 	ID           int64
 	UserId       string
 	Nickname     string
+	DisplayName  string
 	UserPortrait string
 	Pinyin       string
 	UserType     int

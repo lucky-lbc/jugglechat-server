@@ -65,11 +65,12 @@ func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) 
 	if err == nil {
 		for _, user := range users {
 			ret.Items = append(ret.Items, &apimodels.UserObj{
-				UserId:   user.UserId,
-				Pinyin:   user.Pinyin,
-				Nickname: user.Nickname,
-				Avatar:   user.UserPortrait,
-				UserType: user.UserType,
+				UserId:      user.UserId,
+				Pinyin:      user.Pinyin,
+				Nickname:    user.Nickname,
+				DisplayName: user.DisplayName,
+				Avatar:      user.UserPortrait,
+				UserType:    user.UserType,
 			})
 		}
 	}
@@ -406,4 +407,39 @@ func CheckBlockUsers(ctx context.Context, userId string, targetIds []string) map
 		}
 	}
 	return ret
+}
+
+func SetFriendDisplayName(ctx context.Context, req *apimodels.SetFriendRemarkReq) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+
+	if req.FriendId == "" {
+		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
+	}
+
+	storage := storages.NewFriendRelStorage()
+	if err := storage.UpsertDisplayName(appkey, userId, req.FriendId, req.DisplayName); err != nil {
+		return errs.IMErrorCode_APP_DEFAULT
+	}
+
+	return errs.IMErrorCode_SUCCESS
+}
+
+func QryAllFriends(ctx context.Context) (errs.IMErrorCode, *apimodels.Users) {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	storage := storages.NewFriendRelStorage()
+	users, err := storage.QueryAllFriendRels(appkey, userId)
+	ret := &apimodels.Users{
+		Items: []*apimodels.UserObj{},
+	}
+	if err == nil {
+		for _, user := range users {
+			ret.Items = append(ret.Items, &apimodels.UserObj{
+				UserId:      user.UserId,
+				DisplayName: user.DisplayName,
+			})
+		}
+	}
+	return errs.IMErrorCode_SUCCESS, ret
 }

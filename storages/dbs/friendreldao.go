@@ -9,11 +9,12 @@ import (
 )
 
 type FriendRelDao struct {
-	ID       int64  `gorm:"primary_key"`
-	UserId   string `gorm:"user_id"`
-	FriendId string `gorm:"friend_id"`
-	OrderTag string `gorm:"order_tag"`
-	AppKey   string `gorm:"app_key"`
+	ID          int64  `gorm:"primary_key"`
+	UserId      string `gorm:"user_id"`
+	FriendId    string `gorm:"friend_id"`
+	DisplayName string `gorm:"display_name"`
+	OrderTag    string `gorm:"order_tag"`
+	AppKey      string `gorm:"app_key"`
 }
 
 func (rel FriendRelDao) TableName() string {
@@ -21,23 +22,23 @@ func (rel FriendRelDao) TableName() string {
 }
 
 func (rel FriendRelDao) Upsert(item models.FriendRel) error {
-	sql := fmt.Sprintf("INSERT IGNORE INTO %s (app_key,user_id,friend_id,order_tag)VALUES(?,?,?,?)", rel.TableName())
-	return dbcommons.GetDb().Exec(sql, item.AppKey, item.UserId, item.FriendId, item.OrderTag).Error
+	sql := fmt.Sprintf("INSERT IGNORE INTO %s (app_key,user_id,friend_id,order_tag,display_name)VALUES(?,?,?,?,?)", rel.TableName())
+	return dbcommons.GetDb().Exec(sql, item.AppKey, item.UserId, item.FriendId, item.OrderTag, item.DisplayName).Error
 }
 
 func (rel FriendRelDao) BatchUpsert(items []models.FriendRel) error {
 	var buffer bytes.Buffer
-	sql := fmt.Sprintf("INSERT IGNORE INTO %s (app_key,user_id,friend_id,order_tag)VALUES", rel.TableName())
+	sql := fmt.Sprintf("INSERT IGNORE INTO %s (app_key,user_id,friend_id,order_tag,display_name)VALUES", rel.TableName())
 	buffer.WriteString(sql)
 	length := len(items)
 	params := []interface{}{}
 	for i, item := range items {
 		if i == length-1 {
-			buffer.WriteString("(?,?,?,?)")
+			buffer.WriteString("(?,?,?,?,?)")
 		} else {
-			buffer.WriteString("(?,?,?,?),")
+			buffer.WriteString("(?,?,?,?,?),")
 		}
-		params = append(params, item.AppKey, item.UserId, item.FriendId, item.OrderTag)
+		params = append(params, item.AppKey, item.UserId, item.FriendId, item.OrderTag, item.DisplayName)
 	}
 	return dbcommons.GetDb().Exec(buffer.String(), params...).Error
 }
@@ -102,6 +103,7 @@ func (rel FriendRelDao) QueryFriendRelsWithPage(appkey, userId string, orderTag 
 			UserType:     item.UserType,
 			Pinyin:       item.Pinyin,
 			AppKey:       item.AppKey,
+			DisplayName:  item.DisplayName,
 		})
 	}
 	return ret, nil
@@ -161,4 +163,29 @@ func (rel FriendRelDao) QueryFriendRelsByFriendIds(appkey, userId string, friend
 
 func (rel FriendRelDao) UpdateOrderTag(appkey, userId, friendId string, orderTag string) error {
 	return dbcommons.GetDb().Model(&FriendRelDao{}).Where("app_key=? and user_id=? and friend_id=?", appkey, userId, friendId).Update("order_tag", orderTag).Error
+}
+
+func (rel FriendRelDao) UpdateDisplayName(appkey, userId, friendId, displayName string) error {
+	return dbcommons.GetDb().Model(&FriendRelDao{}).Where("app_key=? and user_id=? and friend_id=?", appkey, userId, friendId).Update("display_name", displayName).Error
+}
+
+func (rel FriendRelDao) UpsertDisplayName(appkey, userId, friendId, displayName string) error {
+	sql := fmt.Sprintf("INSERT INTO %s (app_key,user_id,friend_id,display_name)VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE display_name=?", rel.TableName())
+	return dbcommons.GetDb().Exec(sql, appkey, userId, friendId, displayName, displayName).Error
+}
+
+func (rel FriendRelDao) QueryAllFriendRels(appkey, userId string) ([]*models.User, error) {
+	var items []*FriendRelDao
+	err := dbcommons.GetDb().Where("app_key=? and user_id=?", appkey, userId).Order("id asc").Find(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	ret := []*models.User{}
+	for _, item := range items {
+		ret = append(ret, &models.User{
+			UserId:      item.FriendId,
+			DisplayName: item.DisplayName,
+		})
+	}
+	return ret, nil
 }

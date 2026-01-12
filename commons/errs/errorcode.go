@@ -35,6 +35,7 @@ var (
 	IMErrorCode_APP_FRIEND_APPLY_DECLINE   IMErrorCode = 17101
 	IMErrorCode_APP_FRIEND_APPLY_REPEATED  IMErrorCode = 17102
 	IMErrorCode_APP_FRIEND_CONFIRM_EXPIRED IMErrorCode = 17103
+	IMErrorCode_APP_FRIEND_NOT_EXIST       IMErrorCode = 17104
 
 	//group
 	IMErrorCode_APP_GROUP_DEFAULT       IMErrorCode = 17200

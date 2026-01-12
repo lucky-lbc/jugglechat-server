@@ -8,6 +8,7 @@ require (
 	github.com/alibabacloud-go/tea v1.2.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.6
 	github.com/aliyun/credentials-go v1.4.6
+	github.com/disintegration/imaging v1.6.2
 	github.com/lucky-lbc/imserver-sdk-go v1.0.11
 )
 
@@ -30,7 +31,6 @@ require (
 	github.com/clbanning/mxj/v2 v2.5.5 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
-	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gammazero/toposort v0.1.1 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
@@ -83,7 +83,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mozillazg/go-pinyin v0.20.0
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/samber/lo v1.52.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/qiniu/go-sdk/v7 v7.25.4
 	github.com/sirupsen/logrus v1.9.3

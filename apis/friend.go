@@ -247,3 +247,26 @@ func FriendApplications(ctx *gin.Context) {
 	}
 	responses.SuccessHttpResp(ctx, resp)
 }
+
+func SetFriendDisplayName(ctx *gin.Context) {
+	req := models.SetFriendRemarkReq{}
+	if err := ctx.BindJSON(&req); err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	code := services.SetFriendDisplayName(ctxs.ToCtx(ctx), &req)
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, nil)
+}
+
+func QryAllFriends(ctx *gin.Context) {
+	code, friends := services.QryAllFriends(ctxs.ToCtx(ctx))
+	if code != errs.IMErrorCode_SUCCESS {
+		responses.ErrorHttpResp(ctx, code)
+		return
+	}
+	responses.SuccessHttpResp(ctx, friends)
+}

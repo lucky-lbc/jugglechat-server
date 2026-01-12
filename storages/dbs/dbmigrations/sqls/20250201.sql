@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `friendrels` (
   `user_id` varchar(32) DEFAULT NULL,
   `friend_id` varchar(32) DEFAULT NULL,
   `order_tag` varchar(20) NULL DEFAULT '',
+  `display_name` varchar(100) DEFAULT NULL COMMENT '备注名称',
   `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
   `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `app_key` varchar(20) DEFAULT NULL,
