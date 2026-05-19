@@ -207,6 +207,10 @@ type GrpInfo struct {
 	MemberOffset    string             `json:"member_offset"`
 }
 
+type SetGroupAvatar struct {
+	GroupId string `json:"group_id"`
+}
+
 const (
 	AttItemKey_HideGrpMsg      string = "hide_grp_msg"
 	AttItemKey_GrpAnnouncement string = "grp_announcement"
