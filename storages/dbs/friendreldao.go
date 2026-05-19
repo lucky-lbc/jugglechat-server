@@ -12,8 +12,8 @@ type FriendRelDao struct {
 	ID          int64  `gorm:"primary_key"`
 	UserId      string `gorm:"user_id"`
 	FriendId    string `gorm:"friend_id"`
-	DisplayName string `gorm:"display_name"`
 	OrderTag    string `gorm:"order_tag"`
+	DisplayName string `gorm:"display_name"`
 	AppKey      string `gorm:"app_key"`
 }
 
@@ -54,18 +54,19 @@ func (rel FriendRelDao) QueryFriendRels(appkey, userId string, startId, limit in
 	}
 	condition = condition + " and id>?"
 	params = append(params, startId)
-	err := dbcommons.GetDb().Where(condition, params...).Order("id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order("id asc").Limit(int(limit)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
 	ret := []*models.FriendRel{}
 	for _, rel := range items {
 		ret = append(ret, &models.FriendRel{
-			ID:       rel.ID,
-			AppKey:   rel.AppKey,
-			UserId:   rel.UserId,
-			FriendId: rel.FriendId,
-			OrderTag: rel.OrderTag,
+			ID:          rel.ID,
+			AppKey:      rel.AppKey,
+			UserId:      rel.UserId,
+			FriendId:    rel.FriendId,
+			DisplayName: rel.DisplayName,
+			OrderTag:    rel.OrderTag,
 		})
 	}
 	return ret, nil
@@ -80,17 +81,12 @@ func (rel FriendRelDao) QueryFriendRelsWithPage(appkey, userId string, orderTag 
 		params = append(params, orderTag)
 	}
 
+	offset := (page - 1) * size
+	sql = sql + " order by case when u.pinyin REGEXP '^[A-Za-z]' then 1 else 0 end desc, u.pinyin asc limit ? offset ?"
+	params = append(params, size, offset)
+
 	var items []*FriendRelWithUser
-	err := dbcommons.GetDb().Raw(sql, params...).Order("case when u.pinyin REGEXP '^[A-Za-z]' then 1 else 0 end desc, u.pinyin asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
-	// var items []*FriendRelDao
-	// params := []interface{}{}
-	// condition := "app_key=? and user_id=?"
-	// params = append(params, appkey, userId)
-	// if orderTag != "" {
-	// 	condition = condition + " and order_tag>=?"
-	// 	params = append(params, orderTag)
-	// }
-	// err := dbcommons.GetDb().Where(condition, params...).Order("order_tag asc").Offset((page - 1) * size).Limit(size).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, params...).Scan(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +99,10 @@ func (rel FriendRelDao) QueryFriendRelsWithPage(appkey, userId string, orderTag 
 			UserType:     item.UserType,
 			Pinyin:       item.Pinyin,
 			AppKey:       item.AppKey,
-			DisplayName:  item.DisplayName,
+			FriendInfo: &models.FriendInfo{
+				IsFriend:    true,
+				DisplayName: item.DisplayName,
+			},
 		})
 	}
 	return ret, nil
@@ -118,9 +117,9 @@ type FriendRelWithUser struct {
 }
 
 func (rel FriendRelDao) SearchFriendsByName(appkey, userId string, nickname string, startId, limit int64) ([]*models.User, error) {
-	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and u.nickname like ?", rel.TableName(), UserDao{}.TableName())
+	sql := fmt.Sprintf("select r.*,u.nickname,u.user_portrait,u.user_type,u.pinyin from %s as r left join %s as u on r.app_key=u.app_key and r.friend_id=u.user_id where r.app_key=? and r.user_id=? and r.id>? and (u.nickname like ? or r.display_name like ? ) order by r.id asc limit ?", rel.TableName(), UserDao{}.TableName())
 	var items []*FriendRelWithUser
-	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%").Order("r.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, userId, startId, "%"+nickname+"%", "%"+nickname+"%", limit).Scan(&items).Error
 	ret := []*models.User{}
 	if err == nil {
 		for _, item := range items {
@@ -132,6 +131,10 @@ func (rel FriendRelDao) SearchFriendsByName(appkey, userId string, nickname stri
 				UserType:     item.UserType,
 				Pinyin:       item.Pinyin,
 				AppKey:       item.AppKey,
+				FriendInfo: &models.FriendInfo{
+					IsFriend:    true,
+					DisplayName: item.DisplayName,
+				},
 			})
 		}
 	}
@@ -151,11 +154,12 @@ func (rel FriendRelDao) QueryFriendRelsByFriendIds(appkey, userId string, friend
 	ret := []*models.FriendRel{}
 	for _, rel := range items {
 		ret = append(ret, &models.FriendRel{
-			ID:       rel.ID,
-			AppKey:   rel.AppKey,
-			UserId:   rel.UserId,
-			FriendId: rel.FriendId,
-			OrderTag: rel.OrderTag,
+			ID:          rel.ID,
+			AppKey:      rel.AppKey,
+			UserId:      rel.UserId,
+			FriendId:    rel.FriendId,
+			OrderTag:    rel.OrderTag,
+			DisplayName: rel.DisplayName,
 		})
 	}
 	return ret, nil
@@ -165,27 +169,6 @@ func (rel FriendRelDao) UpdateOrderTag(appkey, userId, friendId string, orderTag
 	return dbcommons.GetDb().Model(&FriendRelDao{}).Where("app_key=? and user_id=? and friend_id=?", appkey, userId, friendId).Update("order_tag", orderTag).Error
 }
 
-func (rel FriendRelDao) UpdateDisplayName(appkey, userId, friendId, displayName string) error {
+func (rel FriendRelDao) UpdateDisplayName(appkey, userId, friendId string, displayName string) error {
 	return dbcommons.GetDb().Model(&FriendRelDao{}).Where("app_key=? and user_id=? and friend_id=?", appkey, userId, friendId).Update("display_name", displayName).Error
-}
-
-func (rel FriendRelDao) UpsertDisplayName(appkey, userId, friendId, displayName string) error {
-	sql := fmt.Sprintf("INSERT INTO %s (app_key,user_id,friend_id,display_name)VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE display_name=?", rel.TableName())
-	return dbcommons.GetDb().Exec(sql, appkey, userId, friendId, displayName, displayName).Error
-}
-
-func (rel FriendRelDao) QueryAllFriendRels(appkey, userId string) ([]*models.User, error) {
-	var items []*FriendRelDao
-	err := dbcommons.GetDb().Where("app_key=? and user_id=?", appkey, userId).Order("id asc").Find(&items).Error
-	if err != nil {
-		return nil, err
-	}
-	ret := []*models.User{}
-	for _, item := range items {
-		ret = append(ret, &models.User{
-			UserId:      item.FriendId,
-			DisplayName: item.DisplayName,
-		})
-	}
-	return ret, nil
 }

@@ -49,16 +49,15 @@ type IGrpApplicationStorage interface {
 }
 
 type Group struct {
-	ID              int64
-	GroupId         string
-	GroupName       string
-	GroupPortrait   string
-	CreatorId       string
-	CreatedTime     time.Time
-	UpdatedTime     time.Time
-	AppKey          string
-	IsMute          int
-	AvatarMemberIDs string // 逗号分隔
+	ID            int64
+	GroupId       string
+	GroupName     string
+	GroupPortrait string
+	CreatorId     string
+	CreatedTime   time.Time
+	UpdatedTime   time.Time
+	AppKey        string
+	IsMute        int
 }
 
 type IGroupStorage interface {
@@ -104,6 +103,8 @@ type GroupMember struct {
 	IsAllow        int
 	MuteEndAt      int64
 	GrpDisplayName string
+
+	MemberFriendInfo *FriendInfo
 }
 
 type IGroupMemberStorage interface {
@@ -111,8 +112,8 @@ type IGroupMemberStorage interface {
 	Find(appkey, groupId, memberId string) (*GroupMember, error)
 	FindByMemberIds(appkey, groupId string, memberIds []string) ([]*GroupMember, error)
 	BatchCreate(items []GroupMember) error
-	QueryMembers(appkey, groupId string, startId, limit int64) ([]*GroupMember, error)
-	SearchMembersByName(appkey, groupId, nickname string, startId, limit int64) ([]*GroupMember, error)
+	QueryMembers(appkey, userId, groupId string, startId, limit int64) ([]*GroupMember, error)
+	SearchMembersByName(appkey, userId, groupId, nickname string, startId, limit int64) ([]*GroupMember, error)
 	QueryGroupsByMemberId(appkey, memberId string, startId, limit int64) ([]*GroupMember, error)
 	BatchDelete(appkey, groupId string, memberIds []string) error
 	DeleteByGroupId(appkey, groupId string) error
@@ -124,11 +125,15 @@ type IGroupMemberStorage interface {
 }
 
 type GroupAdmin struct {
-	ID          int64
-	GroupId     string
-	AdminId     string
-	CreatedTime time.Time
-	AppKey      string
+	ID             int64
+	GroupId        string
+	AdminId        string
+	Nickname       string
+	UserPortrait   string
+	UserType       int
+	GrpDisplayName string
+	CreatedTime    time.Time
+	AppKey         string
 }
 
 type IGroupAdminStorage interface {

@@ -222,20 +222,7 @@ func QryGrpMembers(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, code)
 		return
 	}
-	ret := &models.GroupMembersResp{
-		Items: []*models.GroupMember{},
-	}
-	for _, member := range members.Items {
-		ret.Items = append(ret.Items, &models.GroupMember{
-			UserObj: models.UserObj{
-				UserId:   member.UserId,
-				Nickname: member.Nickname,
-				Avatar:   member.Avatar,
-			},
-		})
-	}
-	ret.Offset = members.Offset
-	responses.SuccessHttpResp(ctx, ret)
+	responses.SuccessHttpResp(ctx, members)
 }
 
 func CheckGroupMembers(ctx *gin.Context) {
@@ -256,6 +243,10 @@ func SearchGroupMembers(ctx *gin.Context) {
 	req := models.SearchGroupMembersReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.GroupId == "" || req.Key == "" {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	if services.CheckApiBlockByVersion(ctxs.ToCtx(ctx)) {
+		responses.SuccessHttpResp(ctx, &models.GroupMemberInfos{})
 		return
 	}
 	code, resp := services.SearchGroupMembers(ctxs.ToCtx(ctx), &req)
@@ -310,22 +301,6 @@ func SetGrpDisplayName(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, nil)
 }
 
-func SetGrpAvatar(ctx *gin.Context) {
-	req := &models.SetGroupAvatar{}
-	if err := ctx.BindJSON(&req); err != nil {
-		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
-		return
-	}
-	grpId := req.GroupId
-	if grpId == "" {
-		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
-		return
-	}
-	go services.SetGroupAvatar(ctxs.ToCtx(ctx), grpId)
-
-	responses.SuccessHttpResp(ctx, nil)
-}
-
 func QryGrpQrCode(ctx *gin.Context) {
 	grpId := ctx.Query("group_id")
 	if grpId == "" {
@@ -350,4 +325,20 @@ func QryGrpQrCode(ctx *gin.Context) {
 	responses.SuccessHttpResp(ctx, map[string]string{
 		"qr_code": base64.StdEncoding.EncodeToString(buf.Bytes()),
 	})
+}
+
+func SetGrpAvatar(ctx *gin.Context) {
+	req := &models.SetGroupAvatar{}
+	if err := ctx.BindJSON(&req); err != nil {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	grpId := req.GroupId
+	if grpId == "" {
+		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	go services.SetGroupAvatar(ctxs.ToCtx(ctx), grpId)
+
+	responses.SuccessHttpResp(ctx, nil)
 }

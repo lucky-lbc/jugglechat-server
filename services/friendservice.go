@@ -64,13 +64,18 @@ func QryFriendsWithPage(ctx context.Context, page, size int64, orderTag string) 
 	}
 	if err == nil {
 		for _, user := range users {
+			friendInfo := &apimodels.FriendInfo{}
+			if user.FriendInfo != nil {
+				friendInfo.IsFriend = user.FriendInfo.IsFriend
+				friendInfo.DisplayName = user.FriendInfo.DisplayName
+			}
 			ret.Items = append(ret.Items, &apimodels.UserObj{
-				UserId:      user.UserId,
-				Pinyin:      user.Pinyin,
-				Nickname:    user.Nickname,
-				DisplayName: user.DisplayName,
-				Avatar:      user.UserPortrait,
-				UserType:    user.UserType,
+				UserId:     user.UserId,
+				Pinyin:     user.Pinyin,
+				Nickname:   user.Nickname,
+				Avatar:     user.UserPortrait,
+				UserType:   user.UserType,
+				FriendInfo: friendInfo,
 			})
 		}
 	}
@@ -99,11 +104,17 @@ func SearchFriends(ctx context.Context, req *apimodels.SearchFriendsReq) (errs.I
 	if err == nil {
 		for _, u := range users {
 			ret.Offset, _ = utils.EncodeInt(u.ID)
+			friendInfo := &apimodels.FriendInfo{}
+			if u.FriendInfo != nil {
+				friendInfo.IsFriend = u.FriendInfo.IsFriend
+				friendInfo.DisplayName = u.FriendInfo.DisplayName
+			}
 			ret.Items = append(ret.Items, &apimodels.UserObj{
-				UserId:   u.UserId,
-				Nickname: u.Nickname,
-				Avatar:   u.UserPortrait,
-				UserType: u.UserType,
+				UserId:     u.UserId,
+				Nickname:   u.Nickname,
+				Avatar:     u.UserPortrait,
+				UserType:   u.UserType,
+				FriendInfo: friendInfo,
 			})
 		}
 	}
@@ -409,37 +420,25 @@ func CheckBlockUsers(ctx context.Context, userId string, targetIds []string) map
 	return ret
 }
 
-func SetFriendDisplayName(ctx context.Context, req *apimodels.SetFriendRemarkReq) errs.IMErrorCode {
-	appkey := ctxs.GetAppKeyFromCtx(ctx)
-	userId := ctxs.GetRequesterIdFromCtx(ctx)
-
-	if req.FriendId == "" {
-		return errs.IMErrorCode_APP_REQ_BODY_ILLEGAL
-	}
-
-	storage := storages.NewFriendRelStorage()
-	if err := storage.UpsertDisplayName(appkey, userId, req.FriendId, req.DisplayName); err != nil {
-		return errs.IMErrorCode_APP_DEFAULT
-	}
-
-	return errs.IMErrorCode_SUCCESS
-}
-
-func QryAllFriends(ctx context.Context) (errs.IMErrorCode, *apimodels.Users) {
+func SetFriendDisplayName(ctx context.Context, req *apimodels.SetFriendDisplayNameReq) errs.IMErrorCode {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewFriendRelStorage()
-	users, err := storage.QueryAllFriendRels(appkey, userId)
-	ret := &apimodels.Users{
-		Items: []*apimodels.UserObj{},
-	}
+	err := storage.UpdateDisplayName(appkey, userId, req.FriendId, req.FriendDisplayName)
 	if err == nil {
-		for _, user := range users {
-			ret.Items = append(ret.Items, &apimodels.UserObj{
-				UserId:      user.UserId,
-				DisplayName: user.DisplayName,
+		sdk := imsdk.GetImSdk(appkey)
+		if sdk != nil {
+			sdk.AddFriends(juggleimsdk.FriendIds{
+				UserId: userId,
+				Friends: []*juggleimsdk.FriendItem{
+					{
+						UserId:      userId,
+						FriendId:    req.FriendId,
+						DisplayName: req.FriendDisplayName,
+					},
+				},
 			})
 		}
 	}
-	return errs.IMErrorCode_SUCCESS, ret
+	return errs.IMErrorCode_SUCCESS
 }

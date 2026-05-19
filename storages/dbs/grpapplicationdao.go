@@ -1,11 +1,12 @@
 package dbs
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/lucky-lbc/jugglechat-server/commons/dbcommons"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
+	"gorm.io/gorm"
 
 	"time"
 )
@@ -31,7 +32,7 @@ func (apply GrpApplicationDao) FindById(appkey string, id int64) (*models.GrpApp
 	var item GrpApplicationDao
 	err := dbcommons.GetDb().Where("id=? and app_key=?", id, appkey).Take(&item).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -61,7 +62,7 @@ func (apply GrpApplicationDao) ApplyUpsert(item models.GrpApplication) error {
 }
 
 func (apply GrpApplicationDao) UpdateStatus(id int64, status models.GrpApplicationStatus) error {
-	return dbcommons.GetDb().Model(&GrpApplicationDao{}).Where("id=?").Update("status", status).Error
+	return dbcommons.GetDb().Model(&GrpApplicationDao{}).Where("id=?", id).Update("status", status).Error
 }
 
 func (apply GrpApplicationDao) QueryMyGrpApplications(appkey, sponsorId string, startTime, count int64, isPositive bool) ([]*models.GrpApplication, error) {
@@ -82,7 +83,7 @@ func (apply GrpApplicationDao) QueryMyGrpApplications(appkey, sponsorId string, 
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func (apply GrpApplicationDao) QueryMyPendingGrpInvitations(appkey, recipientId 
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +161,7 @@ func (apply GrpApplicationDao) QueryGrpInvitations(appkey, groupId string, start
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +200,7 @@ func (apply GrpApplicationDao) QueryGrpPendingApplications(appkey, groupId strin
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +238,7 @@ func (apply GrpApplicationDao) QueryGrpApplications(appkey, groupId string, star
 		condition = condition + " and apply_time<?"
 	}
 	params = append(params, startTime)
-	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(count).Find(&items).Error
+	err := dbcommons.GetDb().Where(condition, params...).Order(orderStr).Limit(int(count)).Find(&items).Error
 	if err != nil {
 		return nil, err
 	}

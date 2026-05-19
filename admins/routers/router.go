@@ -31,6 +31,7 @@ var proxyPathMap map[string]string
 
 func init() {
 	proxyPathMap = map[string]string{}
+	proxyPathMap["/imapiagent"] = http.MethodPost
 	proxyPathMap["/apps/active"] = http.MethodPost
 	proxyPathMap["/apps/create"] = http.MethodPost
 	proxyPathMap["/apps/list"] = http.MethodGet
@@ -89,6 +90,15 @@ func init() {
 	proxyPathMap["/apps/sensitivewords/import"] = http.MethodPost
 	proxyPathMap["/apps/sensitivewords/add"] = http.MethodPost
 	proxyPathMap["/apps/sensitivewords/delete"] = http.MethodPost
+
+	proxyPathMap["/apps/interceptors/add"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/delete"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/update"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/list"] = http.MethodGet
+	proxyPathMap["/apps/interceptors/conditions/add"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/conditions/delete"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/conditions/update"] = http.MethodPost
+	proxyPathMap["/apps/interceptors/conditions/list"] = http.MethodGet
 }
 
 func RouteProxy(group *gin.RouterGroup) *gin.RouterGroup {
@@ -128,6 +138,8 @@ func Route(group *gin.RouterGroup) *gin.RouterGroup {
 	group.GET("/apps/convers/list", apis.QryConversations)
 	//history msgs
 	group.GET("/apps/historymsgs/list", apis.QryHistoryMsgs)
+	group.POST("/apps/historymsgs/recall", apis.RecallHistoryMsg)
+	group.POST("/apps/historymsgs/del", apis.DelHistoryMsg)
 
 	//applications
 	group.POST("/apps/applications/add", apis.AddApplication)

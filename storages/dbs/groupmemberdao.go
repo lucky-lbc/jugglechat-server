@@ -102,51 +102,66 @@ type GroupMemberWithUser struct {
 	GroupMemberDao
 	Nickname     string `gorm:"nickname"`
 	UserPortrait string `gorm:"user_portrait"`
+
+	FriendDisplayName string `gorm:"friend_display_name"`
+	FriendId          string `gorm:"friend_id"`
 }
 
-func (member GroupMemberDao) QueryMembers(appkey, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? and m.id>?", member.TableName(), UserDao{}.TableName())
+func (member GroupMemberDao) QueryMembers(appkey, userId, groupId string, startId, limit int64) ([]*models.GroupMember, error) {
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? order by m.id asc limit ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, appkey, groupId, startId).Order("m.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
+		friendInfo := &models.FriendInfo{}
+		if item.FriendId != "" {
+			friendInfo.IsFriend = true
+			friendInfo.DisplayName = item.FriendDisplayName
+		}
 		ret = append(ret, &models.GroupMember{
-			ID:             item.ID,
-			GroupId:        item.GroupId,
-			MemberId:       item.MemberId,
-			MemberType:     item.MemberType,
-			CreatedTime:    item.CreatedTime,
-			AppKey:         item.AppKey,
-			IsMute:         item.IsMute,
-			IsAllow:        item.IsAllow,
-			MuteEndAt:      item.MuteEndAt,
-			GrpDisplayName: item.GrpDisplayName,
-			Nickname:       item.Nickname,
-			UserPortrait:   item.UserPortrait,
+			ID:               item.ID,
+			GroupId:          item.GroupId,
+			MemberId:         item.MemberId,
+			MemberType:       item.MemberType,
+			CreatedTime:      item.CreatedTime,
+			AppKey:           item.AppKey,
+			IsMute:           item.IsMute,
+			IsAllow:          item.IsAllow,
+			MuteEndAt:        item.MuteEndAt,
+			GrpDisplayName:   item.GrpDisplayName,
+			Nickname:         item.Nickname,
+			UserPortrait:     item.UserPortrait,
+			MemberFriendInfo: friendInfo,
 		})
 	}
 	return ret, err
 }
 
-func (member GroupMemberDao) SearchMembersByName(appkey, groupId, nickname string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id where m.app_key=? and m.group_id=? and m.id>? and u.nickname like ?", member.TableName(), UserDao{}.TableName())
+func (member GroupMemberDao) SearchMembersByName(appkey, userId, groupId, nickname string, startId, limit int64) ([]*models.GroupMember, error) {
+	sql := fmt.Sprintf("select m.*,u.nickname,u.user_portrait,u.user_type,f.friend_id,f.display_name as friend_display_name from %s as m left join %s as u on m.app_key=u.app_key and m.member_id=u.user_id left join %s as f on m.app_key=f.app_key and f.user_id=? and f.friend_id=m.member_id where m.app_key=? and m.group_id=? and m.id>? and u.nickname like ? order by m.id asc limit ?", member.TableName(), UserDao{}.TableName(), FriendRelDao{}.TableName())
 	var items []*GroupMemberWithUser
-	err := dbcommons.GetDb().Raw(sql, appkey, groupId, startId, "%"+nickname+"%").Order("m.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, userId, appkey, groupId, startId, "%"+nickname+"%", limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
+		friendInfo := &models.FriendInfo{}
+		if item.FriendId != "" {
+			friendInfo.IsFriend = true
+			friendInfo.DisplayName = item.FriendDisplayName
+		}
 		ret = append(ret, &models.GroupMember{
-			ID:             item.ID,
-			GroupId:        item.GroupId,
-			MemberId:       item.MemberId,
-			MemberType:     item.MemberType,
-			CreatedTime:    item.CreatedTime,
-			AppKey:         item.AppKey,
-			IsMute:         item.IsMute,
-			IsAllow:        item.IsAllow,
-			MuteEndAt:      item.MuteEndAt,
-			GrpDisplayName: item.GrpDisplayName,
-			Nickname:       item.Nickname,
-			UserPortrait:   item.UserPortrait,
+			ID:               item.ID,
+			GroupId:          item.GroupId,
+			MemberId:         item.MemberId,
+			MemberType:       item.MemberType,
+			CreatedTime:      item.CreatedTime,
+			AppKey:           item.AppKey,
+			IsMute:           item.IsMute,
+			IsAllow:          item.IsAllow,
+			MuteEndAt:        item.MuteEndAt,
+			GrpDisplayName:   item.GrpDisplayName,
+			Nickname:         item.Nickname,
+			UserPortrait:     item.UserPortrait,
+			MemberFriendInfo: friendInfo,
 		})
 	}
 	return ret, err
@@ -159,9 +174,9 @@ type GroupMemberWithGroup struct {
 }
 
 func (member GroupMemberDao) QueryGroupsByMemberId(appkey, memberId string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>?", member.TableName(), GroupDao{}.TableName())
+	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>? order by m.id asc limit ?", member.TableName(), GroupDao{}.TableName())
 	var items []*GroupMemberWithGroup
-	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId).Order("m.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId, limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		ret = append(ret, &models.GroupMember{
@@ -183,9 +198,9 @@ func (member GroupMemberDao) QueryGroupsByMemberId(appkey, memberId string, star
 }
 
 func (member GroupMemberDao) SearchGroupsByMemberId(appkey, memberId string, keyword string, startId, limit int64) ([]*models.GroupMember, error) {
-	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>? and g.group_name like ?", member.TableName(), GroupDao{}.TableName())
+	sql := fmt.Sprintf("select m.*,g.group_name,g.group_portrait from %s as m left join %s as g on m.app_key=g.app_key and m.group_id=g.group_id where m.app_key=? and m.member_id=? and m.id>? and g.group_name like ? order by m.id asc limit ?", member.TableName(), GroupDao{}.TableName())
 	var items []*GroupMemberWithGroup
-	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId, "%"+keyword+"%").Order("m.id asc").Limit(limit).Find(&items).Error
+	err := dbcommons.GetDb().Raw(sql, appkey, memberId, startId, "%"+keyword+"%", limit).Scan(&items).Error
 	ret := []*models.GroupMember{}
 	for _, item := range items {
 		ret = append(ret, &models.GroupMember{
@@ -222,7 +237,7 @@ func (member GroupMemberDao) UpdateMute(appkey, groupId string, isMute int, memb
 	} else {
 		upd["mute_end_at"] = muteEndAt
 	}
-	return dbcommons.GetDb().Model(&GroupMemberDao{}).Where("app_key=? and group_id=? and member_id in (?)", appkey, groupId, memberIds).Update(upd).Error
+	return dbcommons.GetDb().Model(&GroupMemberDao{}).Where("app_key=? and group_id=? and member_id in (?)", appkey, groupId, memberIds).Updates(upd).Error
 }
 
 func (member GroupMemberDao) UpdateAllow(appkey, groupId string, isAllow int, memberIds []string) error {
@@ -230,17 +245,16 @@ func (member GroupMemberDao) UpdateAllow(appkey, groupId string, isAllow int, me
 }
 
 func (member GroupMemberDao) CountByGroup(appkey, groupId string) int {
-	var count int
+	var count int64
 	err := dbcommons.GetDb().Model(&GroupMemberDao{}).Where("app_key=? and group_id=?", appkey, groupId).Count(&count).Error
 	if err != nil {
 		return 0
 	}
-	return count
+	return int(count)
 }
 
 func (member GroupMemberDao) UpdateGrpDisplayName(appkey, groupId, memberId string, displayName string) error {
-	err := dbcommons.GetDb().Model(&GroupMemberDao{}).Where("app_key=? and group_id=? and member_id=?", appkey, groupId, memberId).Update("grp_display_name", displayName).Error
-	return err
+	return dbcommons.GetDb().Model(&member).Where("app_key=? and group_id=? and member_id=?", appkey, groupId, memberId).Update("grp_display_name", displayName).Error
 }
 
 func (member GroupMemberDao) QueryRandomMembers(appkey, groupId string, limit int64) ([]*models.GroupMember, error) {

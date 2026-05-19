@@ -5,19 +5,21 @@ import (
 
 	"context"
 	"fmt"
-	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
+	"time"
+
 	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
 	"github.com/lucky-lbc/jugglechat-server/commons/ctxs"
 	"github.com/lucky-lbc/jugglechat-server/commons/errs"
 	"github.com/lucky-lbc/jugglechat-server/commons/imsdk"
 	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
-
 	"github.com/lucky-lbc/jugglechat-server/storages"
 	"github.com/lucky-lbc/jugglechat-server/storages/models"
+
 	"log"
 	"os"
 	"path/filepath"
-	"time"
+
+	juggleimsdk "github.com/lucky-lbc/imserver-sdk-go"
 )
 
 func TestGroup(ctx context.Context) errs.IMErrorCode {
@@ -43,15 +45,17 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 		MemberCount:   int32(memberCount),
 		Owner:         &apimodels.GroupMemberInfo{},
 		GroupManagement: &apimodels.GroupManagement{
-			GroupMute:     grpInfo.IsMute,
-			MaxAdminCount: 10,
+			GroupMute:          grpInfo.IsMute,
+			MaxAdminCount:      10,
+			GroupHisMsgVisible: 1,
 
-			GroupEditMsgRight:    utils.IntPtr(7),
-			GroupAddMemberRight:  utils.IntPtr(7),
-			GroupMentionAllRight: utils.IntPtr(7),
-			GroupTopMsgRight:     utils.IntPtr(7),
-			GroupSendMsgRight:    utils.IntPtr(7),
-			GroupSetMsgLifeRight: utils.IntPtr(7),
+			GroupEditMsgRight:     utils.IntPtr(7),
+			GroupAddMemberRight:   utils.IntPtr(7),
+			GroupMentionAllRight:  utils.IntPtr(7),
+			GroupTopMsgRight:      utils.IntPtr(7),
+			GroupSendMsgRight:     utils.IntPtr(7),
+			GroupSetMsgLifeRight:  utils.IntPtr(7),
+			GroupApplyFriendRight: utils.IntPtr(7),
 		},
 	}
 	isMember := false
@@ -95,6 +99,8 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 				ret.GroupManagement.GroupSendMsgRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			} else if ext.ItemKey == apimodels.AttItemKey_SetMsgLifeRight {
 				ret.GroupManagement.GroupSetMsgLifeRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_ApplyFriendRight {
+				ret.GroupManagement.GroupApplyFriendRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			}
 		}
 	}
@@ -128,7 +134,7 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 		}
 	}
 	//top members
-	topMembers, err := grpMemberStorage.QueryMembers(appkey, groupId, 0, 20)
+	topMembers, err := grpMemberStorage.QueryMembers(appkey, requestId, groupId, 0, 20)
 	if err == nil && len(topMembers) > 0 {
 		for _, member := range topMembers {
 			role := apimodels.GrpMemberRole_GrpMember
@@ -137,6 +143,13 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 			} else if _, exist := administrators[member.MemberId]; exist {
 				role = apimodels.GrpMemberRole_GrpAdmin
 			}
+			friendInfo := &apimodels.FriendInfo{
+				IsFriend: false,
+			}
+			if member.MemberFriendInfo != nil {
+				friendInfo.IsFriend = member.MemberFriendInfo.IsFriend
+				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
+			}
 			ret.Members = append(ret.Members, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				Role:       role,
@@ -144,6 +157,8 @@ func QryGroupInfo(ctx context.Context, groupId string) (errs.IMErrorCode, *apimo
 				Avatar:     member.UserPortrait,
 				MemberType: member.MemberType,
 				IsMute:     member.IsMute,
+
+				FriendInfo: friendInfo,
 			})
 			ret.MemberOffset, _ = utils.EncodeInt(member.ID)
 		}
@@ -170,12 +185,13 @@ func GetGroupInfo(ctx context.Context, groupId string) *apimodels.GrpInfo {
 
 func GetGroupSettings(ctx context.Context, groupId string) *apimodels.GroupManagement {
 	ret := &apimodels.GroupManagement{
-		GroupEditMsgRight:    utils.IntPtr(7),
-		GroupAddMemberRight:  utils.IntPtr(7),
-		GroupMentionAllRight: utils.IntPtr(7),
-		GroupTopMsgRight:     utils.IntPtr(7),
-		GroupSendMsgRight:    utils.IntPtr(7),
-		GroupSetMsgLifeRight: utils.IntPtr(7),
+		GroupEditMsgRight:     utils.IntPtr(7),
+		GroupAddMemberRight:   utils.IntPtr(7),
+		GroupMentionAllRight:  utils.IntPtr(7),
+		GroupTopMsgRight:      utils.IntPtr(7),
+		GroupSendMsgRight:     utils.IntPtr(7),
+		GroupSetMsgLifeRight:  utils.IntPtr(7),
+		GroupApplyFriendRight: utils.IntPtr(7),
 	}
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	grpExtStorage := storages.NewGroupExtStorage()
@@ -207,6 +223,8 @@ func GetGroupSettings(ctx context.Context, groupId string) *apimodels.GroupManag
 				ret.GroupSendMsgRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			} else if ext.ItemKey == apimodels.AttItemKey_SetMsgLifeRight {
 				ret.GroupSetMsgLifeRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
+			} else if ext.ItemKey == apimodels.AttItemKey_ApplyFriendRight {
+				ret.GroupApplyFriendRight = utils.IntPtr(utils.ToInt(ext.ItemValue))
 			}
 		}
 	}
@@ -233,6 +251,7 @@ func CheckGroupMembers(ctx context.Context, req *apimodels.CheckGroupMembersReq)
 }
 
 func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersReq) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	groupId := req.GroupId
 	var startId int64 = 0
@@ -250,15 +269,26 @@ func SearchGroupMembers(ctx context.Context, req *apimodels.SearchGroupMembersRe
 		Items: []*apimodels.GroupMemberInfo{},
 	}
 	storage := storages.NewGroupMemberStorage()
-	members, err := storage.SearchMembersByName(appkey, groupId, req.Key, startId, limit)
+	members, err := storage.SearchMembersByName(appkey, userId, groupId, req.Key, startId, limit)
 	if err == nil {
+		seenMemberIds := map[string]struct{}{}
 		for _, member := range members {
 			ret.Offset, _ = utils.EncodeInt(member.ID)
+			if _, ok := seenMemberIds[member.MemberId]; ok {
+				continue
+			}
+			seenMemberIds[member.MemberId] = struct{}{}
+			friendInfo := &apimodels.FriendInfo{}
+			if member.MemberFriendInfo != nil {
+				friendInfo.IsFriend = member.MemberFriendInfo.IsFriend
+				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
+			}
 			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				MemberType: member.MemberType,
 				Nickname:   member.Nickname,
 				Avatar:     member.UserPortrait,
+				FriendInfo: friendInfo,
 			})
 		}
 	}
@@ -324,6 +354,15 @@ func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMEr
 		Type:     apimodels.GroupNotifyType_AddMember,
 	}
 	SendGrpNotify(ctx, grpId, notify)
+	// set group confs
+	grpExtStorage := storages.NewGroupExtStorage()
+	grpExtStorage.Upsert(models.GroupExt{
+		GroupId:   grpId,
+		ItemKey:   apimodels.AttItemKey_AddMemberRight,
+		ItemValue: "3",
+		ItemType:  apimodels.AttItemType_Setting,
+		AppKey:    appkey,
+	})
 	return errs.IMErrorCode_SUCCESS, &apimodels.GroupInfo{
 		GroupId:       grpId,
 		GroupName:     req.GroupName,
@@ -332,6 +371,9 @@ func CreateGroup(ctx context.Context, req *apimodels.GroupMembersReq) (errs.IMEr
 }
 
 func UpdateGroup(ctx context.Context, req *apimodels.GroupInfo) errs.IMErrorCode {
+	if ok, _ := CheckSensitiveText(ctx, req.GroupName); !ok {
+		return errs.IMErrorCode_APP_Sensitive
+	}
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	requestId := ctxs.GetRequesterIdFromCtx(ctx)
 	storage := storages.NewGroupStorage()
@@ -625,6 +667,8 @@ func DelGrpMembers(ctx context.Context, req *apimodels.GroupMembersReq) errs.IME
 }
 
 func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset string) (errs.IMErrorCode, *apimodels.GroupMemberInfos) {
+	userId := ctxs.GetRequesterIdFromCtx(ctx)
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
 	storage := storages.NewGroupMemberStorage()
 	var startId int64 = 0
 	if offset != "" {
@@ -636,15 +680,43 @@ func QueryGrpMembers(ctx context.Context, groupId string, limit int64, offset st
 	ret := &apimodels.GroupMemberInfos{
 		Items: []*apimodels.GroupMemberInfo{},
 	}
-	members, err := storage.QueryMembers(ctxs.GetAppKeyFromCtx(ctx), groupId, startId, limit)
+	members, err := storage.QueryMembers(appkey, userId, groupId, startId, limit)
 	if err == nil {
+		grpStorage := storages.NewGroupStorage()
+		grpInfo, err := grpStorage.FindById(appkey, groupId)
+		if err != nil || grpInfo == nil {
+			return errs.IMErrorCode_APP_DEFAULT, nil
+		}
+		//grp administrator
+		administrators := map[string]bool{}
+		grpAdminStorage := storages.NewGroupAdminStorage()
+		admins, err := grpAdminStorage.QryAdmins(appkey, groupId)
+		if err == nil {
+			for _, admin := range admins {
+				administrators[admin.AdminId] = true
+			}
+		}
 		for _, member := range members {
+			friendInfo := &apimodels.FriendInfo{}
+			if member.MemberFriendInfo != nil {
+				friendInfo.IsFriend = member.MemberFriendInfo.IsFriend
+				friendInfo.DisplayName = member.MemberFriendInfo.DisplayName
+			}
 			ret.Offset, _ = utils.EncodeInt(member.ID)
+			role := apimodels.GrpMemberRole_GrpMember
+			if member.MemberId == grpInfo.CreatorId {
+				role = apimodels.GrpMemberRole_GrpCreator
+			} else if _, exist := administrators[member.MemberId]; exist {
+				role = apimodels.GrpMemberRole_GrpAdmin
+			}
 			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
 				UserId:     member.MemberId,
 				MemberType: member.MemberType,
 				Nickname:   member.Nickname,
 				Avatar:     member.UserPortrait,
+				FriendInfo: friendInfo,
+				Role:       role,
+				IsMute:     member.IsMute,
 			})
 		}
 	}
@@ -750,7 +822,6 @@ func SetGroupHisMsgVisible(ctx context.Context, req *apimodels.SetGroupHisMsgVis
 	} else {
 		hideGrpMsg = "1"
 	}
-	fmt.Println(hideGrpMsg)
 	storage := storages.NewGroupExtStorage()
 	storage.Upsert(models.GroupExt{
 		GroupId:   req.GroupId,
@@ -829,6 +900,15 @@ func SetGroupManagementConfs(ctx context.Context, req *apimodels.GroupManagement
 			AppKey:    appkey,
 		})
 	}
+	if req.GroupApplyFriendRight != nil {
+		items = append(items, models.GroupExt{
+			GroupId:   req.GroupId,
+			ItemKey:   apimodels.AttItemKey_ApplyFriendRight,
+			ItemValue: utils.Int2String(int64(*req.GroupApplyFriendRight)),
+			ItemType:  apimodels.AttItemType_Setting,
+			AppKey:    appkey,
+		})
+	}
 	if len(items) > 0 {
 		storage := storages.NewGroupExtStorage()
 		err := storage.BatchUpsert(items)
@@ -860,6 +940,7 @@ func DelGroupAdministrators(ctx context.Context, req *apimodels.GroupAdministrat
 
 func QryGroupAdministrators(ctx context.Context, groupId string) (errs.IMErrorCode, *apimodels.GroupAdministratorsResp) {
 	appkey := ctxs.GetAppKeyFromCtx(ctx)
+	requesterId := ctxs.GetRequesterIdFromCtx(ctx)
 	ret := &apimodels.GroupAdministratorsResp{
 		GroupId: groupId,
 		Items:   []*apimodels.GroupMemberInfo{},
@@ -867,24 +948,38 @@ func QryGroupAdministrators(ctx context.Context, groupId string) (errs.IMErrorCo
 	storage := storages.NewGroupAdminStorage()
 	admins, err := storage.QryAdmins(appkey, groupId)
 	if err == nil {
-		mIds := []string{}
+		friendMap := map[string]*models.FriendInfo{}
+		adminIds := []string{}
 		for _, admin := range admins {
-			mIds = append(mIds, admin.AdminId)
-			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
-				UserId: admin.AdminId,
-				Role:   apimodels.GrpMemberRole_GrpAdmin,
-			})
+			adminIds = append(adminIds, admin.AdminId)
 		}
-		userStorage := storages.NewUserStorage()
-		userMap, err := userStorage.FindByUserIds(appkey, mIds)
-		if err == nil {
-			for _, member := range ret.Items {
-				if u, exist := userMap[member.UserId]; exist {
-					member.Nickname = u.Nickname
-					member.Avatar = u.UserPortrait
-					member.MemberType = u.UserType
+		if len(adminIds) > 0 {
+			friendStorage := storages.NewFriendRelStorage()
+			friendRels, ferr := friendStorage.QueryFriendRelsByFriendIds(appkey, requesterId, adminIds)
+			if ferr == nil {
+				for _, rel := range friendRels {
+					friendMap[rel.FriendId] = &models.FriendInfo{
+						IsFriend:    true,
+						DisplayName: rel.DisplayName,
+					}
 				}
 			}
+		}
+		for _, admin := range admins {
+			friendInfo := &apimodels.FriendInfo{}
+			if friend, exist := friendMap[admin.AdminId]; exist {
+				friendInfo.IsFriend = friend.IsFriend
+				friendInfo.DisplayName = friend.DisplayName
+			}
+			ret.Items = append(ret.Items, &apimodels.GroupMemberInfo{
+				UserId:         admin.AdminId,
+				Nickname:       admin.Nickname,
+				Avatar:         admin.UserPortrait,
+				GrpDisplayName: admin.GrpDisplayName,
+				MemberType:     admin.UserType,
+				Role:           apimodels.GrpMemberRole_GrpAdmin,
+				FriendInfo:     friendInfo,
+			})
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret

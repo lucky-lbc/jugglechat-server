@@ -14,13 +14,11 @@ type IFriendRelStorage interface {
 	BatchUpsert(items []FriendRel) error
 	QueryFriendRels(appkey, userId string, startId, limit int64) ([]*FriendRel, error)
 	QueryFriendRelsWithPage(appkey, userId string, orderTag string, page, size int64) ([]*User, error)
-	QueryAllFriendRels(appkey, userId string) ([]*User, error)
 	SearchFriendsByName(appkey, userId string, nickname string, startId, limit int64) ([]*User, error)
 	BatchDelete(appkey, userId string, friendIds []string) error
 	QueryFriendRelsByFriendIds(appkey, userId string, friendIds []string) ([]*FriendRel, error)
 	UpdateOrderTag(appkey, userId, friendId string, orderTag string) error
-	UpdateDisplayName(appkey, userId, friendId, displayName string) error
-	UpsertDisplayName(appkey, userId, friendId, displayName string) error
+	UpdateDisplayName(appkey, userId, friendId string, displayName string) error
 }
 
 type FriendApplicationStatus int

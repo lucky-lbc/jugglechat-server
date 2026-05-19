@@ -75,11 +75,12 @@ func QryFriendsWithPage(ctx *gin.Context) {
 	}
 	for _, friend := range friends.Items {
 		ret.Items = append(ret.Items, &models.UserObj{
-			UserId:   friend.UserId,
-			Nickname: friend.Nickname,
-			Avatar:   friend.Avatar,
-			Pinyin:   friend.Pinyin,
-			IsFriend: true,
+			UserId:     friend.UserId,
+			Nickname:   friend.Nickname,
+			Avatar:     friend.Avatar,
+			Pinyin:     friend.Pinyin,
+			IsFriend:   true,
+			FriendInfo: friend.FriendInfo,
 		})
 	}
 	responses.SuccessHttpResp(ctx, ret)
@@ -89,6 +90,10 @@ func SearchFriends(ctx *gin.Context) {
 	req := models.SearchFriendsReq{}
 	if err := ctx.BindJSON(&req); err != nil || req.Key == "" {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	if services.CheckApiBlockByVersion(ctxs.ToCtx(ctx)) {
+		responses.SuccessHttpResp(ctx, &models.Users{})
 		return
 	}
 	code, resp := services.SearchFriends(ctxs.ToCtx(ctx), &req)
@@ -135,6 +140,10 @@ func ApplyFriend(ctx *gin.Context) {
 	req := models.ApplyFriend{}
 	if err := ctx.BindJSON(&req); err != nil {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	if services.CheckApiBlockByVersion(ctxs.ToCtx(ctx)) {
+		responses.SuccessHttpResp(ctx, nil)
 		return
 	}
 	code := services.ApplyFriend(ctxs.ToCtx(ctx), &models.ApplyFriend{
@@ -249,7 +258,7 @@ func FriendApplications(ctx *gin.Context) {
 }
 
 func SetFriendDisplayName(ctx *gin.Context) {
-	req := models.SetFriendRemarkReq{}
+	req := models.SetFriendDisplayNameReq{}
 	if err := ctx.BindJSON(&req); err != nil {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
@@ -260,13 +269,4 @@ func SetFriendDisplayName(ctx *gin.Context) {
 		return
 	}
 	responses.SuccessHttpResp(ctx, nil)
-}
-
-func QryAllFriends(ctx *gin.Context) {
-	code, friends := services.QryAllFriends(ctxs.ToCtx(ctx))
-	if code != errs.IMErrorCode_SUCCESS {
-		responses.ErrorHttpResp(ctx, code)
-		return
-	}
-	responses.SuccessHttpResp(ctx, friends)
 }

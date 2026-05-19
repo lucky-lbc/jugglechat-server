@@ -43,7 +43,7 @@ type SearchFriendsReq struct {
 	Limit  int64  `json:"limit"`
 }
 
-type SetFriendRemarkReq struct {
-	FriendId    string `json:"friend_id"`
-	DisplayName string `json:"display_name"`
+type SetFriendDisplayNameReq struct {
+	FriendId          string `json:"friend_id"`
+	FriendDisplayName string `json:"friend_display_name"`
 }
