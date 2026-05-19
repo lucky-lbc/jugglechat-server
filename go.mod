@@ -10,7 +10,7 @@ require (
 	github.com/aliyun/credentials-go v1.4.6
 	github.com/disintegration/imaging v1.6.2
 	github.com/go-mail/mail/v2 v2.3.0
-	github.com/lucky-lbc/imserver-sdk-go v1.0.11
+	github.com/lucky-lbc/imserver-sdk-go v1.0.12
 )
 
 require (
