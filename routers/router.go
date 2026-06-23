@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/jugglechat-server/apis"
+	"github.com/lucky-lbc/jugglechat-server/apis"
 )
 
 func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
