@@ -3,6 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
+	utils2 "github.com/lucky-lbc/jugglechat-server/utils"
+	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	apimodels "github.com/lucky-lbc/jugglechat-server/apis/models"
@@ -1123,4 +1127,72 @@ func QryGrpApplications(ctx context.Context, startTime int64, count int32, order
 		}
 	}
 	return errs.IMErrorCode_SUCCESS, ret
+}
+
+func SetGroupAvatar(ctx context.Context, groupId string) errs.IMErrorCode {
+	appkey := ctxs.GetAppKeyFromCtx(ctx)
+
+	storage := storages.NewGroupMemberStorage()
+	members, err := storage.QueryRandomMembers(appkey, groupId, 9)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 查询随机群成员失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	var avatarURLs []string
+	for _, member := range members {
+		if member.UserPortrait != "" {
+			avatarURLs = append(avatarURLs, member.UserPortrait)
+			log.Printf("SetGroupAvatar: 添加成员头像URL: %s, nickname: %s", member.UserPortrait, member.Nickname)
+		} else {
+			avatarURLs = append(avatarURLs, "https://pp-appicon.s3.amazonaws.com/avatar/default/default.png")
+		}
+	}
+
+	if len(avatarURLs) == 0 {
+		log.Printf("SetGroupAvatar: 没有足够的非空头像URL用于生成群组头像")
+		return errs.IMErrorCode_APP_GROUP_NO_MEMBERS
+	}
+
+	// 生成临时文件路径
+	tempFile := fmt.Sprintf("/tmp/im-server/images/group/group_avatar_%s.jpg", groupId)
+	log.Printf("SetGroupAvatar: 临时文件路径: %s", tempFile)
+
+	dir := filepath.Dir(tempFile)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		log.Printf("SetGroupAvatar: 创建目录失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	// 生成群组头像
+	err = utils2.GenerateGroupAvatar(avatarURLs, tempFile)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 生成群组头像失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	avatarURL, err := UploadToStorage(ctx, appkey, tempFile)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 上传头像失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+	// 更新群头像
+	grpStorage := storages.NewGroupStorage()
+	err = grpStorage.UpdateGrpName(appkey, groupId, "", avatarURL)
+	if err != nil {
+		log.Printf("SetGroupAvatar: 更新群组头像失败: %v", err)
+		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
+	}
+
+	// 保存生成群头像的成员UID列表
+	//memberUIDs := make([]string, 0, len(members))
+	//for _, member := range members {
+	//	memberUIDs = append(memberUIDs, member.MemberId)
+	//}
+	//err = grpStorage.UpdateGroupAvatarMembers(appkey, groupId, strings.Join(memberUIDs, ","))
+	//if err != nil {
+	//	log.Printf("SetGroupAvatar: 保存成员UID列表失败: %v", err)
+	//}
+
+	return errs.IMErrorCode_SUCCESS
 }
