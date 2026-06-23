@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	utils2 "github.com/lucky-lbc/jugglechat-server/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -1165,7 +1164,7 @@ func SetGroupAvatar(ctx context.Context, groupId string) errs.IMErrorCode {
 	}
 
 	// 生成群组头像
-	err = utils2.GenerateGroupAvatar(avatarURLs, tempFile)
+	err = utils.GenerateGroupAvatar(avatarURLs, tempFile)
 	if err != nil {
 		log.Printf("SetGroupAvatar: 生成群组头像失败: %v", err)
 		return errs.IMErrorCode_APP_INTERNAL_TIMEOUT
