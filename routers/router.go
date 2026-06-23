@@ -4,13 +4,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lucky-lbc/jugglechat-server/apis"
+	"github.com/juggleim/jugglechat-server/apis"
 )
 
 func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	eng.Use(corsHandler())
+
 	group := eng.Group("/" + prefix)
 	group.Use(apis.Validate)
+
+	group.GET("/serverinfos", apis.GetServerInfo)
 
 	group.POST("/login", apis.Login)
 	group.POST("/register", apis.Register)
@@ -64,8 +67,6 @@ func Route(eng *gin.Engine, prefix string) *gin.RouterGroup {
 	group.POST("/groups/setgrpannouncement", apis.SetGrpAnnouncement)
 	group.GET("/groups/getgrpannouncement", apis.GetGrpAnnouncement)
 	group.POST("/groups/setdisplayname", apis.SetGrpDisplayName)
-	group.POST("/groups/avatar/refresh", apis.SetGrpAvatar)
-
 	//group manage
 	group.POST("/groups/management/chgowner", apis.ChgGroupOwner)
 	group.POST("/groups/management/administrators/add", apis.AddGrpAdministrator)

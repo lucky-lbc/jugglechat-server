@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	adminRouters "github.com/lucky-lbc/jugglechat-server/admins/routers"
 	"github.com/lucky-lbc/jugglechat-server/commons/configures"
 	"github.com/lucky-lbc/jugglechat-server/commons/dbcommons"
 	"github.com/lucky-lbc/jugglechat-server/log"
@@ -32,15 +31,13 @@ func main() {
 
 	httpServer := gin.Default()
 	routers.Route(httpServer, "jim")
+	routers.LoadWebIM(httpServer)
 	go httpServer.Run(fmt.Sprintf(":%d", configures.Config.Port))
-
-	//start admin
-	adminServer := gin.Default()
-	group := adminRouters.RouteLogin(adminServer, "admingateway")
-	adminRouters.RouteProxy(group)
-	adminRouters.Route(group)
-	adminRouters.LoadJuggleChatAdminWeb(adminServer)
-	go adminServer.Run(fmt.Sprintf(":%d", configures.Config.AdminPort))
+	if configures.Config.CallbackPort > 0 {
+		callbackServer := gin.Default()
+		routers.CallbackRoute(callbackServer, "callback")
+		go callbackServer.Run(fmt.Sprintf(":%d", configures.Config.CallbackPort))
+	}
 
 	closeChan := make(chan struct{})
 	sigChan := make(chan os.Signal, 1)

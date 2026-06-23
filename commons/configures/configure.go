@@ -7,9 +7,8 @@ import (
 )
 
 type AppConfig struct {
-	Port       int  `yaml:"port"`
-	AdminPort  int  `yaml:"adminPort"`
-	Commercial bool `yaml:"commercial"`
+	Port         int `yaml:"port"`
+	CallbackPort int `yaml:"callbackPort"`
 
 	Log struct {
 		LogPath string `yaml:"logPath"`
@@ -24,16 +23,11 @@ type AppConfig struct {
 		Debug    bool   `yaml:"debug"`
 	} `yaml:"mysql"`
 
-	ImApiDomain   string `yaml:"imApiDomain"`
-	ImAdminDomain string `yaml:"imAdminDomain"`
-	AdminSecret   string `yaml:"adminSecret"`
+	ImApiDomain string `yaml:"imApiDomain"`
 
-	ConnectManager struct {
-		WsPort      int `yaml:"wsPort"`
-		WsProxyPort int `yaml:"proxyPort"`
-	} `yaml:"connectManager"`
-
-	AiBotCallbackUrl string `yaml:"aiBotCallbackUrl"`
+	CallbackBaseUrl   string `yaml:"callbackBaseUrl"`
+	AiBotCallbackUrl  string `yaml:"aiBotCallbackUrl"`
+	AssistantAgentUrl string `yaml:"assistantAgentUrl"`
 
 	BotConnector struct {
 		Domain string `yaml:"domain"`
@@ -56,9 +50,6 @@ func InitConfigures() error {
 		Config = conf
 		if Config.Port <= 0 {
 			Config.Port = 8070
-		}
-		if Config.AdminPort <= 0 {
-			Config.AdminPort = 8060
 		}
 		return nil
 	} else {

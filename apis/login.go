@@ -151,7 +151,7 @@ func Register(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_USER_EXISTED)
 		return
 	}
-	events.TriggerUserRegiste(dbModels.User{
+	events.TriggerUserRegiste(appkey, dbModels.User{
 		UserId:       userId,
 		Nickname:     nickname,
 		LoginAccount: req.Account,
@@ -220,7 +220,7 @@ func SmsLogin(ctx *gin.Context) {
 					responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 					return
 				} else {
-					events.TriggerUserRegiste(dbModels.User{
+					events.TriggerUserRegiste(appkey, dbModels.User{
 						UserId:   userId,
 						Nickname: nickname,
 						Phone:    req.Phone,
@@ -313,7 +313,7 @@ func EmailLogin(ctx *gin.Context) {
 				responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_NOT_LOGIN)
 				return
 			} else {
-				events.TriggerUserRegiste(dbModels.User{
+				events.TriggerUserRegiste(appkey, dbModels.User{
 					UserId:   userId,
 					Nickname: nickname,
 					Email:    req.Email,

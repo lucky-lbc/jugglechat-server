@@ -21,6 +21,20 @@ CREATE TABLE IF NOT EXISTS `accountapprels` (
     UNIQUE KEY `uniq_account` (`app_key`,`account`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS `appnavs` (
+                                         `id` INT NOT NULL AUTO_INCREMENT,
+                                         `app_key` VARCHAR(50) NULL,
+    `alias_no` VARCHAR(50) NULL,
+    `api_url` VARCHAR(200) NULL,
+    `ws_url` VARCHAR(200) NULL,
+    `app_url` VARCHAR(200) NULL,
+    `created_time` DATETIME(3) NULL,
+    `updated_time` DATETIME(3) NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `app_key_UNIQUE` (`app_key`),
+    UNIQUE INDEX `alias_no_UNIQUE` (`alias_no`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE IF NOT EXISTS `apps` (
                                       `id` int NOT NULL AUTO_INCREMENT,
                                       `app_key` varchar(45) NOT NULL,
@@ -222,44 +236,6 @@ CREATE TABLE IF NOT EXISTS `smsrecords` (
     PRIMARY KEY (`id`),
     KEY `idx_phone` (`app_key`,`phone`,`created_time`),
     KEY `idx_mail` (`app_key`,`email`,`created_time`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE IF NOT EXISTS `ai_engines` (
-                                            `id` int NOT NULL AUTO_INCREMENT,
-                                            `engine_type` tinyint DEFAULT '0',
-                                            `engine_conf` varchar(5000) DEFAULT NULL,
-    `status` tinyint DEFAULT '0',
-    `app_key` varchar(20) DEFAULT NULL,
-    PRIMARY KEY (`id`),
-    KEY `idx_appkey` (`app_key`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE IF NOT EXISTS `assistant_prompts` (
-                                                   `id` int NOT NULL AUTO_INCREMENT,
-                                                   `user_id` varchar(32) DEFAULT NULL,
-    `prompts` varchar(2000) DEFAULT NULL,
-    `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    `app_key` varchar(20) DEFAULT NULL,
-    PRIMARY KEY (`id`),
-    KEY `idx_id` (`app_key`,`id`),
-    KEY `idx_user` (`app_key`,`user_id`,`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE IF NOT EXISTS `botconfs` (
-                                          `id` int NOT NULL AUTO_INCREMENT,
-                                          `bot_id` varchar(32) NULL,
-    `nickname` varchar(50) DEFAULT NULL,
-    `bot_portrait` varchar(200) DEFAULT NULL,
-    `description` varchar(500) DEFAULT NULL,
-    `bot_type` tinyint DEFAULT '0',
-    `bot_conf` varchar(2000) NULL,
-    `status` tinyint DEFAULT '0',
-    `updated_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    `created_time` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-    `app_key` varchar(20) NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE INDEX `uniq_botid` (`app_key`, `bot_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `telebots` (

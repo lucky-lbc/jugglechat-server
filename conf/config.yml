@@ -1,5 +1,5 @@
 port: 8070
-adminPort: 8060
+callbackPort: 8060
 
 log:
   logPath: ./logs
