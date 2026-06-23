@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/jugglechat-server/commons/errs"
-	"github.com/juggleim/jugglechat-server/commons/responses"
-	"github.com/juggleim/jugglechat-server/commons/tools"
-	"github.com/juggleim/jugglechat-server/storages/dbs"
+	"github.com/lucky-lbc/jugglechat-server/commons/errs"
+	"github.com/lucky-lbc/jugglechat-server/commons/responses"
+	"github.com/lucky-lbc/jugglechat-server/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/storages/dbs"
 )
 
 func GetServerInfo(ctx *gin.Context) {

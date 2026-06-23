@@ -2,8 +2,8 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/jugglechat-server/apis"
-	"github.com/juggleim/jugglechat-server/services"
+	"github.com/lucky-lbc/jugglechat-server/apis"
+	"github.com/lucky-lbc/jugglechat-server/services"
 )
 
 func CallbackRoute(eng *gin.Engine, prefix string) *gin.RouterGroup {

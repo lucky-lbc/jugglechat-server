@@ -1,6 +1,6 @@
 package dbs
 
-import "github.com/juggleim/jugglechat-server/commons/dbcommons"
+import "github.com/lucky-lbc/jugglechat-server/commons/dbcommons"
 
 type AppNavDao struct {
 	ID      int64  `gorm:"primary_key"`

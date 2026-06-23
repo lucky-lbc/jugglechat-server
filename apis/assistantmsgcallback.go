@@ -7,11 +7,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juggleim/jugglechat-server/apis/models"
-	"github.com/juggleim/jugglechat-server/commons/configures"
-	"github.com/juggleim/jugglechat-server/commons/responses"
-	"github.com/juggleim/jugglechat-server/commons/tools"
-	"github.com/juggleim/jugglechat-server/services"
+	"github.com/lucky-lbc/jugglechat-server/apis/models"
+	"github.com/lucky-lbc/jugglechat-server/commons/configures"
+	"github.com/lucky-lbc/jugglechat-server/commons/responses"
+	"github.com/lucky-lbc/jugglechat-server/commons/tools"
+	"github.com/lucky-lbc/jugglechat-server/services"
 )
 
 func AssistantMsgCallback(ctx *gin.Context) {
