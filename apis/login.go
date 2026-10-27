@@ -3,6 +3,7 @@ package apis
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"regexp"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/lucky-lbc/jugglechat-server/commons/responses"
 	utils "github.com/lucky-lbc/jugglechat-server/commons/tools"
 	"github.com/lucky-lbc/jugglechat-server/events"
+	"github.com/lucky-lbc/jugglechat-server/log"
 	"github.com/lucky-lbc/jugglechat-server/services"
 	"github.com/lucky-lbc/jugglechat-server/storages"
 	dbModels "github.com/lucky-lbc/jugglechat-server/storages/models"
@@ -30,6 +32,16 @@ func Login(ctx *gin.Context) {
 	req := &models.RegisterReq{}
 	if err := ctx.BindJSON(req); err != nil || req.Password == "" || (req.Account == "" && req.Phone == "" && req.Email == "") {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
+		return
+	}
+	b, err2 := json.Marshal(req)
+	if err2 != nil {
+		log.Errorf("登录 marshal失败 err=%v req=%+v", err2, req)
+	} else {
+		log.Infof("登录 请求体 req=%s", b)
+	}
+	if req.Secret != "03204932rjf09320023gj" {
+		log.Errorf("登录 无效登录 account=%v", req.Account)
 		return
 	}
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
@@ -98,6 +110,17 @@ func Register(ctx *gin.Context) {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_REQ_BODY_ILLEGAL)
 		return
 	}
+	b, err2 := json.Marshal(req)
+	if err2 != nil {
+		log.Errorf("注册 marshal失败 err=%v req=%+v", err2, req)
+	} else {
+		log.Infof("注册 请求体 req=%s", b)
+	}
+	if req.Secret != "0320jfeimw320msdfi0" {
+		log.Errorf("注册 密钥不匹配！ req=%s", b)
+		return
+	}
+
 	appkey := ctx.GetString(string(ctxs.CtxKey_AppKey))
 	userId := utils.GenerateUUIDShort11()
 	//nickname := fmt.Sprintf("user%05d", utils.RandInt(100000))

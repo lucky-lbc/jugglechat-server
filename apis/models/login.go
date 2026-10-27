@@ -9,6 +9,7 @@ type RegisterReq struct {
 	Email    string `json:"email"`
 	Code     string `json:"code"`
 	Password string `json:"password"`
+	Secret   string `json:"secret"`
 }
 
 type SmsLoginReq struct {
