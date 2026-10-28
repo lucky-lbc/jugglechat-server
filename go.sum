@@ -206,8 +206,8 @@ github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible h1:Y6sqxHMyB1D2YSzWkL
 github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible/go.mod h1:ZQnN8lSECaebrkQytbHj4xNgtg8CR7RYXnPok8e0EHA=
 github.com/lestrrat-go/strftime v1.0.6 h1:CFGsDEt1pOpFNU+TJB0nhz9jl+K0hZSLE205AhTIGQQ=
 github.com/lestrrat-go/strftime v1.0.6/go.mod h1:f7jQKgV5nnJpYgdEasS+/y7EsTb8ykN2z68n3TtcTaw=
-github.com/lucky-lbc/imserver-sdk-go v1.0.15 h1:5agIjvlnl49Lx0tR1vs10sTVxJOyDBPlXzRc+5AFIr4=
-github.com/lucky-lbc/imserver-sdk-go v1.0.15/go.mod h1:6TpCcVIQ7fMeJ7ppRNq94ASkDNLkybgal8TRsA/kUuY=
+github.com/lucky-lbc/imserver-sdk-go v1.0.16 h1:uwodqsjkijvfX6JuI1JKs2cqKEQAjsVgQ1yrlRH6Sok=
+github.com/lucky-lbc/imserver-sdk-go v1.0.16/go.mod h1:6TpCcVIQ7fMeJ7ppRNq94ASkDNLkybgal8TRsA/kUuY=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/minio/crc64nvme v1.0.1 h1:DHQPrYPdqK7jQG/Ls5CTBZWeex/2FMS3G5XGkycuFrY=

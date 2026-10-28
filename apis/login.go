@@ -76,6 +76,7 @@ func Login(ctx *gin.Context) {
 		UserId:       user.UserId,
 		Nickname:     user.Nickname,
 		UserPortrait: user.UserPortrait,
+		Secret:       "t43092nsdl3240gfnsd[]",
 	})
 	if err != nil {
 		responses.ErrorHttpResp(ctx, errs.IMErrorCode_APP_INTERNAL_TIMEOUT)
